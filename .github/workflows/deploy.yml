@@ -63,13 +63,14 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY_BASE64: ${{ secrets.DEPLOY_SSH_KEY_BASE64 }}
         run: |
           test -n "$DEPLOY_HOST" || { echo "DEPLOY_HOST is empty"; exit 1; }
-          test -n "$DEPLOY_SSH_KEY" || { echo "DEPLOY_SSH_KEY is empty"; exit 1; }
+          test -n "$DEPLOY_SSH_KEY_BASE64" || { echo "DEPLOY_SSH_KEY_BASE64 is empty"; exit 1; }
           mkdir -p ~/.ssh
-          printf '%s' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          printf '%s' "$DEPLOY_SSH_KEY_BASE64" | base64 --decode > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
           ssh-keyscan -T 10 -H -p "${DEPLOY_PORT:-22}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Verify SSH login
