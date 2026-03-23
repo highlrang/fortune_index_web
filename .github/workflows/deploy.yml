@@ -26,16 +26,60 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Preflight checks
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          test -n "$DEPLOY_HOST" || { echo "DEPLOY_HOST is empty"; exit 1; }
+          test -n "$DEPLOY_USER" || { echo "DEPLOY_USER is empty"; exit 1; }
+          test -n "$DEPLOY_PATH" || { echo "DEPLOY_PATH is empty"; exit 1; }
+          PORT="${DEPLOY_PORT:-22}"
+
+          case "$DEPLOY_HOST" in
+            *://*|*@*|*/*|*:* )
+              echo "DEPLOY_HOST must be hostname or IP only. Current value is not valid."
+              exit 1
+              ;;
+          esac
+
+          case "$PORT" in
+            ''|*[!0-9]*)
+              echo "DEPLOY_PORT must be numeric. Current value is not valid."
+              exit 1
+              ;;
+          esac
+
+          echo "Checking TCP connectivity to $DEPLOY_HOST:$PORT"
+          timeout 10 bash -lc "cat < /dev/null > /dev/tcp/$DEPLOY_HOST/$PORT" || {
+            echo "Cannot reach $DEPLOY_HOST:$PORT from GitHub Actions runner."
+            echo "Check firewall, security group, port forwarding, and whether SSH is listening on that port."
+            exit 1
+          }
+
       - name: Configure SSH
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
+          test -n "$DEPLOY_HOST" || { echo "DEPLOY_HOST is empty"; exit 1; }
+          test -n "$DEPLOY_SSH_KEY" || { echo "DEPLOY_SSH_KEY is empty"; exit 1; }
           mkdir -p ~/.ssh
-          echo "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "${DEPLOY_PORT:-22}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -T 10 -H -p "${DEPLOY_PORT:-22}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Verify SSH login
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT:-22}" \
+            "$DEPLOY_USER@$DEPLOY_HOST" "echo SSH login succeeded"
 
       - name: Ensure target directory exists
         env:
