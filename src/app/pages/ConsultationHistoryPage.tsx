@@ -94,23 +94,21 @@ export function ConsultationHistoryPage() {
   const groupedItems = useMemo(() => groupByDate(filteredItems, sortOrder), [filteredItems, sortOrder]);
 
   return (
-    <div className="min-h-screen overflow-auto bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-950">
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
       </div>
 
       <div className="relative z-10">
-        <div className="sticky top-0 z-50 border-b border-white/10 bg-gradient-to-br from-indigo-950 via-indigo-900 to-indigo-950 px-6 py-5 backdrop-blur-xl shadow-lg shadow-black/20">
-          <div className="flex items-center justify-center">
+        <div className="sticky top-0 z-50 px-6 pb-4 pt-5">
+          <div className="mb-4 flex items-center justify-center">
             <div className="text-center">
               <h1 className="text-lg font-semibold text-white">상담 내역</h1>
               <p className="text-xs text-[#D4AF37]/70">Consultation History</p>
             </div>
           </div>
-        </div>
 
-        <div className="sticky top-[72px] z-40 bg-gradient-to-b from-indigo-950/90 to-transparent px-6 pb-4 backdrop-blur-xl">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -275,8 +273,6 @@ export function ConsultationHistoryPage() {
                                 </span>
                               ))}
                             </div>
-
-                            <p className="mb-3 text-sm leading-relaxed text-white/70">{item.aiSummary}</p>
 
                             <div className="flex items-center justify-end gap-1 text-xs text-[#D4AF37]/80 transition-colors group-hover:text-[#D4AF37]">
                               <span>{openingHistoryId === item.id ? '불러오는 중...' : '자세히 보기'}</span>

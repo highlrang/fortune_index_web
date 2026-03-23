@@ -10,6 +10,15 @@ export interface SessionUser {
   emailVerified: boolean;
   investmentRiskProfile: InvestmentRiskProfile;
   preferredSectors: string[];
+  birthDate?: string | null;
+  birthTime?: string | null;
+  gender?: string | null;
+  profileImageUrl?: string | null;
+  notificationEnabled?: boolean;
+  virtualInvestmentEnabled?: boolean;
+  darkModeEnabled?: boolean;
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 export interface SessionTokens {

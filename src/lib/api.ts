@@ -218,6 +218,15 @@ export interface AuthUserResponse {
   emailVerified: boolean;
   investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
   preferredSectors: string[];
+  birthDate?: string | null;
+  birthTime?: string | null;
+  gender?: string | null;
+  profileImageUrl?: string | null;
+  notificationEnabled?: boolean;
+  virtualInvestmentEnabled?: boolean;
+  darkModeEnabled?: boolean;
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 export interface AuthTokenResponse {
@@ -570,6 +579,36 @@ export interface TarotDeckCardResponse {
   videoUrl?: string | null;
 }
 
+export interface BirthTarotProfileResponse {
+  deckVersionId?: string;
+  name?: string;
+  koreanName?: string;
+  number?: number;
+  meaning?: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+}
+
+export interface SajuProfileResponse {
+  palza?: string[];
+  palja?: string[];
+  ohang?: {
+    wood?: number;
+    fire?: number;
+    earth?: number;
+    metal?: number;
+    water?: number;
+  };
+  sipsung?: string[];
+  daeun?: string;
+  sewun?: string;
+}
+
+export interface UserProfileDetailsResponse {
+  birthTarot?: BirthTarotProfileResponse | null;
+  saju?: SajuProfileResponse | null;
+}
+
 export async function login(payload: { email: string; password: string }) {
   return request<AuthResponse>('/api/auth/login', { method: 'POST', body: payload });
 }
@@ -594,6 +633,10 @@ export async function verifySignupCode(payload: EmailCodeVerifyPayload) {
 
 export async function getMe() {
   return request<AuthUserResponse>('/api/auth/me');
+}
+
+export async function getMyProfileDetails() {
+  return request<UserProfileDetailsResponse>('/api/users/me/profile-details');
 }
 
 export async function withdraw(payload: WithdrawPayload) {

@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { getMe, getTarotDeckVersions, logout } from '@/lib/api';
+import { getMe, getMyProfileDetails, getTarotDeckVersions, logout, type UserProfileDetailsResponse } from '@/lib/api';
 import { clearSession, getCurrentUser, getSession, updateSessionUser, type SessionUser } from '@/lib/session';
 import {
   getCachedTarotDeckVersions,
@@ -33,6 +33,7 @@ import {
 export function MyPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<SessionUser | null>(() => getCurrentUser());
+  const [profileDetails, setProfileDetails] = useState<UserProfileDetailsResponse | null>(null);
   const [session] = useState(() => getSession());
   const [showBirthTarot, setShowBirthTarot] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
@@ -56,6 +57,25 @@ export function MyPage() {
       })
       .catch(() => {
         // Keep the locally cached session user when profile sync fails.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!session) return;
+
+    getMyProfileDetails()
+      .then((response) => {
+        if (!active) return;
+        setProfileDetails(response);
+      })
+      .catch(() => {
+        // Keep the current UI fallbacks when profile details are unavailable.
       });
 
     return () => {
@@ -97,32 +117,38 @@ export function MyPage() {
   const userData = useMemo(() => {
     if (!user) return null;
 
+    const normalizedBirthTarot = normalizeBirthTarot(profileDetails);
+    const normalizedSaju = normalizeSaju(profileDetails);
+    const birthDate = formatBirthDate(user.birthDate);
+    const birthTime = formatBirthTime(user.birthTime);
+    const gender = formatGender(user.gender);
+    const age = calculateAge(user.birthDate);
+
     return {
       name: user.name,
       email: user.email,
-      birthDate: '미등록',
-      birthTime: '미등록',
-      gender: '미등록',
-      age: '-',
+      birthDate,
+      birthTime,
+      gender,
+      age,
       preferredSectors: user.preferredSectors,
       tokenExpiresAt: session ? new Date(session.tokens.accessTokenExpiresAt).toLocaleString() : '-',
-      birthTarot: {
-        name: 'The Star',
-        koreanName: '별',
-        number: 17,
-        meaning: '희망, 영감, 밝은 미래',
-        imageUrl:
-          'https://images.unsplash.com/photo-1683217956228-d3d24916df55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YXJvdCUyMGNhcmQlMjBteXN0aWNhbHxlbnwxfHx8fDE3NzM3NDg5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-      },
-      saju: {
-        palza: ['乙未', '己卯', '壬午', '辛亥'],
-        ohang: { wood: 40, fire: 25, earth: 15, metal: 10, water: 10 },
-        sipsung: ['정관', '편재', '식신', '정인'],
-        daeun: '30-40세: 甲申 대운',
-        sewun: '2026년 흐름: 기회 포착과 분산의 균형',
-      },
+      birthTarot: normalizedBirthTarot,
+      saju: normalizedSaju,
     };
-  }, [session, user]);
+  }, [profileDetails, session, user]);
+
+  useEffect(() => {
+    if (typeof user?.notificationEnabled === 'boolean') {
+      setNotificationEnabled(user.notificationEnabled);
+    }
+    if (typeof user?.darkModeEnabled === 'boolean') {
+      setIsDarkMode(user.darkModeEnabled);
+    }
+    if (typeof user?.virtualInvestmentEnabled === 'boolean') {
+      setVirtualInvestmentEnabled(user.virtualInvestmentEnabled);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -707,4 +733,91 @@ function SettingToggle({
       </button>
     </div>
   );
+}
+
+function formatBirthDate(value?: string | null) {
+  if (!value) return '미등록';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function formatBirthTime(
+  value?: { hour: number; minute: number; second?: number } | string | null,
+) {
+  if (!value) return '미등록';
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed || '미등록';
+  }
+
+  const hour = String(value.hour).padStart(2, '0');
+  const minute = String(value.minute).padStart(2, '0');
+  return `${hour}:${minute}`;
+}
+
+function formatGender(gender?: string | null) {
+  if (!gender) return '미등록';
+  if (gender === 'M' || gender === 'MALE') return '남성';
+  if (gender === 'F' || gender === 'FEMALE') return '여성';
+  if (gender === 'OTHER') return '기타';
+  if (gender === 'UNKNOWN') return '미등록';
+  return gender;
+}
+
+function calculateAge(birthDate?: string | null) {
+  if (!birthDate) return '-';
+
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return '-';
+
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+
+  return age >= 0 ? `${age}세` : '-';
+}
+
+function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) {
+  const birthTarot = profileDetails?.birthTarot;
+
+  return {
+    name: birthTarot?.name ?? 'The Star',
+    koreanName: birthTarot?.koreanName ?? '별',
+    number: birthTarot?.number ?? 17,
+    meaning: birthTarot?.meaning ?? '희망, 영감, 밝은 미래',
+    imageUrl:
+      birthTarot?.imageUrl ??
+      'https://images.unsplash.com/photo-1683217956228-d3d24916df55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YXJvdCUyMGNhcmQlMjBteXN0aWNhbHxlbnwxfHx8fDE3NzM3NDg5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+  };
+}
+
+function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
+  const saju = profileDetails?.saju;
+  const palza = saju?.palza ?? saju?.palja ?? ['乙未', '己卯', '壬午', '辛亥'];
+
+  return {
+    palza,
+    ohang: {
+      wood: saju?.ohang?.wood ?? 40,
+      fire: saju?.ohang?.fire ?? 25,
+      earth: saju?.ohang?.earth ?? 15,
+      metal: saju?.ohang?.metal ?? 10,
+      water: saju?.ohang?.water ?? 10,
+    },
+    sipsung: saju?.sipsung ?? ['정관', '편재', '식신', '정인'],
+    daeun: saju?.daeun ?? '대운 정보가 없습니다.',
+    sewun: saju?.sewun ?? '올해의 운세 정보가 없습니다.',
+  };
 }

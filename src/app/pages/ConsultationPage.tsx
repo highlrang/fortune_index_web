@@ -24,6 +24,22 @@ const fallbackScenarios: ScenarioOptionResponse[] = [
   { code: 'MENTAL_GUIDE', title: '멘탈 가이드', description: '투자 심리를 정리합니다.' },
 ];
 
+const scenarioLabelByCode: Record<string, string> = {
+  TIMING_ENTRY: '매수',
+  TIMING_EXIT: '매도',
+  SAJU_MATCH: '궁합',
+  RESCUE_PLAN: '구조',
+  MENTAL_GUIDE: '멘탈',
+};
+
+const questionPlaceholderByScenario: Record<string, string> = {
+  TIMING_ENTRY: '예: 삼성전자 지금 들어가도 될까요?',
+  TIMING_EXIT: '예: 이 종목 지금 익절하는 게 좋을까요?',
+  SAJU_MATCH: '예: 제 사주에 2차전지주는 잘 맞을까요?',
+  RESCUE_PLAN: '예: -18% 손실 중인데 어떻게 대응하면 좋을까요?',
+  MENTAL_GUIDE: '예: 요즘 조급한 매매가 반복되는데 흐름을 어떻게 잡아야 할까요?',
+};
+
 const modeByType = {
   market: 'ONLY_STOCK',
   saju: 'STOCK_SAJU',
@@ -50,6 +66,10 @@ export function ConsultationPage() {
   const [loadingScenarios, setLoadingScenarios] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const questionPlaceholder = selectedScenario
+    ? `궁금한 점을 자유롭게 입력해주세요\n${questionPlaceholderByScenario[selectedScenario] ?? '예: 지금 제 투자 흐름은 어떤가요?'}`
+    : '궁금한 점을 자유롭게 입력해주세요\n예: 삼성전자 지금 들어가도 될까요?';
 
   useEffect(() => {
     let active = true;
@@ -196,7 +216,7 @@ export function ConsultationPage() {
                   <div className="flex items-center gap-2">
                     <Tag className={`h-4 w-4 ${isSelected ? 'text-amber-300' : 'text-white/50'}`} />
                     <span className={`text-sm font-medium ${isSelected ? 'text-amber-200' : 'text-white/80'}`}>
-                      {scenario.title}
+                      {scenarioLabelByCode[scenario.code] ?? scenario.title}
                     </span>
                   </div>
                 </button>
@@ -255,7 +275,7 @@ export function ConsultationPage() {
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="궁금한 점을 자유롭게 입력해주세요&#10;예: 삼성전자를 지금 매수해도 될까요?"
+              placeholder={questionPlaceholder}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white placeholder-white/30 backdrop-blur-xl transition-colors focus:border-amber-400/50 focus:bg-white/10 focus:outline-none"
               rows={4}
             />
