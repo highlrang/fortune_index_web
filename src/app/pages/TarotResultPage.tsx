@@ -3,10 +3,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
-import { getTarotDeckCards, resolveApiAssetUrl, type TarotDeckCardResponse } from '@/lib/api';
+import { consult, getTarotDeckCards, resolveApiAssetUrl, type TarotDeckCardResponse } from '@/lib/api';
 import { DEFAULT_TAROT_DECK_ID, getTarotDeckById } from '@/lib/tarot';
+import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 
 type CardRevealState = 'back' | 'expanding' | 'revealing' | 'shrinking' | 'front';
+type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
+type TarotResultLocationState = {
+  selectedCards?: number[];
+  selectedType?: ConsultationType;
+  selectedScenario?: string;
+  question?: string;
+  tarotDeckVersionId?: string;
+};
 
 interface CardData {
   id: number;
@@ -20,14 +29,26 @@ interface CardData {
 
 const CARD_WIDTH = 100;
 const CARD_HEIGHT = 150;
+const DEFAULT_STOCK_CODE = '000000';
+const DEFAULT_STOCK_NAME = '시장 전체';
+const modeByType = {
+  market: 'ONLY_STOCK',
+  saju: 'STOCK_SAJU',
+  tarot: 'STOCK_TAROT',
+  comprehensive: 'STOCK_ALL',
+} as const;
 
 export function TarotResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedCards = (location.state?.selectedCards as number[]) || [0, 1, 2];
+  const flowState = (location.state as TarotResultLocationState | null) ?? null;
+  const selectedCards = flowState?.selectedCards ?? [0, 1, 2];
   const tarotDeckVersionId =
-    ((location.state as { tarotDeckVersionId?: string } | null)?.tarotDeckVersionId ?? DEFAULT_TAROT_DECK_ID) as string;
+    (flowState?.tarotDeckVersionId ?? DEFAULT_TAROT_DECK_ID) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
+  const selectedType = flowState?.selectedType;
+  const selectedScenario = flowState?.selectedScenario;
+  const question = flowState?.question;
   
   const [isPortrait, setIsPortrait] = useState(false);
   const [cards, setCards] = useState<CardData[]>(() =>
@@ -42,6 +63,8 @@ export function TarotResultPage() {
   );
   const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   // Check if screen is in portrait mode
   useEffect(() => {
@@ -144,6 +167,50 @@ export function TarotResultPage() {
     }
   };
 
+  const handleConfirm = async () => {
+    const currentUser = getCurrentUser();
+
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    if (!selectedType || !selectedScenario || !(selectedType in modeByType)) {
+      navigate('/consultation', {
+        state: {
+          selectedCards,
+          tarotDeckVersionId,
+        },
+      });
+      return;
+    }
+
+    setSubmitError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await consult({
+        userId: currentUser.id,
+        mode: modeByType[selectedType],
+        scenario: selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE',
+        stockCode: DEFAULT_STOCK_CODE,
+        stockName: DEFAULT_STOCK_NAME,
+        question: question?.trim() || undefined,
+        tarotIndices: selectedCards,
+        tarotDeckVersionId,
+        tarotInterpretationMode: 'MAIN_TRADITIONAL',
+        referenceDateTime: new Date().toISOString(),
+      });
+
+      saveLastConsultResult(response);
+      navigate('/investment-result', { state: { consultResult: response } });
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : '상담 요청에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const allCardsRevealed = cards.every(c => c.revealState === 'front');
 
   return (
@@ -231,7 +298,15 @@ export function TarotResultPage() {
       <div className="absolute left-0 right-0 top-0 z-50 bg-gradient-to-b from-[#0A0A12]/90 via-[#0A0A12]/70 to-transparent px-4 py-4">
         <div className="flex items-center justify-between">
           <button
-            onClick={() => navigate('/home')}
+            onClick={() =>
+              navigate('/tarot-spread', {
+                state: {
+                  ...flowState,
+                  selectedCards,
+                  tarotDeckVersionId,
+                },
+              })
+            }
             className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4 text-white/60" />
@@ -608,13 +683,20 @@ export function TarotResultPage() {
       {/* Bottom Controls */}
       <div className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-[#0A0A12]/90 via-[#0A0A12]/70 to-transparent px-6 py-6">
         <div className="flex flex-col gap-3">
+          {submitError ? (
+            <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+              {submitError}
+            </div>
+          ) : null}
+
           {/* Summary button - appears after all cards revealed */}
           <AnimatePresence>
             {allCardsRevealed && (
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={() => navigate('/consultation', { state: { selectedCards, tarotDeckVersionId } })}
+                onClick={handleConfirm}
+                disabled={isSubmitting}
                 className="group relative overflow-hidden rounded-full border border-[#D4AF37]/60 bg-gradient-to-br from-[#D4AF37]/50 via-amber-600/40 to-[#D4AF37]/50 px-6 py-3.5 backdrop-blur-xl transition-all hover:border-[#D4AF37]/80"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -639,7 +721,9 @@ export function TarotResultPage() {
 
                 <div className="relative flex items-center justify-center gap-2">
                   <Sparkles className="h-5 w-5 text-white" />
-                  <span className="font-bold text-white">결과 요약 보기</span>
+                  <span className="font-bold text-white">
+                    {isSubmitting ? 'AI 오라클이 해석 중...' : '운세 결과 보러 가기'}
+                  </span>
                 </div>
               </motion.button>
             )}

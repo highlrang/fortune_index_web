@@ -4,6 +4,15 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
+type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
+type ConsultationFlowState = {
+  selectedType?: ConsultationType;
+  selectedScenario?: string;
+  question?: string;
+  selectedCards?: number[];
+  tarotDeckVersionId?: string;
+};
+
 const TOTAL_CARDS = 78;
 const CARD_THICKNESS = 1; // px per card - reduced for thinner deck
 const SPLIT_DISTANCE = 80; // Increased gap for better visibility
@@ -14,8 +23,9 @@ const INITIAL_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => ind
 export function TarotPickerPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const flowState = (location.state as ConsultationFlowState | null) ?? null;
   const tarotDeckVersionId =
-    ((location.state as { tarotDeckVersionId?: string } | null)?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
+    (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
   const [rotation, setRotation] = useState(0);
   const [isSplit, setIsSplit] = useState(false);
@@ -175,7 +185,13 @@ export function TarotPickerPage() {
   };
 
   const handleConfirm = () => {
-    navigate('/tarot-spread', { state: { deckOrder, tarotDeckVersionId } });
+    navigate('/tarot-spread', {
+      state: {
+        ...flowState,
+        deckOrder,
+        tarotDeckVersionId,
+      },
+    });
   };
 
   // Render individual card
@@ -369,7 +385,14 @@ export function TarotPickerPage() {
         {/* Top Header */}
         <div className="mb-8 flex items-center gap-4">
           <button
-            onClick={() => navigate('/consultation')}
+            onClick={() =>
+              navigate('/consultation', {
+                state: {
+                  ...flowState,
+                  tarotDeckVersionId,
+                },
+              })
+            }
             className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
           >
             <ArrowLeft className="h-5 w-5 text-white/60" />

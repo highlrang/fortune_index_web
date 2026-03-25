@@ -4,6 +4,15 @@ import { ArrowLeft, Sparkles, RotateCcw } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { DEFAULT_TAROT_DECK_ID, getTarotDeckById } from '@/lib/tarot';
 
+type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
+type ConsultationFlowState = {
+  deckOrder?: number[];
+  selectedType?: ConsultationType;
+  selectedScenario?: string;
+  question?: string;
+  tarotDeckVersionId?: string;
+};
+
 const TOTAL_CARDS = 78;
 const MAX_SELECTIONS = 3;
 const CARD_WIDTH = 85;
@@ -14,9 +23,10 @@ const DEFAULT_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => ind
 export function TarotSpreadPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const deckOrder = ((location.state as { deckOrder?: number[] } | null)?.deckOrder ?? DEFAULT_DECK_ORDER) as number[];
+  const flowState = (location.state as ConsultationFlowState | null) ?? null;
+  const deckOrder = (flowState?.deckOrder ?? DEFAULT_DECK_ORDER) as number[];
   const tarotDeckVersionId =
-    ((location.state as { tarotDeckVersionId?: string } | null)?.tarotDeckVersionId ?? DEFAULT_TAROT_DECK_ID) as string;
+    (flowState?.tarotDeckVersionId ?? DEFAULT_TAROT_DECK_ID) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [isLandscape, setIsLandscape] = useState(false);
@@ -72,8 +82,14 @@ export function TarotSpreadPage() {
   };
 
   const handleConfirm = () => {
-    console.log('Selected cards:', selectedCards);
-    navigate('/tarot-result', { state: { selectedCards, deckOrder, tarotDeckVersionId } });
+    navigate('/tarot-result', {
+      state: {
+        ...flowState,
+        selectedCards,
+        deckOrder,
+        tarotDeckVersionId,
+      },
+    });
   };
 
   // Snap to nearest card on drag end
@@ -159,7 +175,14 @@ export function TarotSpreadPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/tarot-picker', { state: { tarotDeckVersionId } })}
+              onClick={() =>
+                navigate('/tarot-picker', {
+                  state: {
+                    ...flowState,
+                    tarotDeckVersionId,
+                  },
+                })
+              }
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
             >
               <ArrowLeft className="h-4 w-4 text-white/60" />

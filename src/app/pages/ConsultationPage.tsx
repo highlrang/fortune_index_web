@@ -8,6 +8,13 @@ import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
 type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
+type ConsultationFlowState = {
+  selectedType?: ConsultationType;
+  selectedScenario?: string;
+  question?: string;
+  selectedCards?: number[];
+  tarotDeckVersionId?: string;
+};
 
 const consultationTypes = [
   { id: 'market', label: '시장 분석', icon: TrendingUp, color: 'from-cyan-500/20 to-blue-500/20' },
@@ -53,16 +60,17 @@ const DEFAULT_STOCK_NAME = '시장 전체';
 export function ConsultationPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedCards = ((location.state as { selectedCards?: number[] } | null)?.selectedCards ?? []) as number[];
+  const flowState = (location.state as ConsultationFlowState | null) ?? null;
+  const selectedCards = (flowState?.selectedCards ?? []) as number[];
   const tarotDeckVersionId =
-    ((location.state as { tarotDeckVersionId?: string } | null)?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
+    (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedTarotDeck = getTarotDeckById(tarotDeckVersionId);
   const currentUser = getCurrentUser();
 
-  const [selectedType, setSelectedType] = useState<ConsultationType>(null);
+  const [selectedType, setSelectedType] = useState<ConsultationType>(flowState?.selectedType ?? null);
   const [scenarios, setScenarios] = useState<ScenarioOptionResponse[]>(fallbackScenarios);
-  const [selectedScenario, setSelectedScenario] = useState<string>('');
-  const [question, setQuestion] = useState('');
+  const [selectedScenario, setSelectedScenario] = useState<string>(flowState?.selectedScenario ?? '');
+  const [question, setQuestion] = useState(flowState?.question ?? '');
   const [loadingScenarios, setLoadingScenarios] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -110,8 +118,16 @@ export function ConsultationPage() {
       return;
     }
 
-    if ((selectedType === 'tarot' || selectedType === 'comprehensive') && selectedCards.length === 0) {
-      setError('타로 상담을 위해 카드 3장을 먼저 선택해주세요.');
+    if (selectedType === 'tarot' || selectedType === 'comprehensive') {
+      setError('');
+      navigate('/tarot-picker', {
+        state: {
+          selectedType,
+          selectedScenario,
+          question,
+          tarotDeckVersionId,
+        } satisfies ConsultationFlowState,
+      });
       return;
     }
 
@@ -197,7 +213,7 @@ export function ConsultationPage() {
           </div>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="mb-4 text-sm font-medium text-white/70">질문 시나리오</h2>
           <div className="space-y-2">
             {scenarios.map((scenario) => {
@@ -226,49 +242,6 @@ export function ConsultationPage() {
           {loadingScenarios ? <p className="mt-3 text-xs text-white/40">시나리오 불러오는 중...</p> : null}
         </div>
 
-        {(selectedType === 'tarot' || selectedType === 'comprehensive') && (
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <button
-              onClick={() => navigate('/tarot-picker', { state: { tarotDeckVersionId } })}
-              className="group relative w-full overflow-hidden rounded-2xl border border-purple-400/40 bg-gradient-to-br from-purple-600/30 via-violet-600/20 to-purple-600/30 px-6 py-8 backdrop-blur-xl transition-all hover:border-purple-400/60"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
-
-              <div className="relative flex flex-col items-center gap-4">
-                <div className="flex gap-2">
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <motion.div
-                      key={index}
-                      className={`h-16 w-12 rounded-lg border-2 ${
-                        selectedCards[index] !== undefined
-                          ? 'border-[#D4AF37]/70 bg-gradient-to-br from-[#D4AF37]/30 to-amber-500/20'
-                          : 'border-purple-300/50 bg-gradient-to-br from-purple-400/30 to-violet-500/20'
-                      }`}
-                      animate={{ rotateY: [0, 15, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: index * 0.2 }}
-                    />
-                  ))}
-                </div>
-                <div className="text-center">
-                  <p className="mb-1 text-base font-semibold text-purple-200">
-                    {selectedCards.length === 3 ? '카드 선택 완료' : '운명의 카드 3장 뽑기'}
-                  </p>
-                  <p className="text-xs text-purple-300/70">
-                    {selectedCards.length === 3
-                      ? `${selectedTarotDeck.name} · 선택된 카드 번호: ${selectedCards.map((card) => card + 1).join(', ')}`
-                      : `${selectedTarotDeck.name} 덱으로 오늘의 투자 운을 확인하세요`}
-                  </p>
-                </div>
-              </div>
-            </button>
-          </motion.div>
-        )}
-
         <div className="mb-6 space-y-4">
           <div>
             <h2 className="mb-4 text-sm font-medium text-white/70">질문 입력</h2>
@@ -281,6 +254,40 @@ export function ConsultationPage() {
             />
           </div>
         </div>
+
+        {(selectedType === 'tarot' || selectedType === 'comprehensive') && selectedCards.length > 0 && (
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="relative overflow-hidden rounded-2xl border border-purple-400/40 bg-gradient-to-br from-purple-600/30 via-violet-600/20 to-purple-600/30 px-6 py-6 backdrop-blur-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
+
+              <div className="relative flex flex-col items-center gap-4">
+                <div className="flex gap-2">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-16 w-12 rounded-lg border-2 ${
+                        selectedCards[index] !== undefined
+                          ? 'border-[#D4AF37]/70 bg-gradient-to-br from-[#D4AF37]/30 to-amber-500/20'
+                          : 'border-purple-300/50 bg-gradient-to-br from-purple-400/30 to-violet-500/20'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="text-center">
+                  <p className="mb-1 text-base font-semibold text-purple-200">선택한 카드가 준비됐습니다</p>
+                  <p className="text-xs text-purple-300/70">
+                    {selectedTarotDeck.name} · 선택된 카드 번호: {selectedCards.map((card) => card + 1).join(', ')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {error ? (
           <div className="mb-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
@@ -329,7 +336,11 @@ export function ConsultationPage() {
                 filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))',
               }}
             >
-              {isSubmitting ? 'AI 오라클이 해석 중...' : 'AI 오라클에게 운세 보기'}
+              {isSubmitting
+                ? 'AI 오라클이 해석 중...'
+                : selectedType === 'tarot' || selectedType === 'comprehensive'
+                  ? '질문을 들고 타로 카드 뽑기'
+                  : 'AI 오라클에게 운세 보기'}
             </span>
           </div>
 
