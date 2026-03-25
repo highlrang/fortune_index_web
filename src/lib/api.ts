@@ -6,10 +6,8 @@ import {
   type SessionState,
 } from './session';
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL !== undefined
-    ? import.meta.env.VITE_API_BASE_URL
-    : 'http://117.52.84.99:7071';
+const DEFAULT_API_BASE_URL = 'http://117.52.84.99:7071';
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 const API_KEY = import.meta.env.VITE_API_KEY;
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -84,7 +82,7 @@ async function performRequest(path: string, options: RequestOptions = {}) {
   }
 
   const accessToken = getAccessToken();
-  if (accessToken) {
+  if (accessToken && shouldAttachAccessToken(path)) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
 
@@ -98,6 +96,13 @@ async function performRequest(path: string, options: RequestOptions = {}) {
 async function parseResponsePayload(response: Response) {
   const text = await response.text();
   return text ? safeJsonParse(text) : null;
+}
+
+function shouldAttachAccessToken(path: string) {
+  return !(
+    path.startsWith('/api/auth/login') ||
+    path.startsWith('/api/auth/signup')
+  );
 }
 
 function shouldAttemptRefresh(path: string, options: RequestOptions) {
@@ -209,6 +214,21 @@ function buildQuery(params: Record<string, QueryValue | QueryValue[] | Record<st
 
   const query = searchParams.toString();
   return query ? `?${query}` : '';
+}
+
+export function resolveApiAssetUrl(url?: string | null) {
+  if (!url) return url ?? undefined;
+
+  try {
+    return new URL(url).toString();
+  } catch {
+    return new URL(url, API_BASE_URL).toString();
+  }
+}
+
+function normalizeApiBaseUrl(value?: string) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : DEFAULT_API_BASE_URL;
 }
 
 export interface AuthUserResponse {
@@ -589,6 +609,11 @@ export interface BirthTarotProfileResponse {
   videoUrl?: string | null;
 }
 
+export interface SajuDescriptionResponse {
+  name?: string;
+  summary?: string;
+}
+
 export interface SajuProfileResponse {
   palza?: string[];
   palja?: string[];
@@ -599,9 +624,11 @@ export interface SajuProfileResponse {
     metal?: number;
     water?: number;
   };
+  ilju?: SajuDescriptionResponse | null;
+  wolji?: SajuDescriptionResponse | null;
+  daeun?: SajuDescriptionResponse | string | null;
+  sewun?: SajuDescriptionResponse | string | null;
   sipsung?: string[];
-  daeun?: string;
-  sewun?: string;
 }
 
 export interface UserProfileDetailsResponse {

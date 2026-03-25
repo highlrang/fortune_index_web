@@ -6,10 +6,8 @@ import {
   Sparkles,
   Eye,
   Share2,
-  Shield,
   Heart,
   Clock,
-  Zap,
   Trash2,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
@@ -131,9 +129,6 @@ export function InvestmentResultPage() {
                 <p className="text-center text-base font-medium text-white/80">
                   {confidenceScore >= 80 ? '매우 긍정적인 흐름' : confidenceScore >= 60 ? '긍정적인 흐름' : '신중한 접근 필요'}
                 </p>
-                <p className="mt-2 text-center text-sm text-white/50">
-                  AI 리스크 점수 {consultResult.ai.riskScore}를 반영한 결과입니다
-                </p>
               </div>
             </div>
           </motion.div>
@@ -151,33 +146,12 @@ export function InvestmentResultPage() {
                 <h3 className="text-center text-base font-semibold text-white">오늘의 핵심 요약</h3>
 
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/20 to-green-600/20">
-                    <Zap className="h-4 w-4 text-emerald-400" />
-                  </div>
-                  <p className="flex-1 text-sm leading-relaxed text-white/80">
-                    <span className="font-semibold text-[#D4AF37]">{consultResult.stock.name}</span> 현재가{' '}
-                    <span className="font-semibold text-[#D4AF37]">
-                      {consultResult.stock.currentPrice.toLocaleString()}
-                    </span>
-                    원, 변동률 {consultResult.stock.changeRate.toFixed(2)}%
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-orange-600/20">
                     <Clock className="h-4 w-4 text-amber-400" />
                   </div>
                   <p className="flex-1 text-sm leading-relaxed text-white/80">{consultResult.ai.finalAdvice}</p>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500/20 to-violet-600/20">
-                    <Shield className="h-4 w-4 text-purple-400" />
-                  </div>
-                  <p className="flex-1 text-sm leading-relaxed text-white/80">
-                    모델 {consultResult.ai.model} · 제공자 {consultResult.ai.provider}
-                  </p>
-                </div>
               </div>
             </div>
           </motion.div>

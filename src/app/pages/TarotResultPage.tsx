@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
-import { getTarotDeckCards, type TarotDeckCardResponse } from '@/lib/api';
+import { getTarotDeckCards, resolveApiAssetUrl, type TarotDeckCardResponse } from '@/lib/api';
 import { DEFAULT_TAROT_DECK_ID, getTarotDeckById } from '@/lib/tarot';
 
 type CardRevealState = 'back' | 'expanding' | 'revealing' | 'shrinking' | 'front';
@@ -93,7 +93,7 @@ export function TarotResultPage() {
               ...card,
               label: metadata.koreanName ?? metadata.name,
               meaning: metadata.meaning,
-              imageSrc: metadata.imageUrl || tarotCardImage,
+              imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
               videoSrc: metadata.videoUrl || undefined,
             };
           }),

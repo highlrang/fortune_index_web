@@ -21,7 +21,15 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { getMe, getMyProfileDetails, getTarotDeckVersions, logout, type UserProfileDetailsResponse } from '@/lib/api';
+import {
+  getMe,
+  getMyProfileDetails,
+  getTarotDeckVersions,
+  logout,
+  resolveApiAssetUrl,
+  type SajuDescriptionResponse,
+  type UserProfileDetailsResponse,
+} from '@/lib/api';
 import { clearSession, getCurrentUser, getSession, updateSessionUser, type SessionUser } from '@/lib/session';
 import {
   getCachedTarotDeckVersions,
@@ -320,29 +328,22 @@ export function MyPage() {
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="mb-3 text-sm font-medium text-[#D4AF37]">십성 (十星)</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {userData.saju.sipsung.map((star, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-sm text-white backdrop-blur-xl"
-                      >
-                        {star}
-                      </div>
-                    ))}
+                {userData.saju.sections.map((section) => (
+                  <div
+                    key={section.key}
+                    className={`rounded-2xl border p-4 backdrop-blur-xl ${section.className}`}
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <h4 className={`text-sm font-medium ${section.titleClassName}`}>{section.label}</h4>
+                      <span className="text-xs text-white/50">{section.title}</span>
+                    </div>
+                    <p className="text-sm leading-6 text-white/90">{section.summary}</p>
                   </div>
-                </div>
+                ))}
 
-                <div className="rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 to-amber-500/5 p-4 backdrop-blur-xl">
-                  <h4 className="mb-2 text-sm font-medium text-[#D4AF37]">현재 대운</h4>
-                  <p className="text-sm text-white/90">{userData.saju.daeun}</p>
-                </div>
-
-                <div className="rounded-2xl border border-violet-400/30 bg-gradient-to-br from-violet-500/10 to-purple-500/5 p-4 backdrop-blur-xl">
-                  <h4 className="mb-2 text-sm font-medium text-violet-300">올해의 운세</h4>
-                  <p className="text-sm text-white/90">{userData.saju.sewun}</p>
-                </div>
+                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs leading-5 text-white/60">
+                  사주 해석 문구는 데이터 기준으로 수시로 달라질 수 있습니다.
+                </p>
               </div>
             </motion.div>
           </motion.div>
@@ -798,7 +799,7 @@ function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) 
     number: birthTarot?.number ?? 17,
     meaning: birthTarot?.meaning ?? '희망, 영감, 밝은 미래',
     imageUrl:
-      birthTarot?.imageUrl ??
+      resolveApiAssetUrl(birthTarot?.imageUrl) ??
       'https://images.unsplash.com/photo-1683217956228-d3d24916df55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YXJvdCUyMGNhcmQlMjBteXN0aWNhbHxlbnwxfHx8fDE3NzM3NDg5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
   };
 }
@@ -806,6 +807,36 @@ function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) 
 function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
   const saju = profileDetails?.saju;
   const palza = saju?.palza ?? saju?.palja ?? ['乙未', '己卯', '壬午', '辛亥'];
+  const descriptionSections = [
+    {
+      key: 'ilju',
+      label: '일주',
+      data: normalizeSajuDescription(saju?.ilju, '일주 정보', '일주 해석 정보가 없습니다.'),
+      className: 'border-emerald-400/25 bg-gradient-to-br from-emerald-500/10 to-teal-500/5',
+      titleClassName: 'text-emerald-300',
+    },
+    {
+      key: 'wolji',
+      label: '월지',
+      data: normalizeSajuDescription(saju?.wolji, '월지 정보', '월지 해석 정보가 없습니다.'),
+      className: 'border-sky-400/25 bg-gradient-to-br from-sky-500/10 to-cyan-500/5',
+      titleClassName: 'text-sky-300',
+    },
+    {
+      key: 'daeun',
+      label: '현재 대운',
+      data: normalizeSajuDescription(saju?.daeun, '대운 정보', '대운 정보가 없습니다.'),
+      className: 'border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 to-amber-500/5',
+      titleClassName: 'text-[#D4AF37]',
+    },
+    {
+      key: 'sewun',
+      label: '올해의 운세',
+      data: normalizeSajuDescription(saju?.sewun, '세운 정보', '올해의 운세 정보가 없습니다.'),
+      className: 'border-violet-400/30 bg-gradient-to-br from-violet-500/10 to-purple-500/5',
+      titleClassName: 'text-violet-300',
+    },
+  ];
 
   return {
     palza,
@@ -816,8 +847,25 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
       metal: saju?.ohang?.metal ?? 10,
       water: saju?.ohang?.water ?? 10,
     },
-    sipsung: saju?.sipsung ?? ['정관', '편재', '식신', '정인'],
-    daeun: saju?.daeun ?? '대운 정보가 없습니다.',
-    sewun: saju?.sewun ?? '올해의 운세 정보가 없습니다.',
+    sections: descriptionSections.map((section) => ({
+      ...section,
+      title: section.data.name,
+      summary: section.data.summary,
+    })),
+  };
+}
+
+function normalizeSajuDescription(
+  value: SajuDescriptionResponse | string | null | undefined,
+  fallbackName: string,
+  fallbackSummary: string,
+) {
+  if (typeof value === 'string') {
+    return { name: fallbackName, summary: value };
+  }
+
+  return {
+    name: value?.name?.trim() || fallbackName,
+    summary: value?.summary?.trim() || fallbackSummary,
   };
 }
