@@ -10,6 +10,7 @@ export interface SessionUser {
   emailVerified: boolean;
   investmentRiskProfile: InvestmentRiskProfile;
   preferredSectors: string[];
+  preferredTarotDeckId?: string | null;
   birthDate?: string | null;
   birthTime?: string | null;
   gender?: string | null;

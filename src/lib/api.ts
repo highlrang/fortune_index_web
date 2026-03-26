@@ -238,6 +238,7 @@ export interface AuthUserResponse {
   emailVerified: boolean;
   investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
   preferredSectors: string[];
+  preferredTarotDeckId?: string | null;
   birthDate?: string | null;
   birthTime?: string | null;
   gender?: string | null;
@@ -394,6 +395,14 @@ export interface PasswordResetConfirmPayload {
 
 export interface WithdrawPayload {
   password: string;
+}
+
+export interface UpdateMyProfilePayload {
+  name?: string;
+  birthDate?: string | null;
+  birthTime?: string | null;
+  gender?: 'F' | 'M' | string | null;
+  preferredTarotDeckId?: string | null;
 }
 
 export interface PageableQuery {
@@ -664,6 +673,13 @@ export async function getMe() {
 
 export async function getMyProfileDetails() {
   return request<UserProfileDetailsResponse>('/api/users/me/profile-details');
+}
+
+export async function updateMyProfile(payload: UpdateMyProfilePayload) {
+  return request<AuthUserResponse>('/api/users/me', {
+    method: 'PATCH',
+    body: payload,
+  });
 }
 
 export async function withdraw(payload: WithdrawPayload) {

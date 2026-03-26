@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
 import { consult, getTarotDeckCards, resolveApiAssetUrl, type TarotDeckCardResponse } from '@/lib/api';
@@ -38,6 +38,32 @@ const modeByType = {
   comprehensive: 'STOCK_ALL',
 } as const;
 
+function CardMedia({
+  card,
+  alt,
+  className,
+}: {
+  card: CardData;
+  alt: string;
+  className: string;
+}) {
+  if (card.videoSrc) {
+    return (
+      <video
+        key={card.videoSrc}
+        src={card.videoSrc}
+        className={className}
+        autoPlay
+        muted
+        playsInline
+        loop
+      />
+    );
+  }
+
+  return <img src={card.imageSrc || tarotCardImage} alt={alt} className={className} />;
+}
+
 export function TarotResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,7 +76,6 @@ export function TarotResultPage() {
   const selectedScenario = flowState?.selectedScenario;
   const question = flowState?.question;
   
-  const [isPortrait, setIsPortrait] = useState(false);
   const [cards, setCards] = useState<CardData[]>(() =>
     selectedCards.map((selectedIndex, slotIndex) => ({
       id: slotIndex,
@@ -65,22 +90,6 @@ export function TarotResultPage() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-
-  // Check if screen is in portrait mode
-  useEffect(() => {
-    const checkOrientation = () => {
-      setIsPortrait(window.innerHeight > window.innerWidth);
-    };
-
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
-  }, []);
 
   useEffect(() => {
     setCards(
@@ -117,7 +126,7 @@ export function TarotResultPage() {
               label: metadata.koreanName ?? metadata.name,
               meaning: metadata.meaning,
               imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
-              videoSrc: metadata.videoUrl || undefined,
+              videoSrc: resolveApiAssetUrl(metadata.videoUrl) || undefined,
             };
           }),
         );
@@ -215,43 +224,6 @@ export function TarotResultPage() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0A0A12]">
-      {/* Rotate device overlay for landscape */}
-      <AnimatePresence>
-        {!isPortrait && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100] flex items-center justify-center bg-[#0A0A12]/95 backdrop-blur-xl"
-          >
-            <div className="flex flex-col items-center gap-6 px-8 text-center">
-              <motion.div
-                animate={{ rotate: -90 }}
-                transition={{ duration: 0.5 }}
-                className="relative"
-              >
-                <div className="h-20 w-32 rounded-2xl border-4 border-white/30 bg-white/10" />
-                <motion.div
-                  animate={{ opacity: [0.3, 0.8, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -bottom-12 left-1/2 -translate-x-1/2"
-                >
-                  <RotateCcw className="h-8 w-8 text-white/60" />
-                </motion.div>
-              </motion.div>
-              <div>
-                <h2 className="mb-2 text-2xl font-semibold text-white">
-                  화면을 세워주세요
-                </h2>
-                <p className="text-sm text-white/60">
-                  운세 결과는 세로 모드에서 확인할 수 있습니다
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Deep cosmic background - vertical optimized */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-[#050510] via-[#0A0A1E] via-[#0D1330] to-[#050510]" />
@@ -398,12 +370,13 @@ export function TarotResultPage() {
                             boxShadow: '0 0 30px rgba(212, 175, 55, 0.5), inset 0 0 20px rgba(212, 175, 55, 0.2)',
                           }}
                         >
-                          {/* Tarot card image */}
-                          <img
-                            src={card.imageSrc}
+                          <CardMedia
+                            card={card}
                             alt={card.label || `Tarot Card ${index + 1}`}
                             className="h-full w-full object-cover"
                           />
+
+                          {card.videoSrc ? <div className="absolute inset-0 bg-black/20" /> : null}
 
                           <div className="absolute inset-x-3 bottom-3 rounded-xl bg-black/45 px-3 py-2 backdrop-blur-sm">
                             <div className="text-sm font-semibold text-white">{card.label}</div>
@@ -502,19 +475,13 @@ export function TarotResultPage() {
                             boxShadow: '0 0 60px rgba(212, 175, 55, 0.7), inset 0 0 40px rgba(168, 85, 247, 0.6)',
                           }}
                         >
-                          {card.videoSrc ? (
-                            <video
-                              key={card.videoSrc}
-                              src={card.videoSrc}
-                              className="absolute inset-0 h-full w-full object-cover"
-                              autoPlay
-                              muted
-                              playsInline
-                              loop
-                            />
-                          ) : null}
+                          <CardMedia
+                            card={card}
+                            alt={card.label || `Tarot Card ${index + 1}`}
+                            className="absolute inset-0 h-full w-full object-cover"
+                          />
 
-                          {card.videoSrc ? <div className="absolute inset-0 bg-black/25" /> : null}
+                          <div className="absolute inset-0 bg-black/25" />
 
                           {/* Mystical magic circle overlay animation */}
                           <div className="absolute inset-0 flex items-center justify-center">

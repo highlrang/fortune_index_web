@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
-import { ArrowLeft, Sparkles, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { DEFAULT_TAROT_DECK_ID, getTarotDeckById } from '@/lib/tarot';
 
@@ -29,7 +29,6 @@ export function TarotSpreadPage() {
     (flowState?.tarotDeckVersionId ?? DEFAULT_TAROT_DECK_ID) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
-  const [isLandscape, setIsLandscape] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const scrollX = useMotionValue(0);
   const constraintsRef = useRef<HTMLDivElement>(null);
@@ -50,22 +49,6 @@ export function TarotSpreadPage() {
     });
     return () => unsubscribe();
   }, [centerCardIndex]);
-
-  // Check if screen is in landscape mode
-  useEffect(() => {
-    const checkOrientation = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
-    };
-
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
-  }, []);
 
   // Select/deselect card
   const toggleCardSelection = (cardId: number) => {
@@ -108,43 +91,6 @@ export function TarotSpreadPage() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0A0A12]">
-      {/* Rotate device overlay */}
-      <AnimatePresence>
-        {!isLandscape && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100] flex items-center justify-center bg-[#0A0A12]/95 backdrop-blur-xl"
-          >
-            <div className="flex flex-col items-center gap-6 px-8 text-center">
-              <motion.div
-                animate={{ rotate: 90 }}
-                transition={{ duration: 0.5 }}
-                className="relative"
-              >
-                <div className="h-32 w-20 rounded-2xl border-4 border-white/30 bg-white/10" />
-                <motion.div
-                  animate={{ opacity: [0.3, 0.8, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -right-12 top-1/2 -translate-y-1/2"
-                >
-                  <RotateCcw className="h-8 w-8 text-white/60" />
-                </motion.div>
-              </motion.div>
-              <div>
-                <h2 className="mb-2 text-2xl font-semibold text-white">
-                  화면을 돌려주세요
-                </h2>
-                <p className="text-sm text-white/60">
-                  카드를 펼치려면 가로 모드가 필요합니다
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Mystic night sky background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A1E] via-[#0D1330] to-[#0A0A1E]" />
@@ -213,6 +159,12 @@ export function TarotSpreadPage() {
                 }}
               />
             ))}
+          </div>
+        </div>
+
+        <div className="mx-auto mt-2 max-w-7xl">
+          <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/65 backdrop-blur-xl">
+            가로로 돌려서 이용하시면 카드 선택이 더 편합니다
           </div>
         </div>
       </div>

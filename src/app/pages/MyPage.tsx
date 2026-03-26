@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   User,
@@ -18,6 +18,7 @@ import {
   Bell,
   X,
   Heart,
+  Pencil,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
@@ -27,6 +28,7 @@ import {
   getTarotDeckVersions,
   logout,
   resolveApiAssetUrl,
+  updateMyProfile,
   type SajuDescriptionResponse,
   type UserProfileDetailsResponse,
 } from '@/lib/api';
@@ -47,10 +49,21 @@ export function MyPage() {
   const [showSaju, setShowSaju] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showInquiry, setShowInquiry] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [virtualInvestmentEnabled, setVirtualInvestmentEnabled] = useState(false);
   const [selectedTarotDeckId, setSelectedTarotDeck] = useState(() => getSelectedTarotDeckId());
   const [tarotDeckVersions, setTarotDeckVersions] = useState(() => getCachedTarotDeckVersions());
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileEditError, setProfileEditError] = useState('');
+  const [isSavingTarotDeck, setIsSavingTarotDeck] = useState(false);
+  const [tarotDeckSaveError, setTarotDeckSaveError] = useState('');
+  const [profileEditDraft, setProfileEditDraft] = useState({
+    name: '',
+    birthDate: '',
+    birthTime: '',
+    gender: '',
+  });
 
   useEffect(() => {
     let active = true;
@@ -158,6 +171,24 @@ export function MyPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!user?.preferredTarotDeckId) return;
+
+    setSelectedTarotDeck(user.preferredTarotDeckId);
+    setSelectedTarotDeckId(user.preferredTarotDeckId);
+  }, [user?.preferredTarotDeckId]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setProfileEditDraft({
+      name: user.name ?? '',
+      birthDate: normalizeDateInputValue(user.birthDate),
+      birthTime: normalizeTimeInputValue(user.birthTime),
+      gender: normalizeGenderInputValue(user.gender),
+    });
+  }, [user]);
+
   const handleLogout = async () => {
     try {
       if (session?.tokens.refreshToken) {
@@ -168,6 +199,64 @@ export function MyPage() {
     } finally {
       clearSession();
       navigate('/login');
+    }
+  };
+
+  const handleProfileSave = async () => {
+    const trimmedName = profileEditDraft.name.trim();
+
+    if (!trimmedName) {
+      setProfileEditError('이름을 입력해주세요.');
+      return;
+    }
+
+    setProfileEditError('');
+    setIsSavingProfile(true);
+
+    try {
+      const updatedUser = await updateMyProfile({
+        name: trimmedName,
+        birthDate: profileEditDraft.birthDate || null,
+        birthTime: profileEditDraft.birthTime || null,
+        gender: profileEditDraft.gender || null,
+      });
+
+      updateSessionUser(updatedUser);
+      setUser(updatedUser);
+      setShowProfileEdit(false);
+    } catch (error) {
+      setProfileEditError(
+        error instanceof Error ? error.message : '내 정보 저장 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleTarotDeckSelect = async (deckId: string) => {
+    if (deckId === selectedTarotDeckId || isSavingTarotDeck) return;
+
+    const previousDeckId = selectedTarotDeckId;
+    setTarotDeckSaveError('');
+    setSelectedTarotDeck(deckId);
+    setSelectedTarotDeckId(deckId);
+    setIsSavingTarotDeck(true);
+
+    try {
+      const updatedUser = await updateMyProfile({
+        preferredTarotDeckId: deckId,
+      });
+
+      updateSessionUser(updatedUser);
+      setUser(updatedUser);
+    } catch (error) {
+      setSelectedTarotDeck(previousDeckId);
+      setSelectedTarotDeckId(previousDeckId);
+      setTarotDeckSaveError(
+        error instanceof Error ? error.message : '타로 덱 저장 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSavingTarotDeck(false);
     }
   };
 
@@ -193,6 +282,123 @@ export function MyPage() {
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
       </div>
+
+      <AnimatePresence>
+        {showProfileEdit && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30 }}
+              className="w-full max-w-md overflow-hidden rounded-t-3xl border-t-2 border-[#D4AF37]/40 bg-gradient-to-br from-indigo-950/98 via-indigo-900/98 to-violet-950/98 backdrop-blur-xl"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">내 정보 수정</h3>
+                  <p className="mt-1 text-xs text-white/50">변경한 정보는 즉시 프로필에 반영됩니다.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowProfileEdit(false);
+                    setProfileEditError('');
+                  }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 transition-colors hover:bg-white/10"
+                >
+                  <X className="h-4 w-4 text-white/70" />
+                </button>
+              </div>
+
+              <div className="space-y-4 px-6 py-6">
+                <ProfileField label="이름">
+                  <input
+                    value={profileEditDraft.name}
+                    onChange={(event) =>
+                      setProfileEditDraft((prev) => ({ ...prev, name: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-white/30 focus:border-[#D4AF37]/50 focus:outline-none"
+                    placeholder="이름"
+                  />
+                </ProfileField>
+
+                <ProfileField label="이메일">
+                  <input
+                    value={userData.email}
+                    readOnly
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white/50 focus:outline-none"
+                  />
+                </ProfileField>
+
+                <ProfileField label="생년월일">
+                  <input
+                    type="date"
+                    value={profileEditDraft.birthDate}
+                    onChange={(event) =>
+                      setProfileEditDraft((prev) => ({ ...prev, birthDate: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-[#D4AF37]/50 focus:outline-none"
+                  />
+                </ProfileField>
+
+                <ProfileField label="태어난 시간">
+                  <input
+                    type="time"
+                    value={profileEditDraft.birthTime}
+                    onChange={(event) =>
+                      setProfileEditDraft((prev) => ({ ...prev, birthTime: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-[#D4AF37]/50 focus:outline-none"
+                  />
+                </ProfileField>
+
+                <ProfileField label="성별">
+                  <select
+                    value={profileEditDraft.gender}
+                    onChange={(event) =>
+                      setProfileEditDraft((prev) => ({ ...prev, gender: event.target.value }))
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-[#D4AF37]/50 focus:outline-none"
+                  >
+                    <option value="">미등록</option>
+                    <option value="M">남성</option>
+                    <option value="F">여성</option>
+                  </select>
+                </ProfileField>
+
+                {profileEditError ? (
+                  <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                    {profileEditError}
+                  </div>
+                ) : null}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowProfileEdit(false);
+                      setProfileEditError('');
+                    }}
+                    className="flex-1 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/10"
+                  >
+                    닫기
+                  </button>
+                  <button
+                    onClick={handleProfileSave}
+                    disabled={isSavingProfile}
+                    className="flex-1 rounded-xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/60 to-amber-600/50 py-3 text-sm font-semibold text-white shadow-lg shadow-[#D4AF37]/20 transition-all hover:shadow-xl hover:shadow-[#D4AF37]/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isSavingProfile ? '저장 중...' : '저장'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showBirthTarot && (
@@ -435,6 +641,13 @@ export function MyPage() {
                 <h2 className="mb-1 text-xl font-bold text-white">{userData.name}</h2>
                 <p className="text-sm text-white/60">{userData.email}</p>
               </div>
+              <button
+                onClick={() => setShowProfileEdit(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:bg-white/10"
+                aria-label="내 정보 수정"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
             </div>
           </div>
 
@@ -617,6 +830,14 @@ export function MyPage() {
                 <Sparkles className="h-5 w-5 text-white/60" />
                 <span className="text-sm font-medium text-white/90">타로 덱 선택</span>
               </div>
+              {tarotDeckSaveError ? (
+                <div className="mb-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+                  {tarotDeckSaveError}
+                </div>
+              ) : null}
+              {isSavingTarotDeck ? (
+                <div className="mb-3 text-xs text-white/45">선택한 덱을 저장하고 있습니다.</div>
+              ) : null}
               <div className="grid gap-2">
                 {tarotDeckVersions.map((deck) => {
                   const isSelected = deck.id === selectedTarotDeckId;
@@ -624,10 +845,7 @@ export function MyPage() {
                   return (
                     <button
                       key={deck.id}
-                      onClick={() => {
-                        setSelectedTarotDeckId(deck.id);
-                        setSelectedTarotDeck(deck.id);
-                      }}
+                      onClick={() => handleTarotDeckSelect(deck.id)}
                       className={`rounded-xl border px-4 py-3 text-left text-sm transition-all ${
                         isSelected
                           ? 'border-[#D4AF37]/50 bg-[#D4AF37]/20 text-white shadow-lg shadow-[#D4AF37]/10'
@@ -736,6 +954,21 @@ function SettingToggle({
   );
 }
 
+function ProfileField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block">
+      <div className="mb-2 text-sm font-medium text-white/70">{label}</div>
+      {children}
+    </label>
+  );
+}
+
 function formatBirthDate(value?: string | null) {
   if (!value) return '미등록';
 
@@ -756,12 +989,45 @@ function formatBirthTime(
 
   if (typeof value === 'string') {
     const trimmed = value.trim();
-    return trimmed || '미등록';
+    if (!trimmed) return '미등록';
+
+    const match = trimmed.match(/^(\d{2}):(\d{2})/);
+    return match ? `${match[1]}:${match[2]}` : trimmed;
   }
 
   const hour = String(value.hour).padStart(2, '0');
   const minute = String(value.minute).padStart(2, '0');
   return `${hour}:${minute}`;
+}
+
+function normalizeDateInputValue(value?: string | null) {
+  if (!value) return '';
+
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeTimeInputValue(value?: string | null) {
+  if (!value) return '';
+
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{2}):(\d{2})/);
+  return match ? `${match[1]}:${match[2]}` : '';
+}
+
+function normalizeGenderInputValue(value?: string | null) {
+  if (!value) return '';
+  if (value === 'M' || value === 'MALE') return 'M';
+  if (value === 'F' || value === 'FEMALE') return 'F';
+  return '';
 }
 
 function formatGender(gender?: string | null) {
