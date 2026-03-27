@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, TrendingUp, Star, Sparkles, Layers, Tag } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Star, Sparkles, Layers, RefreshCw } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { consult, getScenarios, type ScenarioOptionResponse } from '@/lib/api';
-import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
+import {
+  consult,
+  getHistoryList,
+  getScenarios,
+  type ConsultingHistoryListItemResponse,
+  type ConsultingThreadStatus,
+  type ScenarioOptionResponse,
+} from '@/lib/api';
+import { getCurrentUser, hasPremiumConsultingAccess, saveLastConsultResult } from '@/lib/session';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
 type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
@@ -14,6 +21,19 @@ type ConsultationFlowState = {
   question?: string;
   selectedCards?: number[];
   tarotDeckVersionId?: string;
+  resumeThreadId?: string;
+  resumeThreadTitle?: string;
+  resumeThreadStatus?: ConsultingThreadStatus;
+};
+
+type ResumeCandidate = {
+  id: string;
+  title: string;
+  summary: string;
+  consultedAt: string;
+  status: ConsultingThreadStatus;
+  lastEvidenceUpdatedAt?: string;
+  canResume: boolean;
 };
 
 const consultationTypes = [
@@ -66,14 +86,22 @@ export function ConsultationPage() {
     (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedTarotDeck = getTarotDeckById(tarotDeckVersionId);
   const currentUser = getCurrentUser();
+  const hasPremiumAccess = hasPremiumConsultingAccess(currentUser);
 
   const [selectedType, setSelectedType] = useState<ConsultationType>(flowState?.selectedType ?? null);
   const [scenarios, setScenarios] = useState<ScenarioOptionResponse[]>(fallbackScenarios);
   const [selectedScenario, setSelectedScenario] = useState<string>(flowState?.selectedScenario ?? '');
   const [question, setQuestion] = useState(flowState?.question ?? '');
   const [loadingScenarios, setLoadingScenarios] = useState(true);
+  const [loadingThreads, setLoadingThreads] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [recentThreads, setRecentThreads] = useState<ResumeCandidate[]>([]);
+  const [selectedResumeThreadId, setSelectedResumeThreadId] = useState<string | null>(
+    flowState?.resumeThreadStatus && flowState.resumeThreadStatus !== 'EXPIRED' && flowState.resumeThreadStatus !== 'CLOSED'
+      ? flowState.resumeThreadId ?? null
+      : null,
+  );
 
   const questionPlaceholder = selectedScenario
     ? `궁금한 점을 자유롭게 입력해주세요\n${questionPlaceholderByScenario[selectedScenario] ?? '예: 지금 제 투자 흐름은 어떤가요?'}`
@@ -100,6 +128,48 @@ export function ConsultationPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!currentUser || !hasPremiumAccess) {
+      setRecentThreads([]);
+      setLoadingThreads(false);
+      return;
+    }
+
+    setLoadingThreads(true);
+
+    getHistoryList(currentUser.id)
+      .then((response) => {
+        if (!active) return;
+        const mapped = response
+          .slice()
+          .sort((a, b) => b.consultedAt.localeCompare(a.consultedAt))
+          .slice(0, 3)
+          .map(mapHistoryItemToThreadCard);
+
+        setRecentThreads(mapped);
+        if (!selectedResumeThreadId) {
+          const defaultThread = mapped.find((item) => item.canResume);
+          if (defaultThread && flowState?.resumeThreadId) {
+            setSelectedResumeThreadId(defaultThread.id === flowState.resumeThreadId ? defaultThread.id : null);
+          }
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setRecentThreads([]);
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoadingThreads(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentUser, flowState?.resumeThreadId, hasPremiumAccess, selectedResumeThreadId]);
 
   const handleSubmit = async () => {
     if (!currentUser) {
@@ -141,6 +211,7 @@ export function ConsultationPage() {
         scenario: selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE',
         stockCode: DEFAULT_STOCK_CODE,
         stockName: DEFAULT_STOCK_NAME,
+        threadId: selectedResumeThreadId ?? undefined,
         question: question.trim() || undefined,
         tarotIndices: selectedCards.length > 0 ? selectedCards : undefined,
         tarotDeckVersionId: selectedCards.length > 0 ? tarotDeckVersionId : undefined,
@@ -176,6 +247,99 @@ export function ConsultationPage() {
             <h1 className="text-xl font-medium text-white">AI 투자 상담</h1>
             <p className="text-xs text-white/50">운명이 안내하는 투자 전략</p>
           </div>
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-emerald-300/20 bg-emerald-500/10 px-4 py-4 backdrop-blur-xl">
+          <p className="text-sm font-medium text-emerald-100">기본은 새 상담입니다.</p>
+          <p className="mt-2 text-xs leading-6 text-emerald-50/75">
+            같은 흐름을 이어갈 때만 연속 상담을 선택하세요. 종목이나 고민 주제가 달라지면 새 상담이 더 정확합니다.
+          </p>
+          <p className="mt-2 text-xs text-emerald-50/65">평균단가와 시세는 이어받기마다 다시 확인합니다.</p>
+        </div>
+
+        <div className="mb-8 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium text-white/70">상담 시작 방식</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSelectedResumeThreadId(null)}
+            className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
+              selectedResumeThreadId === null
+                ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10'
+                : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className={`text-sm font-semibold ${selectedResumeThreadId === null ? 'text-amber-200' : 'text-white'}`}>
+                  새 상담 시작
+                </p>
+                <p className="mt-1 text-xs text-white/60">과거 문맥을 자동으로 붙이지 않고 새 흐름으로 시작합니다.</p>
+              </div>
+              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/55">
+                기본 선택
+              </div>
+            </div>
+          </button>
+
+          {hasPremiumAccess ? (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">이전 상담 이어서 하기</p>
+                  <p className="mt-1 text-xs leading-5 text-white/55">
+                    연속 상담은 같은 흐름을 이어서 질문할 때만 권장합니다.
+                  </p>
+                </div>
+                <RefreshCw className={`h-4 w-4 ${loadingThreads ? 'animate-spin text-white/45' : 'text-white/30'}`} />
+              </div>
+
+              {recentThreads.length > 0 ? (
+                <div className="space-y-3">
+                  {recentThreads.map((thread) => {
+                    const selected = selectedResumeThreadId === thread.id;
+                    return (
+                      <button
+                        key={thread.id}
+                        type="button"
+                        onClick={() => setSelectedResumeThreadId(thread.canResume ? thread.id : null)}
+                        className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
+                          selected
+                            ? 'border-cyan-300/40 bg-cyan-500/10'
+                            : 'border-white/10 bg-black/10 hover:border-white/20 hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-white">{thread.title}</p>
+                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/60">{thread.summary}</p>
+                          </div>
+                          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] ${getThreadBadgeClass(thread.status)}`}>
+                            {getThreadStatusLabel(thread.status)}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-white/45">
+                          <span>마지막 상담 {formatRelativeTime(thread.consultedAt)}</span>
+                          {thread.lastEvidenceUpdatedAt ? (
+                            <span>근거 갱신 {formatRelativeTime(thread.lastEvidenceUpdatedAt)}</span>
+                          ) : null}
+                        </div>
+                        <p className="mt-3 text-xs font-medium text-cyan-100/85">
+                          {thread.canResume ? '이어서 질문하기' : '이 상담 기반으로 새 상담 시작'}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-black/10 px-4 py-5 text-sm text-white/50">
+                  최근 연속 상담이 없습니다.
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
 
         <div className="mb-8">
@@ -215,7 +379,7 @@ export function ConsultationPage() {
 
         <div className="mb-6">
           <h2 className="mb-4 text-sm font-medium text-white/70">질문 시나리오</h2>
-          <div className="space-y-2">
+          <div className="flex flex-wrap gap-2.5">
             {scenarios.map((scenario) => {
               const isSelected = selectedScenario === scenario.code;
 
@@ -223,18 +387,13 @@ export function ConsultationPage() {
                 <button
                   key={scenario.code}
                   onClick={() => setSelectedScenario(scenario.code)}
-                  className={`w-full rounded-2xl border px-4 py-3.5 text-left transition-all ${
+                  className={`rounded-full border px-4 py-2 text-sm transition-all ${
                     isSelected
-                      ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                      ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 text-amber-200'
+                      : 'border-white/10 bg-white/5 text-white/75 hover:border-white/20 hover:bg-white/10'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Tag className={`h-4 w-4 ${isSelected ? 'text-amber-300' : 'text-white/50'}`} />
-                    <span className={`text-sm font-medium ${isSelected ? 'text-amber-200' : 'text-white/80'}`}>
-                      {scenarioLabelByCode[scenario.code] ?? scenario.title}
-                    </span>
-                  </div>
+                  <span className="font-medium">{scenarioLabelByCode[scenario.code] ?? scenario.title}</span>
                 </button>
               );
             })}
@@ -337,7 +496,9 @@ export function ConsultationPage() {
               }}
             >
               {isSubmitting
-                ? 'AI 오라클이 해석 중...'
+                ? selectedResumeThreadId
+                  ? '질문 분석과 최신 근거 확인 중...'
+                  : 'AI 오라클이 해석 중...'
                 : selectedType === 'tarot' || selectedType === 'comprehensive'
                   ? '질문을 들고 타로 카드 뽑기'
                   : 'AI 오라클에게 운세 보기'}
@@ -351,4 +512,50 @@ export function ConsultationPage() {
       <BottomNavigation />
     </div>
   );
+}
+
+function mapHistoryItemToThreadCard(item: ConsultingHistoryListItemResponse): ResumeCandidate {
+  const status = item.threadStatus ?? 'OPEN';
+  const title = item.stockName || '이전 상담';
+  const id = item.threadId ?? `history-${item.id}`;
+
+  return {
+    id,
+    title,
+    summary: item.lastQuestionSummary ?? item.aiSummary ?? '이전 상담 흐름을 다시 확인하세요.',
+    consultedAt: item.consultedAt,
+    status,
+    lastEvidenceUpdatedAt: item.lastEvidenceUpdatedAt,
+    canResume: Boolean(item.threadId) && (status === 'OPEN' || status === 'EXPIRING_SOON'),
+  };
+}
+
+function getThreadStatusLabel(status: ConsultingThreadStatus) {
+  if (status === 'EXPIRING_SOON') return '곧 만료';
+  if (status === 'EXPIRED') return '만료';
+  if (status === 'CLOSED') return '종료';
+  return '진행중';
+}
+
+function getThreadBadgeClass(status: ConsultingThreadStatus) {
+  if (status === 'EXPIRING_SOON') return 'border-amber-400/30 bg-amber-500/10 text-amber-200';
+  if (status === 'EXPIRED' || status === 'CLOSED') return 'border-rose-400/30 bg-rose-500/10 text-rose-100';
+  return 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100';
+}
+
+function formatRelativeTime(value?: string) {
+  if (!value) return '-';
+
+  const targetTime = new Date(value).getTime();
+  if (Number.isNaN(targetTime)) return '-';
+
+  const diffMinutes = Math.max(0, Math.floor((Date.now() - targetTime) / 60000));
+  if (diffMinutes < 1) return '방금 전';
+  if (diffMinutes < 60) return `${diffMinutes}분 전`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}일 전`;
 }

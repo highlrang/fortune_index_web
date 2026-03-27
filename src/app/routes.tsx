@@ -17,7 +17,7 @@ import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component: SignupPage,
+    Component: LoginPage,
   },
   {
     path: "/signup",

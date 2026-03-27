@@ -401,5 +401,17 @@ function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse
       tarotAnalysisText: detail.tarotAnalysisText,
       sajuAnalysisText: detail.sajuAnalysisText,
     },
+    thread: {
+      id: detail.threadId,
+      title: detail.stock.companyName,
+      lastQuestionSummary: detail.question,
+      lastAnsweredAt: detail.consultedAt,
+      status: detail.threadStatus,
+      lastEvidenceUpdatedAt: detail.lastEvidenceUpdatedAt,
+      expiresAt: detail.expiresAt,
+      canResume: Boolean(detail.threadId) && (detail.threadStatus === 'OPEN' || detail.threadStatus === 'EXPIRING_SOON'),
+    },
+    evidence: detail.evidence,
+    limitations: detail.limitations,
   };
 }

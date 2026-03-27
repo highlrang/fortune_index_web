@@ -25,10 +25,14 @@ export function PremiumSignupForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [name, setName] = useState('');
   const [gender, setGender] = useState<Gender>(null);
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthDay, setBirthDay] = useState('');
+  const [birthHour, setBirthHour] = useState('');
+  const [birthMinute, setBirthMinute] = useState('');
   const [birthTimeUnknown, setBirthTimeUnknown] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [investmentRiskProfile, setInvestmentRiskProfile] = useState<RiskProfile>('STABLE');
@@ -39,6 +43,9 @@ export function PremiumSignupForm() {
   const [isRequestingCode, setIsRequestingCode] = useState(false);
 
   const canRequestCode = useMemo(() => /\S+@\S+\.\S+/.test(email), [email]);
+  const isPasswordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm;
+  const birthDate = buildBirthDate(birthYear, birthMonth, birthDay);
+  const birthTime = buildBirthTime(birthHour, birthMinute);
 
   const toggleSector = (sector: string) => {
     setPreferredSectors((prev) =>
@@ -70,6 +77,21 @@ export function PremiumSignupForm() {
     e.preventDefault();
     setError('');
 
+    if (password !== passwordConfirm) {
+      setError('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+      return;
+    }
+
+    if (!birthDate) {
+      setError('생년월일을 올바르게 입력해주세요.');
+      return;
+    }
+
+    if (!birthTimeUnknown && !birthTime) {
+      setError('태어난 시간을 올바르게 입력해주세요.');
+      return;
+    }
+
     if (preferredSectors.length === 0) {
       setError('관심 섹터를 하나 이상 선택해주세요.');
       return;
@@ -84,7 +106,7 @@ export function PremiumSignupForm() {
         password,
         verificationCode,
         birthDate,
-        birthTime: birthTimeUnknown || !birthTime ? undefined : parseTime(birthTime),
+        birthTime: birthTimeUnknown || !birthTime ? undefined : birthTime,
         investmentRiskProfile,
         preferredSectors,
       });
@@ -164,6 +186,29 @@ export function PremiumSignupForm() {
       </div>
 
       <div className="space-y-3">
+        <label htmlFor="passwordConfirm" className="block text-sm text-amber-200/80">
+          비밀번호 확인
+        </label>
+        <div className="relative">
+          <input
+            id="passwordConfirm"
+            type="password"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            placeholder="비밀번호를 한 번 더 입력해주세요"
+            required
+            minLength={8}
+            aria-invalid={isPasswordMismatch}
+            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+          />
+          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+        </div>
+        {isPasswordMismatch ? (
+          <p className="text-xs text-rose-300">비밀번호가 일치하지 않습니다.</p>
+        ) : null}
+      </div>
+
+      <div className="space-y-3">
         <label htmlFor="name" className="block text-sm text-amber-200/80">
           이름
         </label>
@@ -208,37 +253,85 @@ export function PremiumSignupForm() {
       </div>
 
       <div className="space-y-3">
-        <label htmlFor="birthDate" className="block text-sm text-amber-200/80">
+        <label className="block text-sm text-amber-200/80">
           생년월일
         </label>
-        <div className="relative">
+        <div className="grid grid-cols-3 gap-3">
           <input
-            id="birthDate"
-            type="date"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
+            id="birthYear"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={4}
+            value={birthYear}
+            onChange={(e) => setBirthYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            placeholder="생년"
             required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 [color-scheme:dark]"
+            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+          <input
+            id="birthMonth"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
+            value={birthMonth}
+            onChange={(e) => setBirthMonth(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            placeholder="월"
+            required
+            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+          />
+          <input
+            id="birthDay"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
+            value={birthDay}
+            onChange={(e) => setBirthDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            placeholder="일"
+            required
+            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+          />
         </div>
+        {birthYear.length === 4 && birthMonth.length > 0 && birthDay.length > 0 && !birthDate ? (
+          <p className="text-xs text-rose-300">유효한 생년월일을 입력해주세요.</p>
+        ) : null}
       </div>
 
       <div className="space-y-3">
         <label htmlFor="birthTime" className="block text-sm text-amber-200/80">
           태어난 시간
         </label>
-        <div className="relative">
+        <div className="grid grid-cols-2 gap-3">
           <input
-            id="birthTime"
-            type="time"
-            value={birthTime}
-            onChange={(e) => setBirthTime(e.target.value)}
+            id="birthHour"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
+            value={birthHour}
+            onChange={(e) => setBirthHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
             disabled={birthTimeUnknown}
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40 [color-scheme:dark]"
+            placeholder="시(00-23)"
+            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40"
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+          <input
+            id="birthMinute"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
+            value={birthMinute}
+            onChange={(e) => setBirthMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            disabled={birthTimeUnknown}
+            placeholder="분(00-59)"
+            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+          />
         </div>
+        {!birthTimeUnknown && (birthHour.length > 0 || birthMinute.length > 0) && !birthTime ? (
+          <p className="text-xs text-rose-300">시간은 00-23, 분은 00-59 형식으로 입력해주세요.</p>
+        ) : null}
 
         <label className="group flex cursor-pointer items-center gap-3">
           <div className="relative">
@@ -247,7 +340,10 @@ export function PremiumSignupForm() {
               checked={birthTimeUnknown}
               onChange={(e) => {
                 setBirthTimeUnknown(e.target.checked);
-                if (e.target.checked) setBirthTime('');
+                if (e.target.checked) {
+                  setBirthHour('');
+                  setBirthMinute('');
+                }
               }}
               className="peer h-5 w-5 cursor-pointer appearance-none rounded border-2 border-white/20 bg-white/5 transition-all checked:border-amber-500/60 checked:bg-amber-500/30"
             />
@@ -374,12 +470,62 @@ export function PremiumSignupForm() {
   );
 }
 
-function parseTime(value: string) {
-  const [hour, minute] = value.split(':').map(Number);
-  return {
-    hour,
-    minute,
-    second: 0,
-    nano: 0,
-  };
+function buildBirthDate(year: string, month: string, day: string) {
+  if (year.length !== 4 || month.length === 0 || day.length === 0) {
+    return '';
+  }
+
+  const numericYear = Number(year);
+  const numericMonth = Number(month);
+  const numericDay = Number(day);
+
+  if (
+    !Number.isInteger(numericYear) ||
+    !Number.isInteger(numericMonth) ||
+    !Number.isInteger(numericDay) ||
+    numericMonth < 1 ||
+    numericMonth > 12 ||
+    numericDay < 1 ||
+    numericDay > 31
+  ) {
+    return '';
+  }
+
+  const date = new Date(Date.UTC(numericYear, numericMonth - 1, numericDay));
+  const isValidDate =
+    date.getUTCFullYear() === numericYear &&
+    date.getUTCMonth() === numericMonth - 1 &&
+    date.getUTCDate() === numericDay;
+
+  if (!isValidDate) {
+    return '';
+  }
+
+  return `${year}-${String(numericMonth).padStart(2, '0')}-${String(numericDay).padStart(2, '0')}`;
+}
+
+function buildBirthTime(hour: string, minute: string) {
+  if (hour.length === 0 && minute.length === 0) {
+    return '';
+  }
+
+  if (hour.length === 0 || minute.length === 0) {
+    return '';
+  }
+
+  const numericHour = Number(hour);
+  const numericMinute = Number(minute);
+
+  if (
+    !Number.isInteger(numericHour) ||
+    !Number.isInteger(numericMinute) ||
+    numericHour < 0 ||
+    numericHour > 23 ||
+    numericMinute < 0 ||
+    numericMinute > 59
+  ) {
+    return '';
+  }
+
+  return `${String(numericHour).padStart(2, '0')}:${String(numericMinute).padStart(2, '0')}`;
 }

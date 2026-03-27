@@ -150,11 +150,15 @@ async function refreshAccessToken() {
         return false;
       }
 
-      const refreshed = payload as AuthResponse;
-      saveSession(toSessionState(refreshed));
+      const refreshedSession = toRefreshedSessionState(session, payload);
+      if (!refreshedSession) {
+        clearSession();
+        return false;
+      }
+
+      saveSession(refreshedSession);
       return true;
     } catch {
-      clearSession();
       return false;
     } finally {
       refreshPromise = null;
@@ -238,6 +242,10 @@ export interface AuthUserResponse {
   emailVerified: boolean;
   investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
   preferredSectors: string[];
+  subscriptionPlan?: string | null;
+  subscriptionStatus?: string | null;
+  membershipLevel?: string | null;
+  premiumConsultingEnabled?: boolean | null;
   preferredTarotDeckId?: string | null;
   birthDate?: string | null;
   birthTime?: string | null;
@@ -313,6 +321,47 @@ export interface TarotCardConsultResponse {
   videoUrl?: string;
 }
 
+export type ConsultingThreadStatus = 'OPEN' | 'EXPIRING_SOON' | 'EXPIRED' | 'CLOSED';
+export type EvidenceFreshnessStatus = 'FRESH' | 'STALE' | 'UNAVAILABLE' | 'PARTIAL';
+export type ConsultingRequestProgressStatus =
+  | 'ANALYZING_QUESTION'
+  | 'LOADING_PRICE'
+  | 'LOADING_POSITION'
+  | 'LOADING_NEWS'
+  | 'GENERATING'
+  | 'LIMITED_BY_STALE_DATA'
+  | 'COMPLETED';
+
+export interface EvidenceSnapshot {
+  status: EvidenceFreshnessStatus;
+  asOf?: string;
+  sourceCount?: number;
+  reason?: string;
+}
+
+export interface ConsultThreadSummary {
+  id?: string;
+  title?: string;
+  lastQuestionSummary?: string;
+  lastAnsweredAt?: string;
+  status?: ConsultingThreadStatus;
+  lastEvidenceUpdatedAt?: string;
+  expiresAt?: string;
+  canResume?: boolean;
+}
+
+export interface ConsultEvidenceSummary {
+  overallStatus?: EvidenceFreshnessStatus;
+  market?: EvidenceSnapshot;
+  position?: EvidenceSnapshot;
+  news?: EvidenceSnapshot;
+}
+
+export interface ConsultLimitation {
+  code?: string;
+  message?: string;
+}
+
 export interface ConsultResponse {
   mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
   stock: {
@@ -355,6 +404,10 @@ export interface ConsultResponse {
     tarotAnalysisText?: string;
     sajuAnalysisText?: string;
   };
+  thread?: ConsultThreadSummary;
+  evidence?: ConsultEvidenceSummary;
+  limitations?: ConsultLimitation[];
+  progress?: ConsultingRequestProgressStatus[];
 }
 
 export interface ConsultingHistoryListItemResponse {
@@ -369,13 +422,11 @@ export interface ConsultingHistoryListItemResponse {
   tarotInterpretationMode?: string;
   tarotCardCodes: string[];
   tarotCardNames: string[];
-}
-
-export interface LocalTimePayload {
-  hour: number;
-  minute: number;
-  second: number;
-  nano: number;
+  threadId?: string;
+  threadStatus?: ConsultingThreadStatus;
+  lastQuestionSummary?: string;
+  lastEvidenceUpdatedAt?: string;
+  expiresAt?: string;
 }
 
 export interface EmailCodeVerifyPayload {
@@ -543,6 +594,12 @@ export interface SharedConsultingHistoryResponse {
   sajuAnalysisText?: string;
   analysisResultJson: string;
   aiResponseJson: string;
+  threadId?: string;
+  threadStatus?: ConsultingThreadStatus;
+  lastEvidenceUpdatedAt?: string;
+  expiresAt?: string;
+  evidence?: ConsultEvidenceSummary;
+  limitations?: ConsultLimitation[];
 }
 
 export interface KisApiRawResponse {
@@ -562,12 +619,7 @@ export interface SignUpPayload {
   password: string;
   verificationCode: string;
   birthDate: string;
-  birthTime?: {
-    hour: number;
-    minute: number;
-    second: number;
-    nano: number;
-  };
+  birthTime?: string;
   investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
   preferredSectors: string[];
 }
@@ -578,6 +630,7 @@ export interface ConsultPayload {
   scenario: 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE';
   stockCode: string;
   stockName?: string;
+  threadId?: string;
   tarotIndices?: number[];
   tarotDeckVersionId?: string;
   tarotInterpretationMode?: 'MAIN_TRADITIONAL';
@@ -897,5 +950,21 @@ export function toSessionState(auth: AuthResponse): SessionState {
   return {
     user: auth.user,
     tokens: auth.tokens,
+  };
+}
+
+function toRefreshedSessionState(
+  currentSession: SessionState,
+  payload: unknown,
+): SessionState | null {
+  if (!payload || typeof payload !== 'object' || !('tokens' in payload)) {
+    return null;
+  }
+
+  const partialAuth = payload as Partial<AuthResponse> & { tokens: AuthTokenResponse };
+
+  return {
+    user: partialAuth.user ?? currentSession.user,
+    tokens: partialAuth.tokens,
   };
 }

@@ -10,6 +10,10 @@ export interface SessionUser {
   emailVerified: boolean;
   investmentRiskProfile: InvestmentRiskProfile;
   preferredSectors: string[];
+  subscriptionPlan?: string | null;
+  subscriptionStatus?: string | null;
+  membershipLevel?: string | null;
+  premiumConsultingEnabled?: boolean | null;
   preferredTarotDeckId?: string | null;
   birthDate?: string | null;
   birthTime?: string | null;
@@ -71,6 +75,19 @@ export function getAccessToken() {
 
 export function getCurrentUser() {
   return getSession()?.user ?? null;
+}
+
+export function hasPremiumConsultingAccess(user = getCurrentUser()) {
+  if (!user) return false;
+
+  const derivedPremiumAccess =
+    user.subscriptionPlan === 'PREMIUM' ||
+    user.subscriptionStatus === 'ACTIVE' ||
+    user.membershipLevel === 'PREMIUM';
+
+  return Boolean(
+    user.premiumConsultingEnabled ?? derivedPremiumAccess,
+  );
 }
 
 export function saveLastConsultResult<T>(result: T) {
