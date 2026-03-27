@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, TrendingUp, Star, Sparkles, Layers, RefreshCw } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Star, Sparkles, Layers } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import {
   consult,
-  getHistoryList,
   getScenarios,
-  type ConsultingHistoryListItemResponse,
   type ConsultingThreadStatus,
   type ScenarioOptionResponse,
 } from '@/lib/api';
-import { getCurrentUser, hasPremiumConsultingAccess, saveLastConsultResult } from '@/lib/session';
+import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
 type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
@@ -26,45 +24,35 @@ type ConsultationFlowState = {
   resumeThreadStatus?: ConsultingThreadStatus;
 };
 
-type ResumeCandidate = {
-  id: string;
-  title: string;
-  summary: string;
-  consultedAt: string;
-  status: ConsultingThreadStatus;
-  lastEvidenceUpdatedAt?: string;
-  canResume: boolean;
-};
-
 const consultationTypes = [
-  { id: 'market', label: '시장 분석', icon: TrendingUp, color: 'from-cyan-500/20 to-blue-500/20' },
-  { id: 'saju', label: '사주 투자', icon: Star, color: 'from-amber-500/20 to-yellow-500/20' },
-  { id: 'tarot', label: '타로 상담', icon: Sparkles, color: 'from-purple-500/20 to-violet-500/20' },
-  { id: 'comprehensive', label: '종합 상담', icon: Layers, color: 'from-rose-500/20 to-pink-500/20' },
+  { id: 'market', label: '시장 흐름', icon: TrendingUp, color: 'from-cyan-500/20 to-blue-500/20' },
+  { id: 'saju', label: '사주 궁합', icon: Star, color: 'from-amber-500/20 to-yellow-500/20' },
+  { id: 'tarot', label: '타로 리딩', icon: Sparkles, color: 'from-purple-500/20 to-violet-500/20' },
+  { id: 'comprehensive', label: '종합 해석', icon: Layers, color: 'from-rose-500/20 to-pink-500/20' },
 ];
 
 const fallbackScenarios: ScenarioOptionResponse[] = [
-  { code: 'TIMING_ENTRY', title: '매수 타이밍', description: '지금 진입해도 되는지 확인합니다.' },
-  { code: 'TIMING_EXIT', title: '매도 타이밍', description: '익절 또는 손절 시점을 봅니다.' },
-  { code: 'SAJU_MATCH', title: '종목 궁합', description: '내 사주와 종목의 궁합을 확인합니다.' },
-  { code: 'RESCUE_PLAN', title: '구조 계획', description: '물린 종목의 대응 전략을 정리합니다.' },
-  { code: 'MENTAL_GUIDE', title: '멘탈 가이드', description: '투자 심리를 정리합니다.' },
+  { code: 'TIMING_ENTRY', title: '타이밍', description: '지금 진입해도 되는지 흐름을 확인합니다.' },
+  { code: 'TIMING_EXIT', title: '타이밍', description: '익절 또는 손절 시점을 살핍니다.' },
+  { code: 'SAJU_MATCH', title: '궁합', description: '내 사주와 종목 또는 섹터의 궁합을 확인합니다.' },
+  { code: 'RESCUE_PLAN', title: '전략', description: '물린 종목과 하락 구간의 대응 전략을 정리합니다.' },
+  { code: 'MENTAL_GUIDE', title: '심리', description: '불안한 투자 심리를 다잡고 흐름을 정리합니다.' },
 ];
 
 const scenarioLabelByCode: Record<string, string> = {
-  TIMING_ENTRY: '매수',
-  TIMING_EXIT: '매도',
+  TIMING_ENTRY: '타이밍',
+  TIMING_EXIT: '타이밍',
   SAJU_MATCH: '궁합',
-  RESCUE_PLAN: '구조',
-  MENTAL_GUIDE: '멘탈',
+  RESCUE_PLAN: '전략',
+  MENTAL_GUIDE: '심리',
 };
 
 const questionPlaceholderByScenario: Record<string, string> = {
   TIMING_ENTRY: '예: 삼성전자 지금 들어가도 될까요?',
   TIMING_EXIT: '예: 이 종목 지금 익절하는 게 좋을까요?',
   SAJU_MATCH: '예: 제 사주에 2차전지주는 잘 맞을까요?',
-  RESCUE_PLAN: '예: -18% 손실 중인데 어떻게 대응하면 좋을까요?',
-  MENTAL_GUIDE: '예: 요즘 조급한 매매가 반복되는데 흐름을 어떻게 잡아야 할까요?',
+  RESCUE_PLAN: '예: -18% 손실 중인데 지금은 어떤 전략으로 대응하면 좋을까요?',
+  MENTAL_GUIDE: '예: 하락장이 길어져 불안한데 지금 제 투자 심리를 어떻게 다잡으면 좋을까요?',
 };
 
 const modeByType = {
@@ -86,26 +74,27 @@ export function ConsultationPage() {
     (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedTarotDeck = getTarotDeckById(tarotDeckVersionId);
   const currentUser = getCurrentUser();
-  const hasPremiumAccess = hasPremiumConsultingAccess(currentUser);
 
   const [selectedType, setSelectedType] = useState<ConsultationType>(flowState?.selectedType ?? null);
   const [scenarios, setScenarios] = useState<ScenarioOptionResponse[]>(fallbackScenarios);
   const [selectedScenario, setSelectedScenario] = useState<string>(flowState?.selectedScenario ?? '');
   const [question, setQuestion] = useState(flowState?.question ?? '');
   const [loadingScenarios, setLoadingScenarios] = useState(true);
-  const [loadingThreads, setLoadingThreads] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [recentThreads, setRecentThreads] = useState<ResumeCandidate[]>([]);
-  const [selectedResumeThreadId, setSelectedResumeThreadId] = useState<string | null>(
+  const [selectedResumeThreadId] = useState<string | null>(
     flowState?.resumeThreadStatus && flowState.resumeThreadStatus !== 'EXPIRED' && flowState.resumeThreadStatus !== 'CLOSED'
       ? flowState.resumeThreadId ?? null
       : null,
   );
 
   const questionPlaceholder = selectedScenario
-    ? `궁금한 점을 자유롭게 입력해주세요\n${questionPlaceholderByScenario[selectedScenario] ?? '예: 지금 제 투자 흐름은 어떤가요?'}`
-    : '궁금한 점을 자유롭게 입력해주세요\n예: 삼성전자 지금 들어가도 될까요?';
+    ? `편하게 질문해주세요\n${questionPlaceholderByScenario[selectedScenario] ?? '예: 지금 제 투자 흐름은 어떤가요?'}`
+    : '편하게 질문해주세요\n예: 삼성전자 지금 들어가도 될까요?';
+  const visibleScenarios = scenarios.filter((scenario, index, list) => {
+    const label = scenarioLabelByCode[scenario.code] ?? scenario.title;
+    return list.findIndex((item) => (scenarioLabelByCode[item.code] ?? item.title) === label) === index;
+  });
 
   useEffect(() => {
     let active = true;
@@ -128,48 +117,6 @@ export function ConsultationPage() {
       active = false;
     };
   }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    if (!currentUser || !hasPremiumAccess) {
-      setRecentThreads([]);
-      setLoadingThreads(false);
-      return;
-    }
-
-    setLoadingThreads(true);
-
-    getHistoryList(currentUser.id)
-      .then((response) => {
-        if (!active) return;
-        const mapped = response
-          .slice()
-          .sort((a, b) => b.consultedAt.localeCompare(a.consultedAt))
-          .slice(0, 3)
-          .map(mapHistoryItemToThreadCard);
-
-        setRecentThreads(mapped);
-        if (!selectedResumeThreadId) {
-          const defaultThread = mapped.find((item) => item.canResume);
-          if (defaultThread && flowState?.resumeThreadId) {
-            setSelectedResumeThreadId(defaultThread.id === flowState.resumeThreadId ? defaultThread.id : null);
-          }
-        }
-      })
-      .catch(() => {
-        if (!active) return;
-        setRecentThreads([]);
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoadingThreads(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [currentUser, flowState?.resumeThreadId, hasPremiumAccess, selectedResumeThreadId]);
 
   const handleSubmit = async () => {
     if (!currentUser) {
@@ -244,102 +191,9 @@ export function ConsultationPage() {
             <ArrowLeft className="h-5 w-5 text-white/60" />
           </button>
           <div>
-            <h1 className="text-xl font-medium text-white">AI 투자 상담</h1>
-            <p className="text-xs text-white/50">운명이 안내하는 투자 전략</p>
+            <h1 className="text-xl font-medium text-white">해석</h1>
+            <p className="text-xs text-white/50">궁금한 투자 흐름을 가볍게 물어보세요</p>
           </div>
-        </div>
-
-        <div className="mb-6 rounded-2xl border border-emerald-300/20 bg-emerald-500/10 px-4 py-4 backdrop-blur-xl">
-          <p className="text-sm font-medium text-emerald-100">기본은 새 상담입니다.</p>
-          <p className="mt-2 text-xs leading-6 text-emerald-50/75">
-            같은 흐름을 이어갈 때만 연속 상담을 선택하세요. 종목이나 고민 주제가 달라지면 새 상담이 더 정확합니다.
-          </p>
-          <p className="mt-2 text-xs text-emerald-50/65">평균단가와 시세는 이어받기마다 다시 확인합니다.</p>
-        </div>
-
-        <div className="mb-8 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-white/70">상담 시작 방식</h2>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setSelectedResumeThreadId(null)}
-            className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
-              selectedResumeThreadId === null
-                ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10'
-                : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className={`text-sm font-semibold ${selectedResumeThreadId === null ? 'text-amber-200' : 'text-white'}`}>
-                  새 상담 시작
-                </p>
-                <p className="mt-1 text-xs text-white/60">과거 문맥을 자동으로 붙이지 않고 새 흐름으로 시작합니다.</p>
-              </div>
-              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/55">
-                기본 선택
-              </div>
-            </div>
-          </button>
-
-          {hasPremiumAccess ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-white">이전 상담 이어서 하기</p>
-                  <p className="mt-1 text-xs leading-5 text-white/55">
-                    연속 상담은 같은 흐름을 이어서 질문할 때만 권장합니다.
-                  </p>
-                </div>
-                <RefreshCw className={`h-4 w-4 ${loadingThreads ? 'animate-spin text-white/45' : 'text-white/30'}`} />
-              </div>
-
-              {recentThreads.length > 0 ? (
-                <div className="space-y-3">
-                  {recentThreads.map((thread) => {
-                    const selected = selectedResumeThreadId === thread.id;
-                    return (
-                      <button
-                        key={thread.id}
-                        type="button"
-                        onClick={() => setSelectedResumeThreadId(thread.canResume ? thread.id : null)}
-                        className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
-                          selected
-                            ? 'border-cyan-300/40 bg-cyan-500/10'
-                            : 'border-white/10 bg-black/10 hover:border-white/20 hover:bg-white/5'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-white">{thread.title}</p>
-                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/60">{thread.summary}</p>
-                          </div>
-                          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] ${getThreadBadgeClass(thread.status)}`}>
-                            {getThreadStatusLabel(thread.status)}
-                          </span>
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-white/45">
-                          <span>마지막 상담 {formatRelativeTime(thread.consultedAt)}</span>
-                          {thread.lastEvidenceUpdatedAt ? (
-                            <span>근거 갱신 {formatRelativeTime(thread.lastEvidenceUpdatedAt)}</span>
-                          ) : null}
-                        </div>
-                        <p className="mt-3 text-xs font-medium text-cyan-100/85">
-                          {thread.canResume ? '이어서 질문하기' : '이 상담 기반으로 새 상담 시작'}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-white/15 bg-black/10 px-4 py-5 text-sm text-white/50">
-                  최근 연속 상담이 없습니다.
-                </div>
-              )}
-            </div>
-          ) : null}
         </div>
 
         <div className="mb-8">
@@ -378,9 +232,9 @@ export function ConsultationPage() {
         </div>
 
         <div className="mb-6">
-          <h2 className="mb-4 text-sm font-medium text-white/70">질문 시나리오</h2>
+          <h2 className="mb-4 text-sm font-medium text-white/70">보고 싶은 흐름</h2>
           <div className="flex flex-wrap gap-2.5">
-            {scenarios.map((scenario) => {
+            {visibleScenarios.map((scenario) => {
               const isSelected = selectedScenario === scenario.code;
 
               return (
@@ -403,7 +257,7 @@ export function ConsultationPage() {
 
         <div className="mb-6 space-y-4">
           <div>
-            <h2 className="mb-4 text-sm font-medium text-white/70">질문 입력</h2>
+            <h2 className="mb-4 text-sm font-medium text-white/70">무엇이 궁금한가요?</h2>
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -498,10 +352,10 @@ export function ConsultationPage() {
               {isSubmitting
                 ? selectedResumeThreadId
                   ? '질문 분석과 최신 근거 확인 중...'
-                  : 'AI 오라클이 해석 중...'
+                  : '해석 중...'
                 : selectedType === 'tarot' || selectedType === 'comprehensive'
                   ? '질문을 들고 타로 카드 뽑기'
-                  : 'AI 오라클에게 운세 보기'}
+                  : '해석 받기'}
             </span>
           </div>
 

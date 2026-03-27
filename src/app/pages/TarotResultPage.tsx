@@ -689,7 +689,7 @@ export function TarotResultPage() {
                 <div className="relative flex items-center justify-center gap-2">
                   <Sparkles className="h-5 w-5 text-white" />
                   <span className="font-bold text-white">
-                    {isSubmitting ? 'AI 오라클이 해석 중...' : '운세 결과 보러 가기'}
+                    {isSubmitting ? '리딩 중...' : '운세 결과 보러 가기'}
                   </span>
                 </div>
               </motion.button>
