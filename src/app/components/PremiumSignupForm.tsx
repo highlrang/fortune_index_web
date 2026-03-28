@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
-import { requestSignupEmailCode, signup, toSessionState } from '@/lib/api';
+import { signup, toSessionState } from '@/lib/api';
 import { saveSession } from '@/lib/session';
 
 type Gender = 'male' | 'female' | null;
@@ -21,9 +21,12 @@ const sectorOptions = [
   { label: 'ETF', value: 'ETF' },
 ];
 
-export function PremiumSignupForm() {
+interface PremiumSignupFormProps {
+  verifiedEmail: string;
+}
+
+export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [name, setName] = useState('');
@@ -34,15 +37,11 @@ export function PremiumSignupForm() {
   const [birthHour, setBirthHour] = useState('');
   const [birthMinute, setBirthMinute] = useState('');
   const [birthTimeUnknown, setBirthTimeUnknown] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
   const [investmentRiskProfile, setInvestmentRiskProfile] = useState<RiskProfile>('STABLE');
   const [preferredSectors, setPreferredSectors] = useState<string[]>(['TECHNOLOGY']);
-  const [codeRequestMessage, setCodeRequestMessage] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRequestingCode, setIsRequestingCode] = useState(false);
 
-  const canRequestCode = useMemo(() => /\S+@\S+\.\S+/.test(email), [email]);
   const isPasswordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm;
   const birthDate = buildBirthDate(birthYear, birthMonth, birthDay);
   const birthTime = buildBirthTime(birthHour, birthMinute);
@@ -51,26 +50,6 @@ export function PremiumSignupForm() {
     setPreferredSectors((prev) =>
       prev.includes(sector) ? prev.filter((item) => item !== sector) : [...prev, sector],
     );
-  };
-
-  const handleRequestCode = async () => {
-    if (!canRequestCode) {
-      setError('인증 코드를 받으려면 올바른 이메일을 입력해주세요.');
-      return;
-    }
-
-    setError('');
-    setCodeRequestMessage('');
-    setIsRequestingCode(true);
-
-    try {
-      const response = await requestSignupEmailCode(email);
-      setCodeRequestMessage(`인증 코드를 보냈습니다. 만료 시각: ${new Date(response.expiresAt).toLocaleString()}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '인증 코드 요청에 실패했습니다.');
-    } finally {
-      setIsRequestingCode(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,9 +81,8 @@ export function PremiumSignupForm() {
     try {
       const response = await signup({
         name,
-        email,
+        email: verifiedEmail,
         password,
-        verificationCode,
         birthDate,
         birthTime: birthTimeUnknown || !birthTime ? undefined : birthTime,
         investmentRiskProfile,
@@ -124,46 +102,25 @@ export function PremiumSignupForm() {
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-3">
         <label htmlFor="email" className="block text-sm text-amber-200/80">
-          이메일
+          인증된 이메일
         </label>
         <div className="relative">
           <input
             id="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@email.com"
-            required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 pr-32 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            value={verifiedEmail}
+            readOnly
+            className="w-full rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl outline-none"
           />
-          <button
-            type="button"
-            onClick={handleRequestCode}
-            disabled={!canRequestCode || isRequestingCode}
-            className="absolute right-2 top-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isRequestingCode ? '전송 중' : '인증코드 받기'}
-          </button>
+          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/5 to-transparent" />
         </div>
-      </div>
-
-      <div className="space-y-3">
-        <label htmlFor="verificationCode" className="block text-sm text-amber-200/80">
-          이메일 인증 코드
-        </label>
-        <div className="relative">
-          <input
-            id="verificationCode"
-            type="text"
-            value={verificationCode}
-            onChange={(e) => setVerificationCode(e.target.value)}
-            placeholder="메일로 받은 코드를 입력해주세요"
-            required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-          />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
-        </div>
-        {codeRequestMessage ? <p className="text-xs text-emerald-300">{codeRequestMessage}</p> : null}
+        <p className="text-xs text-white/40">
+          이메일을 변경하려면{' '}
+          <Link to="/signup" className="text-amber-400 transition-colors hover:text-amber-300">
+            인증 단계로 돌아가기
+          </Link>
+          .
+        </p>
       </div>
 
       <div className="space-y-3">

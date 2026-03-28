@@ -1,78 +1,93 @@
-import { createBrowserRouter } from "react-router";
-import { SignupPage } from "./pages/SignupPage";
-import { LoginPage } from "./pages/LoginPage";
-import { HomePage } from "./pages/HomePage";
-import { ConsultationPage } from "./pages/ConsultationPage";
-import { ConsultationHistoryPage } from "./pages/ConsultationHistoryPage";
-import { TarotPickerPage } from "./pages/TarotPickerPage";
-import { TarotSpreadPage } from "./pages/TarotSpreadPage";
-import { TarotResultPage } from "./pages/TarotResultPage";
-import { InvestmentResultPage } from "./pages/InvestmentResultPage";
-import { MyPage } from "./pages/MyPage";
-import { LikedFortunesPage } from "./pages/LikedFortunesPage";
-import { NotificationsPage } from "./pages/NotificationsPage";
-import { TermsPage } from "./pages/TermsPage";
-import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { createBrowserRouter } from 'react-router';
+import { SignupPage } from './pages/SignupPage';
+import { LoginPage } from './pages/LoginPage';
+import { HomePage } from './pages/HomePage';
+import { ConsultationPage } from './pages/ConsultationPage';
+import { ConsultationHistoryPage } from './pages/ConsultationHistoryPage';
+import { TarotPickerPage } from './pages/TarotPickerPage';
+import { TarotSpreadPage } from './pages/TarotSpreadPage';
+import { TarotResultPage } from './pages/TarotResultPage';
+import { InvestmentResultPage } from './pages/InvestmentResultPage';
+import { MyPage } from './pages/MyPage';
+import { LikedFortunesPage } from './pages/LikedFortunesPage';
+import { NotificationsPage } from './pages/NotificationsPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { SignupEmailPendingPage } from './pages/SignupEmailPendingPage';
+import { SignupEmailSuccessPage } from './pages/SignupEmailSuccessPage';
+import { SignupProfilePage } from './pages/SignupProfilePage';
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     Component: LoginPage,
   },
   {
-    path: "/signup",
+    path: '/signup',
     Component: SignupPage,
   },
   {
-    path: "/login",
+    path: '/signup/email-check',
+    Component: SignupEmailPendingPage,
+  },
+  {
+    path: '/signup/email-success',
+    Component: SignupEmailSuccessPage,
+  },
+  {
+    path: '/signup/profile',
+    Component: SignupProfilePage,
+  },
+  {
+    path: '/login',
     Component: LoginPage,
   },
   {
-    path: "/home",
+    path: '/home',
     Component: HomePage,
   },
   {
-    path: "/consultation",
+    path: '/consultation',
     Component: ConsultationPage,
   },
   {
-    path: "/consultation-history",
+    path: '/consultation-history',
     Component: ConsultationHistoryPage,
   },
   {
-    path: "/tarot-picker",
+    path: '/tarot-picker',
     Component: TarotPickerPage,
   },
   {
-    path: "/tarot-spread",
+    path: '/tarot-spread',
     Component: TarotSpreadPage,
   },
   {
-    path: "/tarot-result",
+    path: '/tarot-result',
     Component: TarotResultPage,
   },
   {
-    path: "/investment-result",
+    path: '/investment-result',
     Component: InvestmentResultPage,
   },
   {
-    path: "/my",
+    path: '/my',
     Component: MyPage,
   },
   {
-    path: "/liked-fortunes",
+    path: '/liked-fortunes',
     Component: LikedFortunesPage,
   },
   {
-    path: "/notifications",
+    path: '/notifications',
     Component: NotificationsPage,
   },
   {
-    path: "/terms",
+    path: '/terms',
     Component: TermsPage,
   },
   {
-    path: "/privacy",
+    path: '/privacy',
     Component: PrivacyPolicyPage,
   },
 ]);

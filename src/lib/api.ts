@@ -67,6 +67,26 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return payload as T;
 }
 
+async function requestWithFallbackPaths<T>(
+  paths: string[],
+  options: RequestOptions = {},
+): Promise<T> {
+  let lastError: unknown;
+
+  for (const path of paths) {
+    try {
+      return await request<T>(path, options);
+    } catch (error) {
+      lastError = error;
+      if (!(error instanceof ApiError) || error.status !== 404) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 async function performRequest(path: string, options: RequestOptions = {}) {
   const headers: Record<string, string> = {
     Accept: 'application/json',
@@ -99,23 +119,16 @@ async function parseResponsePayload(response: Response) {
 }
 
 function shouldAttachAccessToken(path: string) {
-  return !(
-    path.startsWith('/api/auth/login') ||
-    path.startsWith('/api/auth/signup')
-  );
+  return !isPublicAuthPath(path);
 }
 
 function shouldAttemptRefresh(path: string, options: RequestOptions) {
   if (options.skipAuthRefresh) return false;
   if (!getSession()?.tokens.refreshToken) return false;
   if (path === '/api/auth/refresh') return false;
+  if (path === '/auth/refresh') return false;
 
-  return !(
-    path.startsWith('/api/auth/login') ||
-    path.startsWith('/api/auth/signup') ||
-    path.startsWith('/api/auth/password-reset') ||
-    path === '/api/auth/logout'
-  );
+  return !(isPublicAuthPath(path) || path === '/api/auth/logout' || path === '/auth/logout');
 }
 
 async function refreshAccessToken() {
@@ -235,6 +248,18 @@ function normalizeApiBaseUrl(value?: string) {
   return trimmed ? trimmed : DEFAULT_API_BASE_URL;
 }
 
+function isPublicAuthPath(path: string) {
+  return (
+    path.startsWith('/api/auth/login') ||
+    path.startsWith('/api/auth/signup') ||
+    path.startsWith('/api/auth/password-reset') ||
+    path.startsWith('/auth/email/send') ||
+    path.startsWith('/auth/email/status') ||
+    path.startsWith('/api/auth/email/send') ||
+    path.startsWith('/api/auth/email/status')
+  );
+}
+
 export interface AuthUserResponse {
   id: number;
   name: string;
@@ -286,6 +311,13 @@ export interface EmailVerificationResponse {
   purpose: string;
   verified: boolean;
   verifiedAt: string;
+}
+
+export interface EmailVerificationStatusResponse {
+  email: string;
+  status: 'PENDING' | 'VERIFIED' | 'EXPIRED' | 'FAILED' | string;
+  verifiedAt?: string | null;
+  message?: string;
 }
 
 export interface ScenarioOptionResponse {
@@ -617,7 +649,6 @@ export interface SignUpPayload {
   name: string;
   email: string;
   password: string;
-  verificationCode: string;
   birthDate: string;
   birthTime?: string;
   investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
@@ -718,6 +749,25 @@ export async function verifySignupCode(payload: EmailCodeVerifyPayload) {
     method: 'POST',
     body: payload,
   });
+}
+
+export async function sendEmailVerificationMail(email: string) {
+  return requestWithFallbackPaths<MessageResponse>(
+    ['/auth/email/send', '/api/auth/email/send'],
+    {
+      method: 'POST',
+      body: { email },
+    },
+  );
+}
+
+export async function getEmailVerificationStatus(email: string) {
+  return requestWithFallbackPaths<EmailVerificationStatusResponse>(
+    [
+      `/auth/email/status${buildQuery({ email })}`,
+      `/api/auth/email/status${buildQuery({ email })}`,
+    ],
+  );
 }
 
 export async function getMe() {

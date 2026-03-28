@@ -1,62 +1,81 @@
-import { WheelOfFortune } from '../components/WheelOfFortune';
-import { PremiumSignupForm } from '../components/PremiumSignupForm';
-import { Sparkles } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { LoaderCircle, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { sendEmailVerificationMail } from '@/lib/api';
+import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const canSubmit = useMemo(() => /\S+@\S+\.\S+/.test(email), [email]);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmit) {
+      setError('올바른 이메일 주소를 입력해주세요.');
+      return;
+    }
+
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      await sendEmailVerificationMail(email);
+      navigate(`/signup/email-check?email=${encodeURIComponent(email)}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '인증 메일 발송에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950">
-      {/* Ambient background effects */}
-      <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
-      </div>
-
-      {/* Main container */}
-      <div className="relative mx-auto max-w-md px-6 py-12">
-        {/* Header */}
-        <div className="mb-12 text-center">
-          <div className="mb-6 flex items-center justify-center gap-2">
-            <Sparkles className="h-6 w-6 text-amber-400" />
-            <h1 className="bg-gradient-to-r from-amber-200 to-yellow-300 bg-clip-text text-2xl font-medium text-transparent">
-              Stock Oracle
-            </h1>
-            <Sparkles className="h-6 w-6 text-amber-400" />
+    <SignupStageLayout
+      title="이메일 인증"
+      description="회원가입 전, 인증 메일을 받을 이메일 주소를 먼저 입력해주세요."
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-3">
+          <label htmlFor="email" className="block text-sm text-amber-200/80">
+            이메일
+          </label>
+          <div className="relative">
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="example@email.com"
+              required
+              className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            />
+            <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
           </div>
-          <p className="text-sm text-white/50">
-            사주와 타로로 풀어내는 나만의 투자 운세
-          </p>
         </div>
 
-        {/* Wheel of Fortune */}
-        <div className="mb-12">
-          <WheelOfFortune />
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-white/65">
+          인증 메일 발송 후 메일 확인 화면으로 이동합니다. 인증 링크를 누르면 자동으로 다음 단계가 열립니다.
         </div>
 
-        {/* Title */}
-        <div className="mb-8 space-y-2">
-          <h2 className="text-center text-xl text-white">회원가입</h2>
-          <div className="mx-auto h-px w-24 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
-        </div>
-
-        {/* Form */}
-        <div className="relative">
-          {/* Glassmorphism container */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-            <PremiumSignupForm />
+        {error ? (
+          <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {error}
           </div>
+        ) : null}
 
-          {/* Decorative corner accents */}
-          <div className="pointer-events-none absolute -left-1 -top-1 h-16 w-16 border-l-2 border-t-2 border-amber-500/30 rounded-tl-2xl" />
-          <div className="pointer-events-none absolute -bottom-1 -right-1 h-16 w-16 border-b-2 border-r-2 border-amber-500/30 rounded-br-2xl" />
-        </div>
-
-        {/* Footer */}
-        <div className="mt-16 text-center">
-          <p className="text-xs text-white/20">
-            © 2024 Stock Oracle. All rights reserved.
-          </p>
-        </div>
-      </div>
-    </div>
+        <button
+          type="submit"
+          disabled={isSubmitting || !canSubmit}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-600/80 to-yellow-600/80 px-5 py-4 text-base font-medium text-white transition-all hover:border-amber-500/70 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
+          {isSubmitting ? '메일 발송 중...' : '인증 메일 발송'}
+        </button>
+      </form>
+    </SignupStageLayout>
   );
 }
