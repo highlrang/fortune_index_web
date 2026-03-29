@@ -101,7 +101,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-3">
-        <label htmlFor="email" className="block text-sm text-amber-200/80">
+        <label htmlFor="email" className="block text-sm fi-text-accent">
           인증된 이메일
         </label>
         <div className="relative">
@@ -110,13 +110,14 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             type="email"
             value={verifiedEmail}
             readOnly
-            className="w-full rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl outline-none"
+            className="fi-input fi-input-readonly w-full rounded-xl px-5 py-4 outline-none"
+            style={{ background: 'rgba(16, 185, 129, 0.12)' }}
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%)' }} />
         </div>
-        <p className="text-xs text-white/40">
+        <p className="text-xs fi-text-subtle">
           이메일을 변경하려면{' '}
-          <Link to="/signup" className="text-amber-400 transition-colors hover:text-amber-300">
+          <Link to="/signup" className="fi-text-accent transition-colors hover:opacity-80">
             인증 단계로 돌아가기
           </Link>
           .
@@ -124,7 +125,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
       </div>
 
       <div className="space-y-3">
-        <label htmlFor="password" className="block text-sm text-amber-200/80">
+        <label htmlFor="password" className="block text-sm fi-text-accent">
           비밀번호
         </label>
         <div className="relative">
@@ -136,14 +137,14 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             placeholder="8자 이상 입력해주세요"
             required
             minLength={8}
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
       </div>
 
       <div className="space-y-3">
-        <label htmlFor="passwordConfirm" className="block text-sm text-amber-200/80">
+        <label htmlFor="passwordConfirm" className="block text-sm fi-text-accent">
           비밀번호 확인
         </label>
         <div className="relative">
@@ -156,17 +157,15 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             required
             minLength={8}
             aria-invalid={isPasswordMismatch}
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
-        {isPasswordMismatch ? (
-          <p className="text-xs text-rose-300">비밀번호가 일치하지 않습니다.</p>
-        ) : null}
+        {isPasswordMismatch ? <p className="text-xs" style={{ color: 'var(--app-danger-text)' }}>비밀번호가 일치하지 않습니다.</p> : null}
       </div>
 
       <div className="space-y-3">
-        <label htmlFor="name" className="block text-sm text-amber-200/80">
+        <label htmlFor="name" className="block text-sm fi-text-accent">
           이름
         </label>
         <div className="relative">
@@ -177,14 +176,14 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             onChange={(e) => setName(e.target.value)}
             placeholder="이름을 입력해주세요"
             required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm text-amber-200/80">성별</label>
+        <label className="block text-sm fi-text-accent">성별</label>
         <div className="grid grid-cols-2 gap-4">
           {[
             { label: '남성', value: 'male' as const },
@@ -194,14 +193,25 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
               key={option.value}
               type="button"
               onClick={() => setGender(option.value)}
-              className={`relative overflow-hidden rounded-xl border px-6 py-5 backdrop-blur-xl transition-all ${
+              className="relative overflow-hidden rounded-xl border px-6 py-5 transition-all"
+              style={
                 gender === option.value
-                  ? 'border-amber-500/60 bg-white/15'
-                  : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
-              }`}
+                  ? {
+                      background: 'var(--app-accent-surface)',
+                      borderColor: 'var(--app-accent-border-strong)',
+                      backdropFilter: 'var(--card-blur)',
+                      WebkitBackdropFilter: 'var(--card-blur)',
+                    }
+                  : {
+                      background: 'var(--card-surface)',
+                      borderColor: 'var(--card-border)',
+                      backdropFilter: 'var(--card-blur)',
+                      WebkitBackdropFilter: 'var(--card-blur)',
+                    }
+              }
               whileTap={{ scale: 0.98 }}
             >
-              <span className={`relative text-base ${gender === option.value ? 'text-amber-200' : 'text-white/60'}`}>
+              <span className="relative text-base" style={{ color: gender === option.value ? 'var(--app-accent-text-soft)' : 'var(--app-text-muted)' }}>
                 {option.label}
               </span>
             </motion.button>
@@ -210,7 +220,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm text-amber-200/80">
+        <label className="block text-sm fi-text-accent">
           생년월일
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -224,7 +234,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             onChange={(e) => setBirthYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
             placeholder="생년"
             required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-4 py-4 transition-all"
           />
           <input
             id="birthMonth"
@@ -236,7 +246,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             onChange={(e) => setBirthMonth(e.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder="월"
             required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-4 py-4 transition-all"
           />
           <input
             id="birthDay"
@@ -248,16 +258,14 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             onChange={(e) => setBirthDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder="일"
             required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-4 py-4 transition-all"
           />
         </div>
-        {birthYear.length === 4 && birthMonth.length > 0 && birthDay.length > 0 && !birthDate ? (
-          <p className="text-xs text-rose-300">유효한 생년월일을 입력해주세요.</p>
-        ) : null}
+        {birthYear.length === 4 && birthMonth.length > 0 && birthDay.length > 0 && !birthDate ? <p className="text-xs" style={{ color: 'var(--app-danger-text)' }}>유효한 생년월일을 입력해주세요.</p> : null}
       </div>
 
       <div className="space-y-3">
-        <label htmlFor="birthTime" className="block text-sm text-amber-200/80">
+        <label htmlFor="birthTime" className="block text-sm fi-text-accent">
           태어난 시간
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -271,7 +279,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             onChange={(e) => setBirthHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
             disabled={birthTimeUnknown}
             placeholder="시(00-23)"
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+            className="fi-input w-full rounded-xl px-4 py-4 transition-all disabled:cursor-not-allowed disabled:opacity-40"
           />
           <input
             id="birthMinute"
@@ -283,12 +291,10 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
             onChange={(e) => setBirthMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
             disabled={birthTimeUnknown}
             placeholder="분(00-59)"
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-4 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+            className="fi-input w-full rounded-xl px-4 py-4 transition-all disabled:cursor-not-allowed disabled:opacity-40"
           />
         </div>
-        {!birthTimeUnknown && (birthHour.length > 0 || birthMinute.length > 0) && !birthTime ? (
-          <p className="text-xs text-rose-300">시간은 00-23, 분은 00-59 형식으로 입력해주세요.</p>
-        ) : null}
+        {!birthTimeUnknown && (birthHour.length > 0 || birthMinute.length > 0) && !birthTime ? <p className="text-xs" style={{ color: 'var(--app-danger-text)' }}>시간은 00-23, 분은 00-59 형식으로 입력해주세요.</p> : null}
 
         <label className="group flex cursor-pointer items-center gap-3">
           <div className="relative">
@@ -302,10 +308,19 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
                   setBirthMinute('');
                 }
               }}
-              className="peer h-5 w-5 cursor-pointer appearance-none rounded border-2 border-white/20 bg-white/5 transition-all checked:border-amber-500/60 checked:bg-amber-500/30"
+              className="peer h-5 w-5 cursor-pointer appearance-none rounded transition-all"
+              style={{
+                borderWidth: 'var(--app-hairline-border)',
+                borderStyle: 'solid',
+                borderColor: birthTimeUnknown ? 'var(--app-accent-border-strong)' : 'var(--card-border)',
+                background: birthTimeUnknown ? 'var(--app-accent-surface)' : 'var(--card-surface)',
+                backdropFilter: 'var(--card-blur)',
+                WebkitBackdropFilter: 'var(--card-blur)',
+              }}
             />
             <svg
-              className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-amber-400 opacity-0 transition-opacity peer-checked:opacity-100"
+              className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity peer-checked:opacity-100"
+              style={{ color: 'var(--point-gold)' }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -314,14 +329,14 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <span className="text-sm text-white/60 transition-colors group-hover:text-white/80">
+          <span className="text-sm fi-text-muted transition-colors group-hover:opacity-80">
             태어난 시간을 모름
           </span>
         </label>
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm text-amber-200/80">투자 성향</label>
+        <label className="block text-sm fi-text-accent">투자 성향</label>
         <div className="grid grid-cols-2 gap-4">
           {[
             { label: '안정형', value: 'STABLE' as const },
@@ -331,11 +346,24 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
               key={option.value}
               type="button"
               onClick={() => setInvestmentRiskProfile(option.value)}
-              className={`rounded-xl border px-4 py-4 text-sm transition-all ${
+              className="rounded-xl border px-4 py-4 text-sm transition-all"
+              style={
                 investmentRiskProfile === option.value
-                  ? 'border-amber-500/60 bg-amber-500/15 text-amber-200'
-                  : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10'
-              }`}
+                  ? {
+                      background: 'var(--app-accent-surface)',
+                      borderColor: 'var(--app-accent-border-strong)',
+                      color: 'var(--app-accent-text-soft)',
+                      backdropFilter: 'var(--card-blur)',
+                      WebkitBackdropFilter: 'var(--card-blur)',
+                    }
+                  : {
+                      background: 'var(--card-surface)',
+                      borderColor: 'var(--card-border)',
+                      color: 'var(--app-text-muted)',
+                      backdropFilter: 'var(--card-blur)',
+                      WebkitBackdropFilter: 'var(--card-blur)',
+                    }
+              }
             >
               {option.label}
             </button>
@@ -344,7 +372,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm text-amber-200/80">선호 섹터</label>
+        <label className="block text-sm fi-text-accent">선호 섹터</label>
         <div className="flex flex-wrap gap-2">
           {sectorOptions.map((sector) => {
             const selected = preferredSectors.includes(sector.value);
@@ -353,11 +381,24 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
                 key={sector.value}
                 type="button"
                 onClick={() => toggleSector(sector.value)}
-                className={`rounded-full border px-4 py-2 text-xs transition-all ${
+                className="rounded-full border px-4 py-2 text-xs transition-all"
+                style={
                   selected
-                    ? 'border-amber-500/50 bg-amber-500/20 text-amber-200'
-                    : 'border-white/15 bg-white/5 text-white/60 hover:border-white/25'
-                }`}
+                    ? {
+                        background: 'var(--app-accent-surface)',
+                        borderColor: 'var(--app-accent-border-strong)',
+                        color: 'var(--app-accent-text-soft)',
+                        backdropFilter: 'var(--card-blur)',
+                        WebkitBackdropFilter: 'var(--card-blur)',
+                      }
+                    : {
+                        background: 'var(--card-surface)',
+                        borderColor: 'var(--card-border)',
+                        color: 'var(--app-text-muted)',
+                        backdropFilter: 'var(--card-blur)',
+                        WebkitBackdropFilter: 'var(--card-blur)',
+                      }
+                }
               >
                 {sector.label}
               </button>
@@ -367,7 +408,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="fi-danger rounded-xl px-4 py-3 text-sm">
           {error}
         </div>
       ) : null}
@@ -375,12 +416,13 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
       <motion.button
         type="submit"
         disabled={isSubmitting}
-        className="group relative w-full overflow-hidden rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-600/80 to-yellow-600/80 px-8 py-5 backdrop-blur-xl transition-all hover:border-amber-500/70 disabled:cursor-not-allowed disabled:opacity-60"
+        className="fi-cta group relative w-full overflow-hidden rounded-xl px-8 py-5 transition-all disabled:cursor-not-allowed disabled:opacity-60"
         whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
         whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
       >
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-amber-400/40 to-yellow-500/40"
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }}
           animate={{
             opacity: [0.3, 0.6, 0.3],
           }}
@@ -391,24 +433,24 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
           }}
         />
 
-        <span className="relative flex items-center justify-center gap-2 text-base font-medium text-white">
+        <span className="relative flex items-center justify-center gap-2 text-base font-medium fi-text-main">
           {isSubmitting ? '가입 중...' : '운명의 문을 열다'}
           <Sparkles className="h-5 w-5" />
         </span>
       </motion.button>
 
-      <p className="text-center text-xs text-white/30">
+      <p className="text-center text-xs fi-text-subtle">
         가입 시{' '}
         <Link
           to="/terms"
-          className="text-amber-500/60 underline underline-offset-2 transition-colors hover:text-amber-400"
+          className="fi-text-accent underline underline-offset-2 transition-colors hover:opacity-80"
         >
           서비스 이용약관
         </Link>{' '}
         및{' '}
         <Link
           to="/privacy"
-          className="text-amber-500/60 underline underline-offset-2 transition-colors hover:text-amber-400"
+          className="fi-text-accent underline underline-offset-2 transition-colors hover:opacity-80"
         >
           개인정보 처리방침
         </Link>
@@ -416,9 +458,9 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
       </p>
 
       <div className="text-center">
-        <p className="text-sm text-white/50">
+        <p className="text-sm fi-text-muted">
           이미 계정이 있으신가요?{' '}
-          <Link to="/login" className="text-amber-400 transition-colors hover:text-amber-300">
+          <Link to="/login" className="fi-text-accent transition-colors hover:opacity-80">
             로그인 하러가기
           </Link>
         </p>

@@ -1,3 +1,5 @@
+import { getCurrentUser } from './session';
+
 const TAROT_DECK_KEY = 'stock-oracle-tarot-deck';
 const TAROT_DECK_VERSIONS_KEY = 'stock-oracle-tarot-deck-versions';
 
@@ -46,7 +48,7 @@ export function saveTarotDeckVersions(decks: TarotDeckVersion[]) {
 }
 
 export function getSelectedTarotDeckId() {
-  return localStorage.getItem(TAROT_DECK_KEY) ?? DEFAULT_TAROT_DECK_ID;
+  return getCurrentUser()?.preferredTarotDeckId ?? localStorage.getItem(TAROT_DECK_KEY) ?? DEFAULT_TAROT_DECK_ID;
 }
 
 export function setSelectedTarotDeckId(deckId: string) {

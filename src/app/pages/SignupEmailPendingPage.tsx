@@ -170,13 +170,13 @@ export function SignupEmailPendingPage() {
         title="이메일 인증"
         description="회원가입을 시작하려면 먼저 인증할 이메일이 필요합니다."
       >
-        <div className="space-y-6">
-          <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+      <div className="space-y-6">
+          <div className="fi-danger rounded-xl px-4 py-3 text-sm">
             인증할 이메일 정보가 없습니다. 처음 단계부터 다시 진행해주세요.
           </div>
           <Link
             to="/signup"
-            className="block rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-center text-sm text-amber-200 transition-colors hover:bg-amber-500/20"
+            className="fi-cta block rounded-xl px-5 py-4 text-center text-sm transition-colors hover:opacity-90"
           >
             이메일 입력 화면으로 돌아가기
           </Link>
@@ -191,24 +191,24 @@ export function SignupEmailPendingPage() {
       description="인증 링크를 누르면 자동으로 다음 단계로 이동합니다."
     >
       <div className="space-y-6">
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5">
-          <p className="text-xs uppercase tracking-[0.24em] text-amber-200/70">Verification Email</p>
-          <p className="mt-2 break-all text-base text-white">{email}</p>
+        <div className="fi-accent-card rounded-2xl p-5">
+          <p className="text-xs uppercase tracking-[0.24em] fi-text-accent">Verification Email</p>
+          <p className="mt-2 break-all text-base fi-text-main">{email}</p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-white/70">
-          <div className="flex items-center gap-2 text-amber-200">
+        <div className="fi-glass rounded-xl px-4 py-4 text-sm leading-6 fi-text-muted">
+          <div className="flex items-center gap-2 fi-text-accent">
             <LoaderCircle className="h-4 w-4 animate-spin" />
             <span>3초마다 인증 상태를 확인 중입니다.</span>
           </div>
-          <p className="mt-3 text-white/60">{statusMessage}</p>
+          <p className="mt-3 fi-text-muted">{statusMessage}</p>
           {hasTimedOut ? (
-            <p className="mt-3 text-amber-200">자동 확인이 종료되었습니다. 재전송 후 다시 시도해주세요.</p>
+            <p className="mt-3 fi-text-accent">자동 확인이 종료되었습니다. 재전송 후 다시 시도해주세요.</p>
           ) : null}
         </div>
 
         {error ? (
-          <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div className="fi-danger rounded-xl px-4 py-3 text-sm">
             {error}
           </div>
         ) : null}
@@ -217,7 +217,7 @@ export function SignupEmailPendingPage() {
           <button
             type="button"
             onClick={handleOpenMailApp}
-            className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-600/80 to-yellow-600/80 px-5 py-4 text-sm font-medium text-white transition-all hover:border-amber-500/70"
+            className="fi-cta flex items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-medium transition-all hover:opacity-90"
           >
             <Mail className="h-4 w-4" />
             메일 앱 열기
@@ -227,7 +227,7 @@ export function SignupEmailPendingPage() {
             type="button"
             onClick={handleResend}
             disabled={isSending || resendCooldown > 0}
-            className="flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-4 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+            className="fi-glass flex items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm fi-text-soft transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             {resendCooldown > 0 ? `재전송 (${resendCooldown}초)` : '재전송'}
@@ -237,13 +237,22 @@ export function SignupEmailPendingPage() {
             type="button"
             onClick={handleManualCheck}
             disabled={isChecking}
-            className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-100 transition-colors hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl border px-5 py-4 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+            style={{
+              borderWidth: 'var(--app-hairline-border)',
+              borderStyle: 'solid',
+              borderColor: 'rgba(16, 185, 129, 0.28)',
+              background: 'rgba(16, 185, 129, 0.1)',
+              color: 'rgb(209, 250, 229)',
+              backdropFilter: 'var(--card-blur)',
+              WebkitBackdropFilter: 'var(--card-blur)',
+            }}
           >
             {isChecking ? '확인 중...' : '인증 완료했어요'}
           </button>
         </div>
 
-        <p className="text-center text-xs text-white/35">
+        <p className="text-center text-xs fi-text-subtle">
           메일이 보이지 않으면 스팸함도 확인해주세요.
         </p>
       </div>

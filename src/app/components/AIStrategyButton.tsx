@@ -10,7 +10,7 @@ export function AIStrategyButton() {
       {/* Main button */}
       <motion.button
         onClick={() => navigate('/consultation')}
-        className="group relative w-full overflow-hidden rounded-2xl border border-[#F1B45C]/40 bg-gradient-to-br from-[#BF702A] via-[#D4933F] to-[#F1B45C] px-6 py-5 shadow-2xl backdrop-blur-xl transition-all hover:border-[#F1B45C]/60"
+        className="fi-cta group relative w-full overflow-hidden rounded-2xl px-6 py-5 shadow-2xl transition-all hover:opacity-95"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -21,13 +21,13 @@ export function AIStrategyButton() {
         <motion.div
           className="absolute inset-0 rounded-2xl"
           style={{
-            boxShadow: '0 0 20px rgba(241, 180, 92, 0.4), inset 0 0 20px rgba(241, 180, 92, 0.1)',
+            boxShadow: '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
           }}
           animate={{
             boxShadow: [
-              '0 0 20px rgba(241, 180, 92, 0.4), inset 0 0 20px rgba(241, 180, 92, 0.1)',
-              '0 0 30px rgba(241, 180, 92, 0.6), inset 0 0 30px rgba(241, 180, 92, 0.2)',
-              '0 0 20px rgba(241, 180, 92, 0.4), inset 0 0 20px rgba(241, 180, 92, 0.1)',
+              '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
+              '0 0 30px var(--app-accent-glow), inset 0 0 30px var(--app-accent-soft)',
+              '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
             ],
           }}
           transition={{
@@ -40,7 +40,7 @@ export function AIStrategyButton() {
         {/* Content - Single centered text */}
         <div className="relative flex items-center justify-center gap-2">
           <h2
-            className="text-center text-base font-semibold text-white"
+            className="text-center text-base font-semibold fi-text-main"
             style={{
               filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))',
             }}
@@ -48,7 +48,7 @@ export function AIStrategyButton() {
             오늘 당신의 투자 운세 물어보기
           </h2>
           <Sparkles 
-            className="h-4 w-4 text-white" 
+            className="h-4 w-4 fi-text-main" 
             style={{
               filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))',
             }}
@@ -56,7 +56,7 @@ export function AIStrategyButton() {
         </div>
 
         {/* Thin neon border accent */}
-        <div className="absolute inset-0 rounded-2xl border border-[#F1B45C] opacity-60" />
+        <div className="absolute inset-0 rounded-2xl border opacity-60" style={{ borderColor: 'var(--app-accent-border-strong)' }} />
       </motion.button>
     </div>
   );

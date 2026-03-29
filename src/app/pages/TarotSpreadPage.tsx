@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
-import { DEFAULT_TAROT_DECK_ID, getTarotDeckById } from '@/lib/tarot';
+import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
 type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
 type ConsultationFlowState = {
@@ -26,7 +26,7 @@ export function TarotSpreadPage() {
   const flowState = (location.state as ConsultationFlowState | null) ?? null;
   const deckOrder = (flowState?.deckOrder ?? DEFAULT_DECK_ORDER) as number[];
   const tarotDeckVersionId =
-    (flowState?.tarotDeckVersionId ?? DEFAULT_TAROT_DECK_ID) as string;
+    (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [isDragging, setIsDragging] = useState(false);

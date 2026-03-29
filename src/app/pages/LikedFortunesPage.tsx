@@ -69,28 +69,28 @@ export function LikedFortunesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950 pb-24">
+    <div className="fi-page min-h-screen pb-24">
       {/* Ambient background effects */}
       <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
-        <div className="sticky top-0 z-50 bg-gradient-to-b from-indigo-950/95 via-indigo-900/90 to-transparent px-6 py-4 backdrop-blur-xl">
+        <div className="sticky top-0 z-50 px-6 py-4 backdrop-blur-xl" style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 94%, transparent) 0%, transparent 100%)' }}>
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/my')}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+              className="fi-icon-button flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:opacity-90"
             >
-              <ArrowLeft className="h-4 w-4 text-white/60" />
+              <ArrowLeft className="h-4 w-4" />
             </button>
             
             <div className="flex-1 text-center">
-              <h1 className="text-lg font-semibold text-white">좋아요한 운세</h1>
-              <p className="text-xs text-[#D4AF37]/70">Liked Fortunes</p>
+              <h1 className="text-lg font-semibold fi-text-main">좋아요한 운세</h1>
+              <p className="text-xs fi-text-accent">Liked Fortunes</p>
             </div>
 
             <div className="w-10" />
@@ -107,11 +107,11 @@ export function LikedFortunesPage() {
             >
               <div className="mb-4 flex justify-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                  <Heart className="h-10 w-10 text-white/30" />
+                  <Heart className="h-10 w-10 fi-text-subtle" />
                 </div>
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-white">좋아요한 운세가 없습니다</h3>
-              <p className="text-sm text-white/50">
+              <h3 className="mb-2 text-lg font-semibold fi-text-main">좋아요한 운세가 없습니다</h3>
+              <p className="text-sm fi-text-muted">
                 운세 결과에서 하트 버튼을 눌러<br />
                 저장해보세요
               </p>
@@ -124,7 +124,7 @@ export function LikedFortunesPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 p-5 backdrop-blur-xl transition-all hover:border-white/20"
+                  className="fi-glass group relative overflow-hidden rounded-2xl p-5 transition-all hover:opacity-95"
                   style={{
                     boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)',
                   }}
@@ -139,8 +139,8 @@ export function LikedFortunesPage() {
                           {getTypeIcon(fortune.type)}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-white">{fortune.type}</h3>
-                          <div className="mt-1 flex items-center gap-2 text-xs text-white/50">
+                          <h3 className="font-semibold fi-text-main">{fortune.type}</h3>
+                          <div className="mt-1 flex items-center gap-2 text-xs fi-text-muted">
                             <Calendar className="h-3 w-3" />
                             {fortune.date}
                           </div>
@@ -148,14 +148,14 @@ export function LikedFortunesPage() {
                       </div>
 
                       {/* Score Badge */}
-                      <div className="flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-3 py-1">
-                        <span className="text-lg font-bold text-[#D4AF37]">{fortune.score}</span>
-                        <span className="text-xs text-white/60">점</span>
+                      <div className="fi-badge flex items-center gap-2 rounded-full px-3 py-1">
+                        <span className="text-lg font-bold fi-text-accent">{fortune.score}</span>
+                        <span className="text-xs fi-text-muted">점</span>
                       </div>
                     </div>
 
                     {/* Summary */}
-                    <p className="mb-4 text-sm leading-relaxed text-white/70">
+                    <p className="mb-4 text-sm leading-relaxed fi-text-muted">
                       {fortune.summary}
                     </p>
 
@@ -163,15 +163,15 @@ export function LikedFortunesPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleFortuneClick(fortune)}
-                        className="flex-1 rounded-xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/20 to-amber-600/10 py-2.5 text-sm font-medium text-white transition-all hover:border-[#D4AF37]/60 hover:shadow-lg hover:shadow-[#D4AF37]/20"
+                        className="fi-cta flex-1 rounded-xl py-2.5 text-sm font-medium transition-all hover:opacity-90"
                       >
                         자세히 보기
                       </button>
                       <button
                         onClick={() => handleDelete(fortune.id)}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition-colors hover:border-red-500/50 hover:bg-red-500/10"
+                        className="fi-glass flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-red-500/10"
                       >
-                        <Trash2 className="h-4 w-4 text-white/60 group-hover:text-red-400" />
+                        <Trash2 className="h-4 w-4 fi-text-muted group-hover:text-red-400" />
                       </button>
                     </div>
                   </div>

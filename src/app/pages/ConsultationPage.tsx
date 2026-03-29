@@ -176,28 +176,28 @@ export function ConsultationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950 pb-32">
+    <div className="fi-page min-h-screen pb-32">
       <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
       <div className="relative mx-auto max-w-md px-5 pt-6">
         <div className="mb-8 flex items-center gap-4">
           <button
             onClick={() => navigate('/home')}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+            className="fi-icon-button flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:opacity-90"
           >
-            <ArrowLeft className="h-5 w-5 text-white/60" />
+            <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-xl font-medium text-white">해석</h1>
-            <p className="text-xs text-white/50">궁금한 투자 흐름을 가볍게 물어보세요</p>
+            <h1 className="text-xl font-medium fi-text-main">해석</h1>
+            <p className="text-xs fi-text-muted">궁금한 투자 흐름을 가볍게 물어보세요</p>
           </div>
         </div>
 
         <div className="mb-8">
-          <h2 className="mb-4 text-sm font-medium text-white/70">상담 유형 선택</h2>
+          <h2 className="mb-4 text-sm font-medium fi-text-muted">상담 유형 선택</h2>
           <div className="grid grid-cols-2 gap-3">
             {consultationTypes.map((type) => {
               const Icon = type.icon;
@@ -207,11 +207,22 @@ export function ConsultationPage() {
                 <motion.button
                   key={type.id}
                   onClick={() => setSelectedType(type.id as ConsultationType)}
-                  className={`relative overflow-hidden rounded-2xl border p-5 backdrop-blur-xl transition-all ${
+                  className="relative overflow-hidden rounded-2xl border p-5 transition-all"
+                  style={
                     isSelected
-                      ? 'border-amber-400/50 bg-gradient-to-br from-amber-500/20 to-yellow-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
-                  }`}
+                      ? {
+                          background: 'linear-gradient(135deg, var(--app-accent-surface) 0%, transparent 100%)',
+                          borderColor: 'var(--app-accent-border-strong)',
+                          backdropFilter: 'var(--card-blur)',
+                          WebkitBackdropFilter: 'var(--card-blur)',
+                        }
+                      : {
+                          background: 'var(--card-surface)',
+                          borderColor: 'var(--card-border)',
+                          backdropFilter: 'var(--card-blur)',
+                          WebkitBackdropFilter: 'var(--card-blur)',
+                        }
+                  }
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -219,9 +230,9 @@ export function ConsultationPage() {
 
                   <div className="relative flex flex-col items-center gap-3">
                     <div className={`rounded-xl bg-gradient-to-br p-3 ${type.color}`}>
-                      <Icon className={`h-6 w-6 ${isSelected ? 'text-amber-300' : 'text-white/70'}`} />
+                      <Icon className="h-6 w-6" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-icon-muted)' }} />
                     </div>
-                    <span className={`text-sm font-medium ${isSelected ? 'text-amber-200' : 'text-white/80'}`}>
+                    <span className="text-sm font-medium" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-text-soft)' }}>
                       {type.label}
                     </span>
                   </div>
@@ -232,7 +243,7 @@ export function ConsultationPage() {
         </div>
 
         <div className="mb-6">
-          <h2 className="mb-4 text-sm font-medium text-white/70">보고 싶은 흐름</h2>
+          <h2 className="mb-4 text-sm font-medium fi-text-muted">보고 싶은 흐름</h2>
           <div className="flex flex-wrap gap-2.5">
             {visibleScenarios.map((scenario) => {
               const isSelected = selectedScenario === scenario.code;
@@ -241,28 +252,41 @@ export function ConsultationPage() {
                 <button
                   key={scenario.code}
                   onClick={() => setSelectedScenario(scenario.code)}
-                  className={`rounded-full border px-4 py-2 text-sm transition-all ${
+                  className="rounded-full border px-4 py-2 text-sm transition-all"
+                  style={
                     isSelected
-                      ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 text-amber-200'
-                      : 'border-white/10 bg-white/5 text-white/75 hover:border-white/20 hover:bg-white/10'
-                  }`}
+                      ? {
+                          background: 'linear-gradient(90deg, var(--app-accent-surface) 0%, transparent 100%)',
+                          borderColor: 'var(--app-accent-border-strong)',
+                          color: 'var(--app-accent-text-soft)',
+                          backdropFilter: 'var(--card-blur)',
+                          WebkitBackdropFilter: 'var(--card-blur)',
+                        }
+                      : {
+                          background: 'var(--card-surface)',
+                          borderColor: 'var(--card-border)',
+                          color: 'var(--app-text-soft)',
+                          backdropFilter: 'var(--card-blur)',
+                          WebkitBackdropFilter: 'var(--card-blur)',
+                        }
+                  }
                 >
                   <span className="font-medium">{scenarioLabelByCode[scenario.code] ?? scenario.title}</span>
                 </button>
               );
             })}
           </div>
-          {loadingScenarios ? <p className="mt-3 text-xs text-white/40">시나리오 불러오는 중...</p> : null}
+          {loadingScenarios ? <p className="mt-3 text-xs fi-text-subtle">시나리오 불러오는 중...</p> : null}
         </div>
 
         <div className="mb-6 space-y-4">
           <div>
-            <h2 className="mb-4 text-sm font-medium text-white/70">무엇이 궁금한가요?</h2>
+            <h2 className="mb-4 text-sm font-medium fi-text-muted">무엇이 궁금한가요?</h2>
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder={questionPlaceholder}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white placeholder-white/30 backdrop-blur-xl transition-colors focus:border-amber-400/50 focus:bg-white/10 focus:outline-none"
+              className="fi-input w-full rounded-2xl px-4 py-4 text-sm transition-colors"
               rows={4}
             />
           </div>
@@ -275,7 +299,7 @@ export function ConsultationPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="relative overflow-hidden rounded-2xl border border-purple-400/40 bg-gradient-to-br from-purple-600/30 via-violet-600/20 to-purple-600/30 px-6 py-6 backdrop-blur-xl">
+            <div className="fi-glass relative overflow-hidden rounded-2xl px-6 py-6">
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
 
               <div className="relative flex flex-col items-center gap-4">
@@ -285,15 +309,26 @@ export function ConsultationPage() {
                       key={index}
                       className={`h-16 w-12 rounded-lg border-2 ${
                         selectedCards[index] !== undefined
-                          ? 'border-[#D4AF37]/70 bg-gradient-to-br from-[#D4AF37]/30 to-amber-500/20'
-                          : 'border-purple-300/50 bg-gradient-to-br from-purple-400/30 to-violet-500/20'
+                          ? ''
+                          : ''
                       }`}
+                      style={
+                        selectedCards[index] !== undefined
+                          ? {
+                              borderColor: 'var(--app-accent-border-strong)',
+                              background: 'linear-gradient(135deg, var(--app-accent-surface) 0%, transparent 100%)',
+                            }
+                          : {
+                              borderColor: 'rgba(124, 77, 255, 0.35)',
+                              background: 'linear-gradient(135deg, rgba(124, 77, 255, 0.18) 0%, transparent 100%)',
+                            }
+                      }
                     />
                   ))}
                 </div>
                 <div className="text-center">
-                  <p className="mb-1 text-base font-semibold text-purple-200">선택한 카드가 준비됐습니다</p>
-                  <p className="text-xs text-purple-300/70">
+                  <p className="mb-1 text-base font-semibold fi-text-main">선택한 카드가 준비됐습니다</p>
+                  <p className="text-xs fi-text-muted">
                     {selectedTarotDeck.name} · 선택된 카드 번호: {selectedCards.map((card) => card + 1).join(', ')}
                   </p>
                 </div>
@@ -303,7 +338,7 @@ export function ConsultationPage() {
         )}
 
         {error ? (
-          <div className="mb-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+          <div className="fi-danger mb-6 rounded-2xl px-4 py-3 text-sm">
             {error}
           </div>
         ) : null}
@@ -311,7 +346,7 @@ export function ConsultationPage() {
         <motion.button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="group relative w-full overflow-hidden rounded-2xl border border-[#F1B45C]/40 bg-gradient-to-br from-[#BF702A] via-[#D4933F] to-[#F1B45C] px-6 py-5 shadow-2xl backdrop-blur-xl transition-all hover:border-[#F1B45C]/60 disabled:cursor-not-allowed disabled:opacity-60"
+          className="fi-cta group relative w-full overflow-hidden rounded-2xl px-6 py-5 shadow-2xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
           whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
           whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
         >
@@ -324,9 +359,9 @@ export function ConsultationPage() {
             }}
             animate={{
               boxShadow: [
-                '0 0 20px rgba(241, 180, 92, 0.4), inset 0 0 20px rgba(241, 180, 92, 0.1)',
-                '0 0 30px rgba(241, 180, 92, 0.6), inset 0 0 30px rgba(241, 180, 92, 0.2)',
-                '0 0 20px rgba(241, 180, 92, 0.4), inset 0 0 20px rgba(241, 180, 92, 0.1)',
+                '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
+                '0 0 30px var(--app-accent-glow), inset 0 0 30px var(--app-accent-soft)',
+                '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
               ],
             }}
             transition={{
@@ -338,13 +373,13 @@ export function ConsultationPage() {
 
           <div className="relative flex items-center justify-center gap-2">
             <Sparkles
-              className="h-5 w-5 text-white"
+              className="h-5 w-5 fi-text-main"
               style={{
                 filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))',
               }}
             />
             <span
-              className="text-base font-semibold text-white"
+              className="text-base font-semibold fi-text-main"
               style={{
                 filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))',
               }}
@@ -359,7 +394,7 @@ export function ConsultationPage() {
             </span>
           </div>
 
-          <div className="absolute inset-0 rounded-2xl border border-[#F1B45C] opacity-60" />
+          <div className="absolute inset-0 rounded-2xl border opacity-60" style={{ borderColor: 'var(--app-accent-border-strong)' }} />
         </motion.button>
       </div>
 

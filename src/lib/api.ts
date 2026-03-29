@@ -486,6 +486,8 @@ export interface UpdateMyProfilePayload {
   birthTime?: string | null;
   gender?: 'F' | 'M' | string | null;
   preferredTarotDeckId?: string | null;
+  notificationEnabled?: boolean;
+  darkModeEnabled?: boolean;
 }
 
 export interface PageableQuery {

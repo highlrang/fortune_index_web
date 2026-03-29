@@ -99,36 +99,36 @@ export function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950 pb-24">
+    <div className="fi-page min-h-screen pb-24">
       {/* Ambient background effects */}
       <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
-        <div className="sticky top-0 z-50 bg-gradient-to-b from-indigo-950/95 via-indigo-900/90 to-transparent px-6 py-4 backdrop-blur-xl">
+        <div className="sticky top-0 z-50 px-6 py-4 backdrop-blur-xl" style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 94%, transparent) 0%, transparent 100%)' }}>
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/home')}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+              className="fi-icon-button flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:opacity-90"
             >
-              <ArrowLeft className="h-4 w-4 text-white/60" />
+              <ArrowLeft className="h-4 w-4" />
             </button>
             
             <div className="flex-1">
-              <h1 className="text-lg font-semibold text-white">알림</h1>
+              <h1 className="text-lg font-semibold fi-text-main">알림</h1>
               {unreadCount > 0 && (
-                <p className="text-xs text-[#D4AF37]/70">읽지 않은 알림 {unreadCount}개</p>
+                <p className="text-xs fi-text-accent">읽지 않은 알림 {unreadCount}개</p>
               )}
             </div>
 
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/10"
+                className="fi-glass rounded-xl px-3 py-1.5 text-xs font-medium fi-text-muted transition-colors hover:opacity-90"
               >
                 모두 읽음
               </button>
@@ -146,11 +146,11 @@ export function NotificationsPage() {
             >
               <div className="mb-4 flex justify-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                  <Bell className="h-10 w-10 text-white/30" />
+                  <Bell className="h-10 w-10 fi-text-subtle" />
                 </div>
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-white">알림이 없습니다</h3>
-              <p className="text-sm text-white/50">
+              <h3 className="mb-2 text-lg font-semibold fi-text-main">알림이 없습니다</h3>
+              <p className="text-sm fi-text-muted">
                 새로운 알림이 도착하면<br />
                 여기에 표시됩니다
               </p>
@@ -164,20 +164,18 @@ export function NotificationsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => handleNotificationClick(notification.id)}
-                  className={`relative w-full overflow-hidden rounded-2xl border p-4 text-left backdrop-blur-xl transition-all hover:border-white/20 ${
-                    notification.isRead
-                      ? 'border-white/5 bg-white/[0.02]'
-                      : 'border-white/10 bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5'
-                  }`}
+                  className="fi-glass relative w-full overflow-hidden rounded-2xl p-4 text-left transition-all hover:opacity-95"
                   style={{
                     boxShadow: notification.isRead ? 'none' : '0 4px 24px rgba(0, 0, 0, 0.2)',
+                    opacity: notification.isRead ? 0.76 : 1,
                   }}
                 >
                   {/* Unread indicator */}
                   {!notification.isRead && (
-                    <div className="absolute right-4 top-4 h-2 w-2 rounded-full bg-[#D4AF37]">
+                    <div className="absolute right-4 top-4 h-2 w-2 rounded-full" style={{ backgroundColor: 'var(--point-gold)' }}>
                       <motion.div
-                        className="absolute inset-0 rounded-full bg-[#D4AF37]"
+                        className="absolute inset-0 rounded-full"
+                        style={{ backgroundColor: 'var(--point-gold)' }}
                         animate={{
                           scale: [1, 1.5, 1],
                           opacity: [1, 0, 1],
@@ -200,13 +198,13 @@ export function NotificationsPage() {
 
                     {/* Content */}
                     <div className="flex-1">
-                      <h3 className={`mb-1 text-sm font-semibold ${notification.isRead ? 'text-white/60' : 'text-white'}`}>
+                      <h3 className="mb-1 text-sm font-semibold" style={{ color: notification.isRead ? 'var(--app-text-muted)' : 'var(--text-primary)' }}>
                         {notification.title}
                       </h3>
-                      <p className={`mb-2 text-xs leading-relaxed ${notification.isRead ? 'text-white/40' : 'text-white/60'}`}>
+                      <p className="mb-2 text-xs leading-relaxed" style={{ color: notification.isRead ? 'var(--app-text-subtle)' : 'var(--app-text-muted)' }}>
                         {notification.message}
                       </p>
-                      <p className="text-xs text-white/30">{notification.date}</p>
+                      <p className="text-xs fi-text-subtle">{notification.date}</p>
                     </div>
                   </div>
                 </motion.button>

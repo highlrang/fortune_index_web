@@ -4,7 +4,7 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
 import { consult, getTarotDeckCards, resolveApiAssetUrl, type TarotDeckCardResponse } from '@/lib/api';
-import { DEFAULT_TAROT_DECK_ID, getTarotDeckById } from '@/lib/tarot';
+import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 
 type CardRevealState = 'back' | 'expanding' | 'revealing' | 'shrinking' | 'front';
@@ -70,7 +70,7 @@ export function TarotResultPage() {
   const flowState = (location.state as TarotResultLocationState | null) ?? null;
   const selectedCards = flowState?.selectedCards ?? [0, 1, 2];
   const tarotDeckVersionId =
-    (flowState?.tarotDeckVersionId ?? DEFAULT_TAROT_DECK_ID) as string;
+    (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
   const selectedType = flowState?.selectedType;
   const selectedScenario = flowState?.selectedScenario;

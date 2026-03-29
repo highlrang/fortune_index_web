@@ -40,6 +40,73 @@ import {
   saveTarotDeckVersions,
   setSelectedTarotDeckId,
 } from '@/lib/tarot';
+import {
+  applyThemePreference,
+  hasStoredThemePreference,
+  persistThemePreference,
+  resolveInitialThemePreference,
+} from '@/lib/theme';
+
+const pageGradientStyle = {
+  background:
+    'linear-gradient(135deg, var(--tarot-ambient-start) 0%, var(--tarot-ambient-mid) 52%, var(--tarot-ambient-end) 100%)',
+};
+
+const glassLayerStyle = {
+  borderStyle: 'solid' as const,
+  borderWidth: 'var(--app-hairline-border)',
+  backdropFilter: 'var(--app-card-blur)',
+  WebkitBackdropFilter: 'var(--app-card-blur)',
+};
+
+const glassCardStyle = {
+  ...glassLayerStyle,
+  backgroundColor: 'var(--app-surface-bg)',
+  borderColor: 'var(--app-surface-border)',
+};
+
+const glassCardStrongStyle = {
+  ...glassLayerStyle,
+  backgroundColor: 'var(--app-surface-bg-strong)',
+  borderColor: 'var(--app-surface-border)',
+};
+
+const glassButtonStyle = {
+  ...glassLayerStyle,
+  backgroundColor: 'var(--app-surface-bg)',
+  borderColor: 'var(--app-surface-border)',
+  color: 'var(--app-text-soft)',
+};
+
+const accentCardStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--app-accent-border)',
+  background:
+    'linear-gradient(135deg, var(--app-accent-soft) 0%, transparent 78%)',
+};
+
+const accentIconStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--app-accent-border)',
+  backgroundColor: 'var(--app-accent-surface)',
+  color: 'var(--tarot-point-color)',
+};
+
+const accentButtonStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--app-accent-border-strong)',
+  background:
+    'linear-gradient(135deg, var(--app-accent-gradient-start) 0%, var(--app-accent-gradient-end) 100%)',
+  color: 'var(--tarot-text-main)',
+  boxShadow: '0 18px 40px -24px var(--app-accent-glow)',
+};
+
+const inputStyle = {
+  ...glassLayerStyle,
+  backgroundColor: 'var(--app-input-bg)',
+  borderColor: 'var(--app-surface-border)',
+  color: 'var(--tarot-text-main)',
+};
 
 export function MyPage() {
   const navigate = useNavigate();
@@ -48,7 +115,7 @@ export function MyPage() {
   const [session] = useState(() => getSession());
   const [showBirthTarot, setShowBirthTarot] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => resolveInitialThemePreference() === 'dark');
   const [showInquiry, setShowInquiry] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
@@ -59,6 +126,8 @@ export function MyPage() {
   const [profileEditError, setProfileEditError] = useState('');
   const [isSavingTarotDeck, setIsSavingTarotDeck] = useState(false);
   const [tarotDeckSaveError, setTarotDeckSaveError] = useState('');
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsSaveError, setSettingsSaveError] = useState('');
   const [profileEditDraft, setProfileEditDraft] = useState({
     name: '',
     birthDate: '',
@@ -103,7 +172,7 @@ export function MyPage() {
     return () => {
       active = false;
     };
-  }, [session]);
+  }, [session, user?.preferredTarotDeckId, user?.birthDate, user?.birthTime, user?.gender]);
 
   useEffect(() => {
     let active = true;
@@ -164,13 +233,19 @@ export function MyPage() {
     if (typeof user?.notificationEnabled === 'boolean') {
       setNotificationEnabled(user.notificationEnabled);
     }
-    if (typeof user?.darkModeEnabled === 'boolean') {
+    if (typeof user?.darkModeEnabled === 'boolean' && !hasStoredThemePreference()) {
       setIsDarkMode(user.darkModeEnabled);
     }
     if (typeof user?.virtualInvestmentEnabled === 'boolean') {
       setVirtualInvestmentEnabled(user.virtualInvestmentEnabled);
     }
   }, [user]);
+
+  useEffect(() => {
+    const nextTheme = isDarkMode ? 'dark' : 'light';
+    applyThemePreference(nextTheme);
+    persistThemePreference(nextTheme);
+  }, [isDarkMode]);
 
   useEffect(() => {
     if (!user?.preferredTarotDeckId) return;
@@ -273,6 +348,64 @@ export function MyPage() {
     }
   };
 
+  const handleNotificationToggle = async () => {
+    if (!user || isSavingSettings) return;
+
+    const nextValue = !notificationEnabled;
+    const previousUser = user;
+    const optimisticUser = { ...user, notificationEnabled: nextValue };
+
+    setSettingsSaveError('');
+    setNotificationEnabled(nextValue);
+    setUser(optimisticUser);
+    updateSessionUser(optimisticUser);
+    setIsSavingSettings(true);
+
+    try {
+      const updatedUser = await updateMyProfile({ notificationEnabled: nextValue });
+      updateSessionUser(updatedUser);
+      setUser(updatedUser);
+    } catch (error) {
+      setNotificationEnabled(previousUser.notificationEnabled ?? false);
+      setUser(previousUser);
+      updateSessionUser(previousUser);
+      setSettingsSaveError(
+        error instanceof Error ? error.message : '알림 설정 저장 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleThemeToggle = async () => {
+    if (!user || isSavingSettings) return;
+
+    const nextValue = !isDarkMode;
+    const previousUser = user;
+    const optimisticUser = { ...user, darkModeEnabled: nextValue };
+
+    setSettingsSaveError('');
+    setIsDarkMode(nextValue);
+    setUser(optimisticUser);
+    updateSessionUser(optimisticUser);
+    setIsSavingSettings(true);
+
+    try {
+      const updatedUser = await updateMyProfile({ darkModeEnabled: nextValue });
+      updateSessionUser(updatedUser);
+      setUser(updatedUser);
+    } catch (error) {
+      setIsDarkMode(previousUser.darkModeEnabled ?? true);
+      setUser(previousUser);
+      updateSessionUser(previousUser);
+      setSettingsSaveError(
+        error instanceof Error ? error.message : '화면 모드 저장 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
   const handleTarotDeckSelect = async (deckId: string) => {
     if (deckId === selectedTarotDeckId || isSavingTarotDeck) return;
 
@@ -302,12 +435,13 @@ export function MyPage() {
 
   if (!userData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950">
+      <div className="min-h-screen" style={pageGradientStyle}>
         <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
-          <p className="mb-4 text-lg text-white">로그인 정보가 없습니다.</p>
+          <p className="mb-4 text-lg" style={{ color: 'var(--tarot-text-main)' }}>로그인 정보가 없습니다.</p>
           <button
             onClick={() => navigate('/login')}
-            className="rounded-full border border-amber-400/40 bg-amber-500/10 px-5 py-3 text-sm text-amber-200"
+            className="rounded-full border px-5 py-3 text-sm"
+            style={accentButtonStyle}
           >
             로그인하러 가기
           </button>
@@ -317,10 +451,10 @@ export function MyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950 pb-24">
+    <div className="min-h-screen pb-24" style={pageGradientStyle}>
       <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
       </div>
 
       <AnimatePresence>
@@ -329,28 +463,31 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center backdrop-blur-sm"
+            style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30 }}
-              className="w-full max-w-md overflow-hidden rounded-t-3xl border-t-2 border-[#D4AF37]/40 bg-gradient-to-br from-indigo-950/98 via-indigo-900/98 to-violet-950/98 backdrop-blur-xl"
+              className="w-full max-w-md overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
+              style={accentButtonStyle}
             >
-              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+              <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">내 정보 수정</h3>
-                  <p className="mt-1 text-xs text-white/50">변경한 정보는 즉시 프로필에 반영됩니다.</p>
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>내 정보 수정</h3>
+                  <p className="mt-1 text-xs" style={{ color: 'var(--app-text-muted)' }}>변경한 정보는 즉시 프로필에 반영됩니다.</p>
                 </div>
                 <button
                   onClick={() => {
                     setShowProfileEdit(false);
                     setProfileEditError('');
                   }}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 transition-colors hover:bg-white/10"
+                  className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+                  style={{ backgroundColor: 'var(--app-surface-bg)' }}
                 >
-                  <X className="h-4 w-4 text-white/70" />
+                  <X className="h-4 w-4" style={{ color: 'var(--app-icon-muted)' }} />
                 </button>
               </div>
 
@@ -361,7 +498,8 @@ export function MyPage() {
                     onChange={(event) =>
                       setProfileEditDraft((prev) => ({ ...prev, name: event.target.value }))
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-white/30 focus:border-[#D4AF37]/50 focus:outline-none"
+                    className="w-full rounded-xl border px-4 py-3 placeholder:text-[var(--app-input-placeholder)] focus:outline-none"
+                    style={inputStyle}
                     placeholder="이름"
                   />
                 </ProfileField>
@@ -370,7 +508,8 @@ export function MyPage() {
                   <input
                     value={userData.email}
                     readOnly
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white/50 focus:outline-none"
+                    className="w-full rounded-xl border px-4 py-3 focus:outline-none"
+                    style={{ ...inputStyle, color: 'var(--app-text-muted)' }}
                   />
                 </ProfileField>
 
@@ -381,7 +520,8 @@ export function MyPage() {
                     onChange={(event) =>
                       setProfileEditDraft((prev) => ({ ...prev, birthDate: event.target.value }))
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-[#D4AF37]/50 focus:outline-none"
+                    className="w-full rounded-xl border px-4 py-3 focus:outline-none"
+                    style={inputStyle}
                   />
                 </ProfileField>
 
@@ -392,7 +532,8 @@ export function MyPage() {
                     onChange={(event) =>
                       setProfileEditDraft((prev) => ({ ...prev, birthTime: event.target.value }))
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-[#D4AF37]/50 focus:outline-none"
+                    className="w-full rounded-xl border px-4 py-3 focus:outline-none"
+                    style={inputStyle}
                   />
                 </ProfileField>
 
@@ -402,7 +543,8 @@ export function MyPage() {
                     onChange={(event) =>
                       setProfileEditDraft((prev) => ({ ...prev, gender: event.target.value }))
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-[#D4AF37]/50 focus:outline-none"
+                    className="w-full rounded-xl border px-4 py-3 focus:outline-none"
+                    style={inputStyle}
                   >
                     <option value="">미등록</option>
                     <option value="M">남성</option>
@@ -411,7 +553,7 @@ export function MyPage() {
                 </ProfileField>
 
                 {profileEditError ? (
-                  <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                  <div className="rounded-2xl border px-4 py-3 text-sm" style={{ borderColor: 'var(--app-danger-border)', backgroundColor: 'var(--app-danger-bg)', color: 'var(--app-danger-text)' }}>
                     {profileEditError}
                   </div>
                 ) : null}
@@ -422,14 +564,16 @@ export function MyPage() {
                       setShowProfileEdit(false);
                       setProfileEditError('');
                     }}
-                    className="flex-1 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/10"
+                    className="flex-1 rounded-xl border py-3 text-sm font-medium transition-colors hover:bg-white/10"
+                    style={glassButtonStyle}
                   >
                     닫기
                   </button>
                   <button
                     onClick={handleProfileSave}
                     disabled={isSavingProfile}
-                    className="flex-1 rounded-xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/60 to-amber-600/50 py-3 text-sm font-semibold text-white shadow-lg shadow-[#D4AF37]/20 transition-all hover:shadow-xl hover:shadow-[#D4AF37]/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-xl border py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                    style={accentButtonStyle}
                   >
                     {isSavingProfile ? '저장 중...' : '저장'}
                   </button>
@@ -447,21 +591,30 @@ export function MyPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-[#120b2b] via-[#1f1147] to-[#0d061d]"
+            className="fixed inset-0 z-50 overflow-y-auto"
+            style={pageGradientStyle}
           >
             <div className="mx-auto min-h-full w-full max-w-md px-5 pb-[max(3.5rem,calc(env(safe-area-inset-bottom)+2.5rem))] pt-[max(1.25rem,env(safe-area-inset-top))]">
-              <div className="sticky top-0 z-10 -mx-5 mb-6 border-b border-white/10 bg-[#120b2b]/88 px-5 pb-4 backdrop-blur-xl">
+              <div
+                className="sticky top-0 z-10 -mx-5 mb-6 border-b px-5 pb-4 backdrop-blur-xl"
+                style={{
+                  borderColor: 'var(--app-surface-border)',
+                  backgroundColor: 'color-mix(in srgb, var(--bg-main) 88%, transparent)',
+                }}
+              >
                 <div className="flex items-center justify-between gap-3 pt-2">
                   <button
                     onClick={() => setShowBirthTarot(false)}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                    className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
+                    style={glassButtonStyle}
                   >
                     <ChevronLeft className="h-4 w-4" />
                     뒤로가기
                   </button>
                   <button
                     onClick={() => setShowBirthTarot(false)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border transition-colors hover:opacity-90"
+                    style={glassButtonStyle}
                     aria-label="생일 타로 카드 닫기"
                   >
                     <X className="h-5 w-5" />
@@ -469,26 +622,34 @@ export function MyPage() {
                 </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-[2rem] border border-[#D4AF37]/35 bg-gradient-to-br from-purple-900/95 via-violet-800/90 to-purple-900/95 p-6 shadow-2xl">
+              <div
+                className="relative overflow-hidden rounded-[2rem] border p-6 shadow-2xl"
+                style={{
+                  ...glassCardStrongStyle,
+                  borderColor: 'var(--app-accent-border-strong)',
+                  background:
+                    'linear-gradient(135deg, color-mix(in srgb, var(--tarot-card-bg-strong) 90%, transparent) 0%, color-mix(in srgb, var(--glow-purple) 42%, var(--tarot-card-bg) 58%) 55%, color-mix(in srgb, var(--tarot-card-bg-strong) 92%, transparent) 100%)',
+                }}
+              >
                 <motion.div
                   className="absolute inset-0 rounded-[2rem]"
                   animate={{
                     boxShadow: [
-                      '0 0 40px rgba(212, 175, 55, 0.32), inset 0 0 40px rgba(168, 85, 247, 0.25)',
-                      '0 0 60px rgba(212, 175, 55, 0.42), inset 0 0 60px rgba(168, 85, 247, 0.34)',
-                      '0 0 40px rgba(212, 175, 55, 0.32), inset 0 0 40px rgba(168, 85, 247, 0.25)',
+                      '0 0 40px var(--app-accent-glow), inset 0 0 28px var(--tarot-accent-glow-soft)',
+                      '0 0 60px var(--app-accent-glow), inset 0 0 40px var(--tarot-accent-glow)',
+                      '0 0 40px var(--app-accent-glow), inset 0 0 28px var(--tarot-accent-glow-soft)',
                     ],
                   }}
                   transition={{ duration: 2.4, repeat: Infinity }}
                 />
 
                 <div className="relative mb-6 text-center">
-                  <div className="text-sm text-[#D4AF37]/75">생일 타로 카드</div>
-                  <h2 className="mt-2 text-3xl font-bold text-white">{userData.birthTarot.koreanName}</h2>
-                  <p className="mt-1 text-lg text-white/70">{userData.birthTarot.name}</p>
+                  <div className="text-sm" style={{ color: 'var(--app-accent-text-soft)' }}>생일 타로 카드</div>
+                  <h2 className="mt-2 text-3xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{userData.birthTarot.koreanName}</h2>
+                  <p className="mt-1 text-lg" style={{ color: 'var(--app-text-muted)' }}>{userData.birthTarot.name}</p>
                 </div>
 
-                <div className="relative mb-6 aspect-[2/3] overflow-hidden rounded-[1.75rem] border-2 border-[#D4AF37]/40">
+                <div className="relative mb-6 aspect-[2/3] overflow-hidden rounded-[1.75rem] border-2" style={{ borderColor: 'var(--app-accent-border)' }}>
                   <img
                     src={userData.birthTarot.imageUrl}
                     alt={userData.birthTarot.name}
@@ -498,20 +659,23 @@ export function MyPage() {
                 </div>
 
                 <div className="relative space-y-4">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-4 py-1.5 text-sm text-[#D4AF37]">
+                  <div
+                    className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm"
+                    style={{ ...accentIconStyle, backgroundColor: 'var(--app-accent-soft)' }}
+                  >
                     <Sparkles className="h-4 w-4" />
                     {userData.birthTarot.number}번 카드
                   </div>
-                  <section className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                    <div className="mb-2 text-xs font-medium tracking-[0.18em] text-[#D4AF37]/80">MEANING</div>
-                    <p className="text-sm leading-relaxed text-white/85">{userData.birthTarot.meaning}</p>
+                  <section className="rounded-2xl border px-4 py-4" style={glassCardStyle}>
+                    <div className="mb-2 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>MEANING</div>
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{userData.birthTarot.meaning}</p>
                   </section>
                   {userData.birthTarot.description ? (
-                    <section className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                      <div className="mb-2 text-xs font-medium tracking-[0.18em] text-[#D4AF37]/80">
+                    <section className="rounded-2xl border px-4 py-4" style={glassCardStyle}>
+                      <div className="mb-2 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
                         DESCRIPTION
                       </div>
-                      <p className="text-sm leading-relaxed text-white/78">
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-muted)' }}>
                         {userData.birthTarot.description}
                       </p>
                     </section>
@@ -529,28 +693,31 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center backdrop-blur-sm"
+            style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30 }}
-              className="w-full max-w-md overflow-hidden rounded-t-3xl border-t-2 border-[#D4AF37]/40 bg-gradient-to-br from-indigo-950/98 via-indigo-900/98 to-violet-950/98 backdrop-blur-xl"
+              className="w-full max-w-md overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
+              style={accentButtonStyle}
             >
-              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-                <h3 className="text-lg font-semibold text-white">내 사주 정보</h3>
+              <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
+                <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>내 사주 정보</h3>
                 <button
                   onClick={() => setShowSaju(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 transition-colors hover:bg-white/10"
+                  className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+                  style={{ backgroundColor: 'var(--app-surface-bg)' }}
                 >
-                  <X className="h-4 w-4 text-white/70" />
+                  <X className="h-4 w-4" style={{ color: 'var(--app-icon-muted)' }} />
                 </button>
               </div>
 
               <div className="max-h-[82vh] space-y-6 overflow-y-auto px-6 py-6">
                 <div>
-                  <h4 className="mb-3 flex items-center gap-2 text-sm font-medium text-[#D4AF37]">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-medium" style={{ color: 'var(--tarot-point-color)' }}>
                     <Sparkles className="h-4 w-4" />
                     사주팔자
                   </h4>
@@ -558,22 +725,23 @@ export function MyPage() {
                     {userData.saju.palza.map((char, idx) => (
                       <div
                         key={idx}
-                        className="rounded-xl border border-white/10 bg-white/5 p-3 text-center backdrop-blur-xl"
+                        className="rounded-xl border p-3 text-center backdrop-blur-xl"
+                        style={glassCardStyle}
                       >
-                        <div className="text-2xl font-bold text-white">{char}</div>
-                        <div className="mt-1 text-xs text-white/50">{['년주', '월주', '일주', '시주'][idx]}</div>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{char}</div>
+                        <div className="mt-1 text-xs" style={{ color: 'var(--app-text-muted)' }}>{['년주', '월주', '일주', '시주'][idx]}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="mb-3 text-sm font-medium text-[#D4AF37]">오행 분포</h4>
+                  <h4 className="mb-3 text-sm font-medium" style={{ color: 'var(--tarot-point-color)' }}>오행 분포</h4>
                   <div className="space-y-2">
                     {Object.entries(userData.saju.ohang).map(([element, value]) => (
                       <div key={element} className="space-y-1">
                         <div className="flex justify-between text-xs">
-                          <span className="text-white/70">
+                          <span style={{ color: 'var(--app-text-muted)' }}>
                             {element === 'wood'
                               ? '木 (목)'
                               : element === 'fire'
@@ -584,14 +752,18 @@ export function MyPage() {
                                     ? '金 (금)'
                                     : '水 (수)'}
                           </span>
-                          <span className="text-[#D4AF37]">{value}%</span>
+                          <span style={{ color: 'var(--tarot-point-color)' }}>{value}%</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                        <div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${value}%` }}
                             transition={{ duration: 1, delay: 0.2 }}
-                            className="h-full rounded-full bg-gradient-to-r from-[#D4AF37] to-amber-500"
+                            className="h-full rounded-full"
+                            style={{
+                              background:
+                                'linear-gradient(90deg, var(--tarot-point-color) 0%, var(--app-accent-gradient-end) 100%)',
+                            }}
                           />
                         </div>
                       </div>
@@ -606,13 +778,13 @@ export function MyPage() {
                   >
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <h4 className={`text-sm font-medium ${section.titleClassName}`}>{section.label}</h4>
-                      <span className="text-xs text-white/50">{section.title}</span>
+                      <span className="text-xs" style={{ color: 'var(--app-text-muted)' }}>{section.title}</span>
                     </div>
-                    <p className="text-sm leading-6 text-white/90">{section.summary}</p>
+                    <p className="text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>{section.summary}</p>
                   </div>
                 ))}
 
-                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs leading-5 text-white/60">
+                <p className="rounded-xl border px-4 py-3 text-xs leading-5" style={{ ...glassCardStyle, color: 'var(--app-text-muted)' }}>
                   사주 해석 문구는 데이터 기준으로 수시로 달라질 수 있습니다.
                 </p>
               </div>
@@ -627,28 +799,31 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+            style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-md overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-br from-indigo-950/98 via-indigo-900/98 to-violet-950/98 backdrop-blur-xl"
+              className="w-full max-w-md overflow-hidden rounded-3xl border backdrop-blur-xl"
+              style={glassCardStrongStyle}
             >
-              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-                <h3 className="text-lg font-semibold text-white">문의하기</h3>
+              <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
+                <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>문의하기</h3>
                 <button
                   onClick={() => setShowInquiry(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 transition-colors hover:bg-white/10"
+                  className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+                  style={{ backgroundColor: 'var(--app-surface-bg)' }}
                 >
-                  <X className="h-4 w-4 text-white/70" />
+                  <X className="h-4 w-4" style={{ color: 'var(--app-icon-muted)' }} />
                 </button>
               </div>
 
               <div className="space-y-4 p-6">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/70">문의 유형</label>
-                  <select className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white backdrop-blur-xl transition-colors focus:border-[#D4AF37]/50 focus:outline-none">
+                  <label className="mb-2 block text-sm font-medium" style={{ color: 'var(--app-text-muted)' }}>문의 유형</label>
+                  <select className="w-full rounded-xl border px-4 py-3 backdrop-blur-xl transition-colors focus:outline-none" style={inputStyle}>
                     <option>서비스 이용 문의</option>
                     <option>결제 및 환불</option>
                     <option>기술적 문제</option>
@@ -657,24 +832,27 @@ export function MyPage() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/70">문의 내용</label>
+                  <label className="mb-2 block text-sm font-medium" style={{ color: 'var(--app-text-muted)' }}>문의 내용</label>
                   <textarea
                     rows={5}
                     placeholder="문의하실 내용을 입력해주세요"
-                    className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-white/30 backdrop-blur-xl transition-colors focus:border-[#D4AF37]/50 focus:outline-none"
+                    className="w-full resize-none rounded-xl border px-4 py-3 placeholder:text-[var(--app-input-placeholder)] backdrop-blur-xl transition-colors focus:outline-none"
+                    style={inputStyle}
                   />
                 </div>
 
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowInquiry(false)}
-                    className="flex-1 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/10"
+                    className="flex-1 rounded-xl border py-3 text-sm font-medium transition-colors hover:bg-white/10"
+                    style={glassButtonStyle}
                   >
                     취소
                   </button>
                   <button
                     onClick={() => setShowInquiry(false)}
-                    className="flex-1 rounded-xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/60 to-amber-600/50 py-3 text-sm font-semibold text-white shadow-lg shadow-[#D4AF37]/20 backdrop-blur-xl transition-all hover:shadow-xl hover:shadow-[#D4AF37]/30"
+                    className="flex-1 rounded-xl border py-3 text-sm font-semibold backdrop-blur-xl transition-all"
+                    style={accentButtonStyle}
                   >
                     전송
                   </button>
@@ -687,28 +865,30 @@ export function MyPage() {
 
       <div className="relative mx-auto max-w-md px-5 pt-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-white">마이</h1>
-          <p className="text-sm text-white/50">내 정보 및 설정</p>
+          <h1 className="text-2xl font-semibold" style={{ color: 'var(--tarot-text-main)' }}>마이</h1>
+          <p className="text-sm" style={{ color: 'var(--app-text-muted)' }}>내 정보 및 설정</p>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl"
+          className="mb-6 overflow-hidden rounded-3xl border backdrop-blur-xl"
+          style={glassCardStyle}
         >
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#D4AF37]/20 via-amber-600/10 to-transparent p-6">
-            <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-[#D4AF37]/10 blur-3xl" />
+          <div className="relative overflow-hidden p-6" style={accentCardStyle}>
+            <div className="absolute right-0 top-0 h-32 w-32 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
             <div className="relative flex items-start gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/30 to-amber-600/20 backdrop-blur-xl">
-                <User className="h-8 w-8 text-[#D4AF37]" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 backdrop-blur-xl" style={accentIconStyle}>
+                <User className="h-8 w-8" />
               </div>
               <div className="flex-1">
-                <h2 className="mb-1 text-xl font-bold text-white">{userData.name}</h2>
-                <p className="text-sm text-white/60">{userData.email}</p>
+                <h2 className="mb-1 text-xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{userData.name}</h2>
+                <p className="text-sm" style={{ color: 'var(--app-text-muted)' }}>{userData.email}</p>
               </div>
               <button
                 onClick={() => setShowProfileEdit(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:bg-white/10"
+                className="flex h-10 w-10 items-center justify-center rounded-full border transition-colors hover:bg-white/10"
+                style={glassButtonStyle}
                 aria-label="내 정보 수정"
               >
                 <Pencil className="h-4 w-4" />
@@ -716,47 +896,47 @@ export function MyPage() {
             </div>
           </div>
 
-          <div className="space-y-0 divide-y divide-white/5 p-4">
+          <div className="space-y-0 divide-y p-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
             <div className="flex items-center gap-3 py-3">
-              <Mail className="h-5 w-5 text-white/40" />
-              <span className="flex-1 text-sm text-white/70">이메일</span>
-              <span className="text-sm font-medium text-white">{userData.email}</span>
+              <Mail className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>이메일</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>{userData.email}</span>
             </div>
             <div className="flex items-center gap-3 py-3">
-              <Calendar className="h-5 w-5 text-white/40" />
-              <span className="flex-1 text-sm text-white/70">생년월일</span>
-              <span className="text-sm font-medium text-white">{userData.birthDate}</span>
+              <Calendar className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>생년월일</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>{userData.birthDate}</span>
             </div>
             <div className="flex items-center gap-3 py-3">
-              <Clock className="h-5 w-5 text-white/40" />
-              <span className="flex-1 text-sm text-white/70">태어난 시간</span>
-              <span className="text-sm font-medium text-white">{userData.birthTime}</span>
+              <Clock className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>태어난 시간</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>{userData.birthTime}</span>
             </div>
             <div className="flex items-center gap-3 py-3">
-              <Cake className="h-5 w-5 text-white/40" />
-              <span className="flex-1 text-sm text-white/70">성별 / 나이</span>
-              <span className="text-sm font-medium text-white">
+              <Cake className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>성별 / 나이</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>
                 {userData.gender} {userData.age}
               </span>
             </div>
             <div className="flex items-center gap-3 py-3">
-              <TrendingUp className="h-5 w-5 text-white/40" />
-              <span className="flex-1 text-sm text-white/70">투자 성향</span>
-              <span className="text-sm font-medium text-white">
+              <TrendingUp className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>투자 성향</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>
                 {investmentStyle === 'aggressive' ? '공격형' : '안정형'}
               </span>
             </div>
             <div className="flex items-center gap-3 py-3">
-              <Shield className="h-5 w-5 text-white/40" />
-              <span className="flex-1 text-sm text-white/70">선호 섹터</span>
-              <span className="max-w-[180px] text-right text-sm font-medium text-white">
+              <Shield className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>선호 섹터</span>
+              <span className="max-w-[180px] text-right text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>
                 {userData.preferredSectors.join(', ') || '-'}
               </span>
             </div>
             <div className="flex items-center gap-3 py-3">
-              <Info className="h-5 w-5 text-white/40" />
-              <span className="flex-1 text-sm text-white/70">토큰 만료</span>
-              <span className="max-w-[180px] text-right text-sm font-medium text-white">{userData.tokenExpiresAt}</span>
+              <Info className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>토큰 만료</span>
+              <span className="max-w-[180px] text-right text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>{userData.tokenExpiresAt}</span>
             </div>
           </div>
         </motion.div>
@@ -767,20 +947,21 @@ export function MyPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
             onClick={() => setShowBirthTarot(true)}
-            className="group relative w-full overflow-hidden rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 via-amber-600/5 to-transparent p-4 backdrop-blur-xl transition-all hover:border-[#D4AF37]/50 hover:shadow-lg hover:shadow-[#D4AF37]/20"
+            className="group relative w-full overflow-hidden rounded-2xl border p-4 backdrop-blur-xl transition-all hover:shadow-lg"
+            style={accentCardStyle}
           >
-            <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#D4AF37]/10 blur-2xl" />
+            <div className="absolute right-0 top-0 h-24 w-24 rounded-full blur-2xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/20">
-                  <Sparkles className="h-6 w-6 text-[#D4AF37]" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border" style={accentIconStyle}>
+                  <Sparkles className="h-6 w-6" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-white">내 생일 타로 카드</h3>
-                  <p className="text-sm text-white/60">{userData.birthTarot.koreanName}</p>
+                  <h3 className="font-semibold" style={{ color: 'var(--tarot-text-main)' }}>내 생일 타로 카드</h3>
+                  <p className="text-sm" style={{ color: 'var(--app-text-muted)' }}>{userData.birthTarot.koreanName}</p>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-[#D4AF37] transition-transform group-hover:translate-x-1" />
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" style={{ color: 'var(--tarot-point-color)' }} />
             </div>
           </motion.button>
 
@@ -789,20 +970,21 @@ export function MyPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             onClick={() => setShowSaju(true)}
-            className="group relative w-full overflow-hidden rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 via-amber-600/5 to-transparent p-4 backdrop-blur-xl transition-all hover:border-[#D4AF37]/50 hover:shadow-lg hover:shadow-[#D4AF37]/20"
+            className="group relative w-full overflow-hidden rounded-2xl border p-4 backdrop-blur-xl transition-all hover:shadow-lg"
+            style={accentCardStyle}
           >
-            <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#D4AF37]/10 blur-2xl" />
+            <div className="absolute right-0 top-0 h-24 w-24 rounded-full blur-2xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/20">
-                  <Sparkles className="h-6 w-6 text-[#D4AF37]" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border" style={accentIconStyle}>
+                  <Sparkles className="h-6 w-6" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-white">내 사주 정보</h3>
-                  <p className="text-sm text-white/60">사주팔자, 오행, 십성 등</p>
+                  <h3 className="font-semibold" style={{ color: 'var(--tarot-text-main)' }}>내 사주 정보</h3>
+                  <p className="text-sm" style={{ color: 'var(--app-text-muted)' }}>사주팔자, 오행, 십성 등</p>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-[#D4AF37] transition-transform group-hover:translate-x-1" />
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" style={{ color: 'var(--tarot-point-color)' }} />
             </div>
           </motion.button>
 
@@ -811,20 +993,21 @@ export function MyPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
             onClick={() => navigate('/liked-fortunes')}
-            className="group relative w-full overflow-hidden rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 via-amber-600/5 to-transparent p-4 backdrop-blur-xl transition-all hover:border-[#D4AF37]/50 hover:shadow-lg hover:shadow-[#D4AF37]/20"
+            className="group relative w-full overflow-hidden rounded-2xl border p-4 backdrop-blur-xl transition-all hover:shadow-lg"
+            style={accentCardStyle}
           >
-            <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#D4AF37]/10 blur-2xl" />
+            <div className="absolute right-0 top-0 h-24 w-24 rounded-full blur-2xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/20">
-                  <Heart className="h-6 w-6 text-[#D4AF37]" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border" style={accentIconStyle}>
+                  <Heart className="h-6 w-6" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-white">좋아요한 운세</h3>
-                  <p className="text-sm text-white/60">저장한 투자 운세 결과</p>
+                  <h3 className="font-semibold" style={{ color: 'var(--tarot-text-main)' }}>좋아요한 운세</h3>
+                  <p className="text-sm" style={{ color: 'var(--app-text-muted)' }}>저장한 투자 운세 결과</p>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-[#D4AF37] transition-transform group-hover:translate-x-1" />
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" style={{ color: 'var(--tarot-point-color)' }} />
             </div>
           </motion.button>
         </div>
@@ -833,25 +1016,31 @@ export function MyPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mb-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl"
+          className="mb-6 overflow-hidden rounded-3xl border backdrop-blur-xl"
+          style={glassCardStyle}
         >
-          <div className="border-b border-white/5 px-5 py-4">
-            <h3 className="font-semibold text-white">상담 설정</h3>
+          <div className="border-b px-5 py-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
+            <h3 className="font-semibold" style={{ color: 'var(--tarot-text-main)' }}>상담 설정</h3>
           </div>
 
-          <div className="space-y-0 divide-y divide-white/5 p-4">
+          <div className="space-y-0 divide-y p-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
             <div className="py-4">
               <div className="mb-3 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-white/60" />
-                <span className="text-sm font-medium text-white/90">투자 성향</span>
+                <TrendingUp className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
+                <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>투자 성향</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div
                   className={`rounded-xl border px-4 py-2.5 text-center text-sm font-medium ${
                     investmentStyle === 'stable'
-                      ? 'border-[#D4AF37]/50 bg-[#D4AF37]/20 text-white shadow-lg shadow-[#D4AF37]/10'
-                      : 'border-white/10 bg-white/5 text-white/60'
+                      ? ''
+                      : ''
                   }`}
+                  style={
+                    investmentStyle === 'stable'
+                      ? { ...accentIconStyle, boxShadow: '0 12px 24px -20px var(--app-accent-glow)' }
+                      : { ...glassCardStyle, color: 'var(--app-text-muted)' }
+                  }
                 >
                   <Shield className="mx-auto mb-1 h-5 w-5" />
                   안정형
@@ -859,9 +1048,14 @@ export function MyPage() {
                 <div
                   className={`rounded-xl border px-4 py-2.5 text-center text-sm font-medium ${
                     investmentStyle === 'aggressive'
-                      ? 'border-[#D4AF37]/50 bg-[#D4AF37]/20 text-white shadow-lg shadow-[#D4AF37]/10'
-                      : 'border-white/10 bg-white/5 text-white/60'
+                      ? ''
+                      : ''
                   }`}
+                  style={
+                    investmentStyle === 'aggressive'
+                      ? { ...accentIconStyle, boxShadow: '0 12px 24px -20px var(--app-accent-glow)' }
+                      : { ...glassCardStyle, color: 'var(--app-text-muted)' }
+                  }
                 >
                   <TrendingUp className="mx-auto mb-1 h-5 w-5" />
                   공격형
@@ -873,14 +1067,16 @@ export function MyPage() {
               icon={Bell}
               label="알림 설정"
               enabled={notificationEnabled}
-              onToggle={() => setNotificationEnabled(!notificationEnabled)}
+              onToggle={handleNotificationToggle}
+              disabled={isSavingSettings}
             />
 
             <SettingToggle
               icon={isDarkMode ? Moon : Sun}
               label="화면 모드"
               enabled={isDarkMode}
-              onToggle={() => setIsDarkMode(!isDarkMode)}
+              onToggle={handleThemeToggle}
+              disabled={isSavingSettings}
             />
 
             <SettingToggle
@@ -890,18 +1086,31 @@ export function MyPage() {
               onToggle={() => setVirtualInvestmentEnabled(!virtualInvestmentEnabled)}
             />
 
+            {settingsSaveError ? (
+              <div
+                className="mx-4 rounded-xl border px-3 py-2 text-xs"
+                style={{
+                  borderColor: 'var(--app-danger-border)',
+                  backgroundColor: 'var(--app-danger-bg)',
+                  color: 'var(--app-danger-text)',
+                }}
+              >
+                {settingsSaveError}
+              </div>
+            ) : null}
+
             <div className="py-4">
               <div className="mb-3 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-white/60" />
-                <span className="text-sm font-medium text-white/90">타로 덱 선택</span>
+                <Sparkles className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
+                <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>타로 덱 선택</span>
               </div>
               {tarotDeckSaveError ? (
-                <div className="mb-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100">
+                <div className="mb-3 rounded-xl border px-3 py-2 text-xs" style={{ borderColor: 'var(--app-danger-border)', backgroundColor: 'var(--app-danger-bg)', color: 'var(--app-danger-text)' }}>
                   {tarotDeckSaveError}
                 </div>
               ) : null}
               {isSavingTarotDeck ? (
-                <div className="mb-3 text-xs text-white/45">선택한 덱을 저장하고 있습니다.</div>
+                <div className="mb-3 text-xs" style={{ color: 'var(--app-text-subtle)' }}>선택한 덱을 저장하고 있습니다.</div>
               ) : null}
               <div className="grid gap-2">
                 {tarotDeckVersions.map((deck) => {
@@ -911,14 +1120,15 @@ export function MyPage() {
                     <button
                       key={deck.id}
                       onClick={() => handleTarotDeckSelect(deck.id)}
-                      className={`rounded-xl border px-4 py-3 text-left text-sm transition-all ${
+                      className="rounded-xl border px-4 py-3 text-left text-sm transition-all"
+                      style={
                         isSelected
-                          ? 'border-[#D4AF37]/50 bg-[#D4AF37]/20 text-white shadow-lg shadow-[#D4AF37]/10'
-                          : 'border-white/10 bg-white/5 text-white/60'
-                      }`}
+                          ? { ...accentIconStyle, boxShadow: '0 12px 24px -20px var(--app-accent-glow)' }
+                          : { ...glassCardStyle, color: 'var(--app-text-muted)' }
+                      }
                     >
-                      <div className="font-medium">{deck.name}</div>
-                      <div className="mt-1 text-xs text-white/45">{deck.description}</div>
+                      <div className="font-medium" style={{ color: isSelected ? 'var(--tarot-text-main)' : 'inherit' }}>{deck.name}</div>
+                      <div className="mt-1 text-xs" style={{ color: isSelected ? 'var(--app-text-muted)' : 'var(--app-text-subtle)' }}>{deck.description}</div>
                     </button>
                   );
                 })}
@@ -935,23 +1145,24 @@ export function MyPage() {
         >
           <button
             onClick={() => setShowInquiry(true)}
-            className="group flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/10"
+            className="group flex w-full items-center justify-between rounded-2xl border p-4 backdrop-blur-xl transition-all hover:bg-white/10"
+            style={glassCardStyle}
           >
             <div className="flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-white/60" />
-              <span className="text-sm font-medium text-white/90">문의하기</span>
+              <MessageSquare className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>문의하기</span>
             </div>
-            <ChevronRight className="h-5 w-5 text-white/40 transition-transform group-hover:translate-x-1" />
+            <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" style={{ color: 'var(--app-icon-soft)' }} />
           </button>
 
-          <button className="group flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/10">
+          <button className="group flex w-full items-center justify-between rounded-2xl border p-4 backdrop-blur-xl transition-all hover:bg-white/10" style={glassCardStyle}>
             <div className="flex items-center gap-3">
-              <Info className="h-5 w-5 text-white/60" />
-              <span className="text-sm font-medium text-white/90">앱 정보</span>
+              <Info className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>앱 정보</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white/40">v1.0.0</span>
-              <ChevronRight className="h-5 w-5 text-white/40 transition-transform group-hover:translate-x-1" />
+              <span className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>v1.0.0</span>
+              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" style={{ color: 'var(--app-icon-soft)' }} />
             </div>
           </button>
         </motion.div>
@@ -961,19 +1172,20 @@ export function MyPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           onClick={handleLogout}
-          className="mb-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 backdrop-blur-xl transition-all hover:border-red-500/50 hover:bg-red-500/20"
+          className="mb-6 flex w-full items-center justify-center gap-2 rounded-2xl border p-4 backdrop-blur-xl transition-all hover:bg-red-500/20"
+          style={{ borderColor: 'var(--app-danger-border)', backgroundColor: 'var(--app-danger-bg)' }}
         >
-          <LogOut className="h-5 w-5 text-red-400" />
-          <span className="font-medium text-red-400">로그아웃</span>
+          <LogOut className="h-5 w-5" style={{ color: 'var(--app-danger-text)' }} />
+          <span className="font-medium" style={{ color: 'var(--app-danger-text)' }}>로그아웃</span>
         </motion.button>
 
-        <div className="mb-4 space-y-2 text-center text-xs text-white/40">
+        <div className="mb-4 space-y-2 text-center text-xs" style={{ color: 'var(--app-text-subtle)' }}>
           <div className="flex justify-center gap-4">
-            <button onClick={() => navigate('/terms')} className="hover:text-white/60">
+            <button onClick={() => navigate('/terms')} className="transition-colors hover:opacity-80">
               이용약관
             </button>
             <span>·</span>
-            <button onClick={() => navigate('/privacy')} className="hover:text-white/60">
+            <button onClick={() => navigate('/privacy')} className="transition-colors hover:opacity-80">
               개인정보처리방침
             </button>
           </div>
@@ -991,23 +1203,28 @@ function SettingToggle({
   label,
   enabled,
   onToggle,
+  disabled = false,
 }: {
   icon: typeof User;
   label: string;
   enabled: boolean;
   onToggle: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between py-4">
       <div className="flex items-center gap-3">
-        <Icon className="h-5 w-5 text-white/60" />
-        <span className="text-sm font-medium text-white/90">{label}</span>
+        <Icon className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>{label}</span>
       </div>
       <button
         onClick={onToggle}
-        className={`relative h-7 w-12 rounded-full transition-colors ${
-          enabled ? 'bg-[#D4AF37]' : 'bg-white/20'
-        }`}
+        disabled={disabled}
+        className="fi-toggle-track relative h-7 w-12 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+        data-enabled={enabled}
+        style={{
+          backgroundColor: enabled ? 'var(--tarot-point-color)' : undefined,
+        }}
       >
         <motion.div
           animate={{ x: enabled ? 20 : 2 }}
@@ -1028,7 +1245,7 @@ function ProfileField({
 }) {
   return (
     <label className="block">
-      <div className="mb-2 text-sm font-medium text-white/70">{label}</div>
+      <div className="mb-2 text-sm font-medium" style={{ color: 'var(--app-text-muted)' }}>{label}</div>
       {children}
     </label>
   );

@@ -10,11 +10,11 @@ export function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950 pb-24">
+    <div className="fi-page min-h-screen pb-24">
       {/* Ambient background effects */}
       <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
       {/* Main content */}
@@ -22,16 +22,16 @@ export function HomePage() {
         {/* Top Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-medium text-white">Stock Oracle</h1>
-            <p className="text-xs text-white/50">당신의 재운을 밝힙니다</p>
+            <h1 className="text-xl font-medium fi-text-main">Stock Oracle</h1>
+            <p className="text-xs fi-text-muted">당신의 재운을 밝힙니다</p>
           </div>
           <button 
             onClick={() => navigate('/notifications')}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+            className="fi-icon-button relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:opacity-90"
           >
-            <Bell className="h-5 w-5 text-white/60" />
+            <Bell className="h-5 w-5" />
             {/* Notification badge */}
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-amber-500 ring-2 ring-indigo-950" />
+            <span className="absolute right-1 top-1 h-2 w-2 rounded-full" style={{ backgroundColor: 'var(--point-gold)', boxShadow: '0 0 0 2px var(--bg-main)' }} />
           </button>
         </div>
 

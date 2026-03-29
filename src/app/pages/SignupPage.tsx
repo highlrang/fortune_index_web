@@ -40,7 +40,7 @@ export function SignupPage() {
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-3">
-          <label htmlFor="email" className="block text-sm text-amber-200/80">
+          <label htmlFor="email" className="block text-sm fi-text-accent">
             이메일
           </label>
           <div className="relative">
@@ -51,18 +51,18 @@ export function SignupPage() {
               onChange={(event) => setEmail(event.target.value)}
               placeholder="example@email.com"
               required
-              className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              className="fi-input w-full rounded-xl px-5 py-4 transition-all"
             />
-            <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-sm leading-6 text-white/65">
+        <div className="fi-glass rounded-xl px-4 py-4 text-sm leading-6 fi-text-muted">
           인증 메일 발송 후 메일 확인 화면으로 이동합니다. 인증 링크를 누르면 자동으로 다음 단계가 열립니다.
         </div>
 
         {error ? (
-          <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div className="fi-danger rounded-xl px-4 py-3 text-sm">
             {error}
           </div>
         ) : null}
@@ -70,7 +70,7 @@ export function SignupPage() {
         <button
           type="submit"
           disabled={isSubmitting || !canSubmit}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-600/80 to-yellow-600/80 px-5 py-4 text-base font-medium text-white transition-all hover:border-amber-500/70 disabled:cursor-not-allowed disabled:opacity-60"
+          className="fi-cta flex w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-base font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
           {isSubmitting ? '메일 발송 중...' : '인증 메일 발송'}

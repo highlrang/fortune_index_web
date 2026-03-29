@@ -31,7 +31,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-3">
-        <label htmlFor="email" className="block text-sm text-amber-200/80">
+        <label htmlFor="email" className="block text-sm fi-text-accent">
           이메일
         </label>
         <div className="relative">
@@ -42,14 +42,14 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="example@email.com"
             required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
       </div>
 
       <div className="space-y-3">
-        <label htmlFor="password" className="block text-sm text-amber-200/80">
+        <label htmlFor="password" className="block text-sm fi-text-accent">
           비밀번호
         </label>
         <div className="relative">
@@ -60,20 +60,20 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="비밀번호를 입력해주세요"
             required
-            className="w-full rounded-xl border border-amber-500/20 bg-white/5 px-5 py-4 text-white placeholder-white/30 backdrop-blur-xl transition-all focus:border-amber-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
           />
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="fi-danger rounded-xl px-4 py-3 text-sm">
           {error}
         </div>
       ) : null}
 
       <div className="text-right">
-        <button type="button" className="text-sm text-white/40 transition-colors hover:text-amber-400">
+        <button type="button" className="text-sm fi-text-subtle transition-colors hover:opacity-80">
           비밀번호를 잊으셨나요?
         </button>
       </div>
@@ -81,12 +81,13 @@ export function LoginForm() {
       <motion.button
         type="submit"
         disabled={isSubmitting}
-        className="group relative w-full overflow-hidden rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-600/80 to-yellow-600/80 px-8 py-5 backdrop-blur-xl transition-all hover:border-amber-500/70 disabled:cursor-not-allowed disabled:opacity-60"
+        className="fi-cta group relative w-full overflow-hidden rounded-xl px-8 py-5 transition-all disabled:cursor-not-allowed disabled:opacity-60"
         whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
         whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
       >
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-amber-400/40 to-yellow-500/40"
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }}
           animate={{
             opacity: [0.3, 0.6, 0.3],
           }}
@@ -97,16 +98,16 @@ export function LoginForm() {
           }}
         />
 
-        <span className="relative flex items-center justify-center gap-2 text-base font-medium text-white">
+        <span className="relative flex items-center justify-center gap-2 text-base font-medium fi-text-main">
           {isSubmitting ? '로그인 중...' : '운명의 문을 열다'}
           <Sparkles className="h-5 w-5" />
         </span>
       </motion.button>
 
       <div className="text-center">
-        <p className="text-sm text-white/50">
+        <p className="text-sm fi-text-muted">
           계정이 없으신가요?{' '}
-          <Link to="/signup" className="text-amber-400 transition-colors hover:text-amber-300">
+          <Link to="/signup" className="fi-text-accent transition-colors hover:opacity-80">
             회원가입 하러가기
           </Link>
         </p>

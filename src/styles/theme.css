@@ -39,6 +39,138 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Dark mode default */
+  --bg-main: #101427;
+  --card-surface: rgba(39, 34, 68, 0.72);
+  --card-blur: blur(25px);
+  --card-border: rgba(223, 188, 95, 0.38);
+  --point-gold: #dfbe66;
+  --glow-purple: rgba(173, 136, 255, 0.44);
+  --text-primary: #f1efff;
+
+  /* Tarot theme */
+  --tarot-bg-color: var(--bg-main);
+  --tarot-card-bg: var(--card-surface);
+  --tarot-card-bg-strong: rgba(52, 35, 86, 0.82);
+  --tarot-point-color: var(--point-gold);
+  --tarot-point-border: var(--card-border);
+  --tarot-accent-glow: var(--glow-purple);
+  --tarot-accent-glow-soft: rgba(173, 136, 255, 0.28);
+  --tarot-text-main: var(--text-primary);
+  --tarot-text-muted: rgba(241, 239, 255, 0.76);
+  --tarot-surface-bg: rgba(255, 255, 255, 0.07);
+  --tarot-surface-hover: rgba(255, 255, 255, 0.14);
+  --tarot-surface-border: var(--card-border);
+  --tarot-ambient-start: rgba(18, 22, 42, 0.96);
+  --tarot-ambient-mid: rgba(84, 52, 138, 0.8);
+  --tarot-ambient-end: rgba(16, 20, 39, 0.98);
+  --tarot-ambient-blob-a: rgba(173, 136, 255, 0.24);
+  --tarot-ambient-blob-b: rgba(223, 188, 95, 0.12);
+  --tarot-cta-start: rgba(223, 188, 95, 0.3);
+  --tarot-cta-mid: rgba(173, 136, 255, 0.32);
+  --tarot-cta-end: rgba(45, 34, 78, 0.84);
+  --tarot-cta-border: rgba(223, 188, 95, 0.42);
+  --tarot-cta-border-hover: rgba(223, 188, 95, 0.56);
+  --tarot-card-line: rgba(255, 255, 255, 0.34);
+  --tarot-card-line-soft: rgba(255, 255, 255, 0.24);
+  --tarot-guide-text: rgba(241, 239, 255, 0.84);
+  --app-surface-bg: var(--card-surface);
+  --app-surface-bg-strong: rgba(47, 38, 82, 0.78);
+  --app-surface-hover: rgba(255, 255, 255, 0.14);
+  --app-surface-border: var(--card-border);
+  --app-surface-divider: rgba(255, 255, 255, 0.08);
+  --app-modal-backdrop: rgba(5, 8, 18, 0.5);
+  --app-modal-bg: rgba(26, 24, 52, 0.76);
+  --app-input-bg: rgba(52, 40, 86, 0.6);
+  --app-input-placeholder: rgba(241, 239, 255, 0.38);
+  --app-icon-muted: rgba(241, 239, 255, 0.72);
+  --app-icon-soft: rgba(241, 239, 255, 0.5);
+  --app-text-soft: rgba(241, 239, 255, 0.94);
+  --app-text-muted: rgba(241, 239, 255, 0.72);
+  --app-text-subtle: rgba(241, 239, 255, 0.56);
+  --app-accent-soft: rgba(223, 188, 95, 0.12);
+  --app-accent-surface: rgba(223, 188, 95, 0.16);
+  --app-accent-border: rgba(223, 188, 95, 0.3);
+  --app-accent-border-strong: rgba(223, 188, 95, 0.4);
+  --app-accent-text-soft: rgba(232, 207, 136, 0.92);
+  --app-accent-text-strong: rgba(246, 223, 154, 1);
+  --app-accent-glow: rgba(173, 136, 255, 0.26);
+  --app-accent-gradient-start: rgba(223, 188, 95, 0.18);
+  --app-accent-gradient-end: rgba(173, 136, 255, 0.2);
+  --app-danger-bg: rgba(239, 68, 68, 0.1);
+  --app-danger-border: rgba(239, 68, 68, 0.3);
+  --app-danger-text: rgb(248, 113, 113);
+  --app-card-blur: var(--card-blur);
+  --app-hairline-border: 0.5px;
+  --app-surface-shadow: rgba(5, 7, 16, 0.28);
+  --app-surface-highlight: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme='light'] {
+  --bg-main: #faf9f6;
+  --card-surface: rgba(255, 255, 255, 0.58);
+  --card-blur: blur(15px);
+  --card-border: rgba(212, 186, 134, 0.52);
+  --point-gold: #d6bc84;
+  --glow-purple: rgba(210, 190, 255, 0.3);
+  --text-primary: #454545;
+
+  --tarot-bg-color: var(--bg-main);
+  --tarot-card-bg: var(--card-surface);
+  --tarot-card-bg-strong: rgba(255, 255, 255, 0.72);
+  --tarot-point-color: var(--point-gold);
+  --tarot-point-border: var(--card-border);
+  --tarot-accent-glow: var(--glow-purple);
+  --tarot-accent-glow-soft: rgba(210, 190, 255, 0.18);
+  --tarot-text-main: var(--text-primary);
+  --tarot-text-muted: rgba(69, 69, 69, 0.68);
+  --tarot-surface-bg: var(--card-surface);
+  --tarot-surface-hover: rgba(255, 255, 255, 0.78);
+  --tarot-surface-border: var(--card-border);
+  --tarot-ambient-start: rgba(250, 249, 246, 0.98);
+  --tarot-ambient-mid: rgba(242, 237, 255, 0.72);
+  --tarot-ambient-end: rgba(250, 249, 246, 0.98);
+  --tarot-ambient-blob-a: rgba(210, 190, 255, 0.18);
+  --tarot-ambient-blob-b: rgba(214, 188, 132, 0.18);
+  --tarot-cta-start: rgba(214, 188, 132, 0.28);
+  --tarot-cta-mid: rgba(210, 190, 255, 0.12);
+  --tarot-cta-end: rgba(255, 255, 255, 0.56);
+  --tarot-cta-border: rgba(214, 188, 132, 0.48);
+  --tarot-cta-border-hover: rgba(214, 188, 132, 0.58);
+  --tarot-card-line: rgba(45, 52, 54, 0.26);
+  --tarot-card-line-soft: rgba(45, 52, 54, 0.16);
+  --tarot-guide-text: rgba(69, 69, 69, 0.82);
+  --app-surface-bg: var(--card-surface);
+  --app-surface-bg-strong: rgba(255, 255, 255, 0.62);
+  --app-surface-hover: rgba(255, 255, 255, 0.84);
+  --app-surface-border: var(--card-border);
+  --app-surface-divider: rgba(214, 188, 132, 0.16);
+  --app-modal-backdrop: rgba(45, 52, 54, 0.26);
+  --app-modal-bg: rgba(255, 255, 255, 0.62);
+  --app-input-bg: rgba(255, 255, 255, 0.5);
+  --app-input-placeholder: rgba(69, 69, 69, 0.42);
+  --app-icon-muted: rgba(69, 69, 69, 0.72);
+  --app-icon-soft: rgba(69, 69, 69, 0.54);
+  --app-text-soft: rgba(69, 69, 69, 0.92);
+  --app-text-muted: rgba(69, 69, 69, 0.8);
+  --app-text-subtle: rgba(69, 69, 69, 0.64);
+  --app-accent-soft: rgba(214, 188, 132, 0.16);
+  --app-accent-surface: rgba(214, 188, 132, 0.36);
+  --app-accent-border: rgba(214, 188, 132, 0.46);
+  --app-accent-border-strong: rgba(214, 188, 132, 0.58);
+  --app-accent-text-soft: rgba(128, 97, 46, 0.96);
+  --app-accent-text-strong: rgba(109, 81, 34, 1);
+  --app-accent-glow: rgba(214, 188, 132, 0.18);
+  --app-accent-gradient-start: rgba(214, 188, 132, 0.32);
+  --app-accent-gradient-end: rgba(210, 190, 255, 0.12);
+  --app-danger-bg: rgba(239, 68, 68, 0.08);
+  --app-danger-border: rgba(239, 68, 68, 0.22);
+  --app-danger-text: rgb(220, 38, 38);
+  --app-card-blur: var(--card-blur);
+  --app-hairline-border: 0.5px;
+  --app-surface-shadow: rgba(145, 120, 78, 0.16);
+  --app-surface-highlight: rgba(255, 255, 255, 0.36);
 }
 
 .dark {
@@ -177,5 +309,164 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+}
+
+@layer components {
+  .fi-page {
+    background: linear-gradient(
+      135deg,
+      var(--tarot-ambient-start) 0%,
+      var(--tarot-ambient-mid) 52%,
+      var(--tarot-ambient-end) 100%
+    );
+    color: var(--text-primary);
+  }
+
+  .fi-glass {
+    background: var(--card-surface);
+    border: var(--app-hairline-border) solid var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-glass-strong {
+    background: var(--app-modal-bg);
+    border: var(--app-hairline-border) solid var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-accent-card {
+    background:
+      linear-gradient(135deg, var(--app-accent-soft) 0%, transparent 78%),
+      var(--card-surface);
+    border: var(--app-hairline-border) solid var(--app-accent-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-icon-button {
+    background: var(--card-surface);
+    color: var(--app-icon-muted);
+    border: var(--app-hairline-border) solid var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-input {
+    background: var(--app-input-bg);
+    color: var(--text-primary);
+    border: var(--app-hairline-border) solid var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-input::placeholder {
+    color: var(--app-input-placeholder);
+  }
+
+  .fi-input:focus {
+    outline: none;
+    border-color: var(--app-accent-border-strong);
+    box-shadow: 0 0 0 2px var(--app-accent-glow);
+  }
+
+  .fi-input-readonly {
+    color: var(--app-text-muted);
+  }
+
+  .fi-cta {
+    background: linear-gradient(
+      135deg,
+      var(--app-accent-gradient-start) 0%,
+      var(--app-accent-gradient-end) 100%
+    );
+    color: var(--text-primary);
+    border: var(--app-hairline-border) solid var(--app-accent-border-strong);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    box-shadow: 0 18px 40px -24px var(--app-accent-glow);
+  }
+
+  .fi-text-main {
+    color: var(--text-primary);
+  }
+
+  .fi-text-soft {
+    color: var(--app-text-soft);
+  }
+
+  .fi-text-muted {
+    color: var(--app-text-muted);
+  }
+
+  .fi-text-subtle {
+    color: var(--app-text-subtle);
+  }
+
+  .fi-text-accent {
+    color: var(--point-gold);
+  }
+
+  .fi-chip {
+    background: var(--card-surface);
+    color: var(--app-text-muted);
+    border: var(--app-hairline-border) solid var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-chip-active {
+    background: var(--app-accent-surface);
+    color: var(--app-accent-text-soft);
+    border: var(--app-hairline-border) solid var(--app-accent-border-strong);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-badge {
+    background: var(--app-accent-soft);
+    color: var(--app-accent-text-soft);
+    border: var(--app-hairline-border) solid var(--app-accent-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-danger {
+    background: var(--app-danger-bg);
+    color: var(--app-danger-text);
+    border: var(--app-hairline-border) solid var(--app-danger-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-top-divider {
+    background: linear-gradient(90deg, transparent 0%, var(--point-gold) 50%, transparent 100%);
+    opacity: 0.45;
+  }
+
+  .fi-bottom-nav {
+    background: color-mix(in srgb, var(--bg-main) 88%, transparent);
+    border-color: var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-toggle-track {
+    background: var(--app-surface-bg-strong);
+    border: var(--app-hairline-border) solid var(--card-border);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .fi-toggle-track[data-enabled='true'] {
+    background: var(--point-gold);
+    border-color: var(--app-accent-border-strong);
+    box-shadow: 0 8px 18px -14px var(--app-accent-glow);
+  }
+
+  [data-theme='light'] .fi-toggle-track[data-enabled='false'] {
+    background: rgba(69, 69, 69, 0.14);
+    border-color: rgba(69, 69, 69, 0.18);
   }
 }

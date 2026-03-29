@@ -51,6 +51,10 @@ const deckCardFaceStyle = {
   transform: 'translateZ(0)',
 };
 
+const tarotPageVars = {
+  color: 'var(--tarot-text-main)',
+};
+
 function getCutShuffledOrder(order: number[], cutIndex: number) {
   return [...order.slice(cutIndex), ...order.slice(0, cutIndex)];
 }
@@ -118,22 +122,28 @@ const DeckCardFace = memo(function DeckCardFace({
 }: DeckCardFaceProps) {
   return (
     <div
-      className="relative h-full w-full overflow-hidden rounded-2xl border bg-gradient-to-br from-purple-900/80 via-violet-800/70 to-purple-900/80"
+      className="relative h-full w-full overflow-hidden rounded-2xl border"
       style={{
         ...deckCardFaceStyle,
         opacity: isVisible ? (isTopCard || isBottomCard ? 1 : 0.95) : 0.3,
-        borderColor: 'rgba(212, 175, 55, 0.45)',
+        background:
+          'linear-gradient(135deg, var(--tarot-card-bg-strong) 0%, var(--tarot-card-bg) 52%, var(--tarot-card-bg-strong) 100%)',
+        borderColor: 'var(--tarot-point-border)',
         boxShadow: isTopCard || isBottomCard
           ? '0 6px 20px rgba(0, 0, 0, 0.22)'
           : '0 1px 2px rgba(0, 0, 0, 0.1)',
       }}
     >
-      <div className="absolute inset-0 rounded-2xl border border-white/6" />
+      <div className="absolute inset-0 rounded-2xl border" style={{ borderColor: 'var(--tarot-card-line-soft)' }} />
       {isTopCard && (
         <>
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.12] via-transparent to-white/[0.06]" />
           <motion.div
-            className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.18),transparent_74%)]"
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background:
+                'radial-gradient(circle at center, var(--tarot-accent-glow-soft) 0%, transparent 74%)',
+            }}
             animate={{ opacity: [0.16, 0.34, 0.16] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -142,31 +152,31 @@ const DeckCardFace = memo(function DeckCardFace({
               <polygon
                 points="50,20 75,35 75,65 50,80 25,65 25,35"
                 fill="none"
-                stroke="white"
+                stroke="var(--tarot-text-main)"
                 strokeWidth="0.8"
                 opacity="0.4"
               />
               <polygon
                 points="50,30 68,42 68,58 50,70 32,58 32,42"
                 fill="none"
-                stroke="white"
+                stroke="var(--tarot-text-main)"
                 strokeWidth="0.6"
                 opacity="0.35"
               />
-              <circle cx="50" cy="50" r="5" fill="white" opacity="0.5" />
-              <circle cx="50" cy="50" r="2.5" fill="white" opacity="0.7" />
-              <circle cx="50" cy="15" r="2" fill="white" opacity="0.3" />
-              <circle cx="50" cy="85" r="2" fill="white" opacity="0.3" />
-              <line x1="50" y1="50" x2="50" y2="20" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="75" y2="35" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="75" y2="65" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="50" y2="80" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="25" y2="65" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="25" y2="35" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <text x="50" y="105" fontSize="10" fill="white" opacity="0.3" textAnchor="middle" fontFamily="serif">
+              <circle cx="50" cy="50" r="5" fill="var(--tarot-text-main)" opacity="0.5" />
+              <circle cx="50" cy="50" r="2.5" fill="var(--tarot-text-main)" opacity="0.7" />
+              <circle cx="50" cy="15" r="2" fill="var(--tarot-text-main)" opacity="0.3" />
+              <circle cx="50" cy="85" r="2" fill="var(--tarot-text-main)" opacity="0.3" />
+              <line x1="50" y1="50" x2="50" y2="20" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="75" y2="35" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="75" y2="65" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="50" y2="80" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <text x="50" y="105" fontSize="10" fill="var(--tarot-text-main)" opacity="0.3" textAnchor="middle" fontFamily="serif">
                 ✦ ARCANA ✦
               </text>
-              <text x="50" y="120" fontSize="7" fill="white" opacity="0.2" textAnchor="middle" fontFamily="serif">
+              <text x="50" y="120" fontSize="7" fill="var(--tarot-text-main)" opacity="0.2" textAnchor="middle" fontFamily="serif">
                 MAJOR
               </text>
             </svg>
@@ -178,17 +188,21 @@ const DeckCardFace = memo(function DeckCardFace({
         <>
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.12] via-transparent to-white/[0.06]" />
           <motion.div
-            className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.16),transparent_76%)]"
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background:
+                'radial-gradient(circle at center, var(--tarot-accent-glow-soft) 0%, transparent 76%)',
+            }}
             animate={{ opacity: [0.14, 0.3, 0.14] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
           />
           <div className="absolute inset-0 flex items-center justify-center p-8">
             <svg className="h-full w-full" viewBox="0 0 100 140">
-              <rect x="8" y="8" width="84" height="124" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3" rx="4" />
-              <rect x="12" y="12" width="76" height="116" fill="none" stroke="white" strokeWidth="0.4" opacity="0.25" rx="3" />
-              <circle cx="50" cy="70" r="25" fill="none" stroke="white" strokeWidth="0.6" opacity="0.35" />
-              <circle cx="50" cy="70" r="20" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <circle cx="50" cy="70" r="15" fill="none" stroke="white" strokeWidth="0.4" opacity="0.25" />
+              <rect x="8" y="8" width="84" height="124" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" rx="4" />
+              <rect x="12" y="12" width="76" height="116" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.4" opacity="0.25" rx="3" />
+              <circle cx="50" cy="70" r="25" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.6" opacity="0.35" />
+              <circle cx="50" cy="70" r="20" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <circle cx="50" cy="70" r="15" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.4" opacity="0.25" />
               {[...Array(8)].map((_, idx) => {
                 const angle = (idx * 45 - 90) * (Math.PI / 180);
                 const x2 = 50 + Math.cos(angle) * 15;
@@ -200,25 +214,25 @@ const DeckCardFace = memo(function DeckCardFace({
                     y1="70"
                     x2={x2}
                     y2={y2}
-                    stroke="white"
+                    stroke="var(--tarot-text-main)"
                     strokeWidth="0.4"
                     opacity="0.3"
                   />
                 );
               })}
-              <circle cx="50" cy="70" r="3" fill="white" opacity="0.5" />
-              <circle cx="50" cy="70" r="1.5" fill="white" opacity="0.7" />
-              <circle cx="50" cy="25" r="8" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3" />
-              <circle cx="50" cy="25" r="5" fill="none" stroke="white" strokeWidth="0.4" opacity="0.25" />
-              <circle cx="50" cy="25" r="2" fill="white" opacity="0.4" />
-              <text x="20" y="22" fontSize="8" fill="white" opacity="0.25">✦</text>
-              <text x="77" y="22" fontSize="8" fill="white" opacity="0.25">✦</text>
-              <text x="20" y="126" fontSize="8" fill="white" opacity="0.25">✦</text>
-              <text x="77" y="126" fontSize="8" fill="white" opacity="0.25">✦</text>
-              <text x="50" y="112" fontSize="7" fill="white" opacity="0.25" textAnchor="middle" fontFamily="serif">
+              <circle cx="50" cy="70" r="3" fill="var(--tarot-text-main)" opacity="0.5" />
+              <circle cx="50" cy="70" r="1.5" fill="var(--tarot-text-main)" opacity="0.7" />
+              <circle cx="50" cy="25" r="8" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
+              <circle cx="50" cy="25" r="5" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.4" opacity="0.25" />
+              <circle cx="50" cy="25" r="2" fill="var(--tarot-text-main)" opacity="0.4" />
+              <text x="20" y="22" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
+              <text x="77" y="22" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
+              <text x="20" y="126" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
+              <text x="77" y="126" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
+              <text x="50" y="112" fontSize="7" fill="var(--tarot-text-main)" opacity="0.25" textAnchor="middle" fontFamily="serif">
                 TAROT
               </text>
-              <text x="50" y="122" fontSize="6" fill="white" opacity="0.2" textAnchor="middle" fontFamily="serif">
+              <text x="50" y="122" fontSize="6" fill="var(--tarot-text-main)" opacity="0.2" textAnchor="middle" fontFamily="serif">
                 MYSTIC ORACLE
               </text>
             </svg>
@@ -384,27 +398,34 @@ export function TarotPickerPage() {
   const lowerDeckZ = splitPointZ + compensatedDistance / 2;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0A0A12]">
+    <div className="relative min-h-screen overflow-hidden" style={{ ...tarotPageVars, backgroundColor: 'var(--tarot-bg-color)' }}>
       {/* Mystic purple gradient background */}
       <div className="fixed inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-purple-900/30 to-violet-950/50" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(135deg, var(--tarot-ambient-start) 0%, var(--tarot-ambient-mid) 50%, var(--tarot-ambient-end) 100%)',
+          }}
+        />
         
         {/* Star dust particles */}
         {STATIC_STARS.map((star) => (
           <div
             key={star.id}
-            className="absolute h-1 w-1 rounded-full bg-white"
+            className="absolute h-1 w-1 rounded-full"
             style={{
               left: star.left,
               top: star.top,
               opacity: star.opacity,
+              backgroundColor: 'var(--tarot-text-main)',
             }}
           />
         ))}
         
         {/* Ambient glows */}
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
       </div>
 
       {/* Main content */}
@@ -422,19 +443,28 @@ export function TarotPickerPage() {
                 })
               }
               className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+              style={{
+                borderColor: 'var(--tarot-surface-border)',
+                backgroundColor: 'var(--tarot-surface-bg)',
+              }}
             >
-              <ArrowLeft className="h-5 w-5 text-white/60" />
+              <ArrowLeft className="h-5 w-5" style={{ color: 'var(--tarot-text-muted)' }} />
             </button>
             <div>
-              <h1 className="text-xl font-medium text-white">카드 섞기</h1>
-              <p className="text-xs text-white/50">{selectedDeck.name} 덱으로 운명의 순서를 만들어보세요</p>
+              <h1 className="text-xl font-medium" style={{ color: 'var(--tarot-text-main)' }}>카드 섞기</h1>
+              <p className="text-xs" style={{ color: 'var(--tarot-text-muted)' }}>{selectedDeck.name} 덱으로 운명의 순서를 만들어보세요</p>
             </div>
           </div>
           <motion.button
             type="button"
             onClick={handleRandomShuffle}
             disabled={isShuffling}
-            className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5 text-white/60 backdrop-blur-xl transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+            className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border backdrop-blur-xl transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              borderColor: 'var(--tarot-surface-border)',
+              backgroundColor: 'var(--tarot-surface-bg)',
+              color: 'var(--tarot-text-muted)',
+            }}
             aria-label="랜덤 셔플"
             title="랜덤 셔플"
             whileHover={isShuffling ? undefined : { scale: 1.06 }}
@@ -520,7 +550,7 @@ export function TarotPickerPage() {
 
         {/* Guide text */}
         <div className="mb-4 text-center">
-          <p className="text-base leading-relaxed text-white/80">
+          <p className="text-base leading-relaxed" style={{ color: 'var(--tarot-guide-text)' }}>
             {isSplit 
               ? '덱을 터치해서 위아래 순서를 바꿔보세요' 
               : '측면을 터치해서 분리하고, 좌우로 회전시켜보세요'}
@@ -611,13 +641,18 @@ export function TarotPickerPage() {
                       {!isBottomCard && (
                         <div
                           onClick={handleCardHotspotClick(i)}
-                          className="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors hover:bg-[#D4AF37]/30"
+                          className="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors"
                           style={{
                             height: '10px',
                             zIndex: 1000,
                           }}
                         >
-                          <div className="h-full w-full border-b-2 border-[#D4AF37]/0 transition-colors hover:border-[#D4AF37]/80" />
+                          <div
+                            className="h-full w-full border-b-2 transition-colors"
+                            style={{
+                              borderColor: 'transparent',
+                            }}
+                          />
                         </div>
                       )}
                     </motion.div>
@@ -778,14 +813,19 @@ export function TarotPickerPage() {
                       >
                         <div
                           onClick={handleMergedDeckHotspotClick(i)}
-                          className="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors hover:bg-[#D4AF37]/30"
+                          className="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors"
                           style={{
                             height: '10px',
                             zIndex: 1000,
                             pointerEvents: 'auto',
                           }}
                         >
-                          <div className="h-full w-full border-b-2 border-[#D4AF37]/0 transition-colors hover:border-[#D4AF37]/80" />
+                          <div
+                            className="h-full w-full border-b-2 transition-colors"
+                            style={{
+                              borderColor: 'transparent',
+                            }}
+                          />
                         </div>
                       </motion.div>
                     );
@@ -809,7 +849,12 @@ export function TarotPickerPage() {
           >
             <motion.button
               onClick={handleConfirm}
-              className="group relative w-full overflow-hidden rounded-2xl border border-purple-400/40 bg-gradient-to-br from-purple-600/60 via-violet-600/50 to-purple-600/60 px-6 py-5 backdrop-blur-xl transition-all hover:border-purple-400/60"
+              className="group relative w-full overflow-hidden rounded-2xl border px-6 py-5 backdrop-blur-xl transition-all"
+              style={{
+                borderColor: 'var(--tarot-cta-border)',
+                background:
+                  'linear-gradient(135deg, var(--tarot-cta-start) 0%, var(--tarot-cta-mid) 50%, var(--tarot-cta-end) 100%)',
+              }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -819,9 +864,9 @@ export function TarotPickerPage() {
                 className="absolute inset-0 rounded-2xl"
                 animate={{
                   boxShadow: [
-                    '0 0 20px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.2)',
-                    '0 0 30px rgba(168, 85, 247, 0.6), inset 0 0 30px rgba(168, 85, 247, 0.4)',
-                    '0 0 20px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.2)',
+                    '0 0 20px var(--tarot-accent-glow-soft), inset 0 0 20px var(--tarot-accent-glow-soft)',
+                    '0 0 30px var(--tarot-accent-glow), inset 0 0 30px var(--tarot-accent-glow-soft)',
+                    '0 0 20px var(--tarot-accent-glow-soft), inset 0 0 20px var(--tarot-accent-glow-soft)',
                   ],
                 }}
                 transition={{
@@ -832,8 +877,8 @@ export function TarotPickerPage() {
               />
 
               <div className="relative flex items-center justify-center gap-2">
-                <Sparkles className="h-5 w-5 text-white" />
-                <span className="text-base font-semibold text-white">
+                <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-text-main)' }} />
+                <span className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>
                   카드 펼치기
                 </span>
               </div>

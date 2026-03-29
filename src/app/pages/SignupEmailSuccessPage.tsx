@@ -22,22 +22,43 @@ export function SignupEmailSuccessPage() {
       description="인증이 정상적으로 완료되었습니다. 다음 단계로 진행해주세요."
     >
       <div className="space-y-6 text-center">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/15">
+        <div
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border"
+          style={{
+            borderWidth: 'var(--app-hairline-border)',
+            borderStyle: 'solid',
+            borderColor: 'rgba(16, 185, 129, 0.32)',
+            background: 'rgba(16, 185, 129, 0.12)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+          }}
+        >
           <CheckCircle2 className="h-10 w-10 text-emerald-300" />
         </div>
 
         <div className="space-y-2">
-          <p className="text-lg text-white">메일 인증이 확인되었습니다.</p>
-          <p className="break-all text-sm leading-6 text-white/60">{email || '인증된 이메일'}</p>
+          <p className="text-lg fi-text-main">메일 인증이 확인되었습니다.</p>
+          <p className="break-all text-sm leading-6 fi-text-muted">{email || '인증된 이메일'}</p>
         </div>
 
-        <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-4 text-sm leading-6 text-emerald-100">
+        <div
+          className="rounded-xl border px-4 py-4 text-sm leading-6"
+          style={{
+            borderWidth: 'var(--app-hairline-border)',
+            borderStyle: 'solid',
+            borderColor: 'rgba(16, 185, 129, 0.24)',
+            background: 'rgba(16, 185, 129, 0.08)',
+            color: 'rgb(209, 250, 229)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+          }}
+        >
           앱 WebView 환경에서는 인증 완료 메시지를 함께 전달하도록 준비되어 있습니다.
         </div>
 
         <Link
           to={email ? `/signup/profile?email=${encodedEmail}` : '/signup'}
-          className="block rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-600/80 to-yellow-600/80 px-5 py-4 text-sm font-medium text-white transition-all hover:border-amber-500/70"
+          className="fi-cta block rounded-xl px-5 py-4 text-sm font-medium transition-all hover:opacity-90"
         >
           회원정보 입력하기
         </Link>

@@ -45,9 +45,9 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className="mx-auto max-w-md">
-        <div className="relative overflow-hidden rounded-t-3xl border-t border-x border-white/10 bg-indigo-950/95 backdrop-blur-xl">
+        <div className="fi-bottom-nav relative overflow-hidden rounded-t-3xl border-t border-x">
           {/* Top glow line */}
-          <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+          <div className="fi-top-divider absolute left-0 right-0 top-0 h-px" />
           
           <div className="flex items-center justify-around px-2 py-3">
             {tabs.map((tab) => {
@@ -64,7 +64,11 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10"
+                      className="absolute inset-0 rounded-xl"
+                      style={{
+                        background:
+                          'linear-gradient(135deg, var(--app-accent-soft) 0%, transparent 100%)',
+                      }}
                       initial={false}
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
@@ -73,7 +77,8 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   {/* Active glow */}
                   {isActive && (
                     <motion.div
-                      className="absolute inset-0 rounded-xl bg-amber-500/20 blur-lg"
+                      className="absolute inset-0 rounded-xl blur-lg"
+                      style={{ backgroundColor: 'var(--app-accent-soft)' }}
                       animate={{
                         opacity: [0.5, 0.8, 0.5],
                       }}
@@ -87,16 +92,18 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
                   
                   <div className="relative">
                     <Icon
-                      className={`h-5 w-5 transition-colors ${
-                        isActive ? 'text-amber-400' : 'text-white/40'
-                      }`}
+                      className="h-5 w-5 transition-colors"
+                      style={{
+                        color: isActive ? 'var(--point-gold)' : 'var(--app-icon-soft)',
+                      }}
                     />
                   </div>
                   
                   <span
-                    className={`relative text-xs transition-colors ${
-                      isActive ? 'text-amber-300' : 'text-white/40'
-                    }`}
+                    className="relative text-xs transition-colors"
+                    style={{
+                      color: isActive ? 'var(--app-accent-text-soft)' : 'var(--app-icon-soft)',
+                    }}
                   >
                     {tab.label}
                   </span>

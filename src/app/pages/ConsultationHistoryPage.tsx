@@ -94,42 +94,55 @@ export function ConsultationHistoryPage() {
   const groupedItems = useMemo(() => groupByDate(filteredItems, sortOrder), [filteredItems, sortOrder]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-950">
+    <div className="fi-page min-h-screen overflow-x-hidden">
       <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
       <div className="relative z-10">
         <div className="sticky top-0 z-50 px-6 pb-4 pt-5">
           <div className="mb-4 flex items-center justify-center">
             <div className="text-center">
-              <h1 className="text-lg font-semibold text-white">상담 내역</h1>
-              <p className="text-xs text-[#D4AF37]/70">Consultation History</p>
+              <h1 className="text-lg font-semibold fi-text-main">상담 내역</h1>
+              <p className="text-xs fi-text-accent">Consultation History</p>
             </div>
           </div>
 
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 p-4 backdrop-blur-xl"
+            className="fi-glass relative overflow-hidden rounded-2xl p-4"
             style={{ boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)' }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
 
             <div className="relative space-y-3">
               <div>
-                <label className="mb-2 block text-xs font-medium text-white/60">상담 종류</label>
+                <label className="mb-2 block text-xs font-medium fi-text-muted">상담 종류</label>
                 <div className="flex flex-wrap gap-2">
                   {consultationTypes.map((type) => (
                     <button
                       key={type}
                       onClick={() => setFilterType(type)}
-                      className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${
+                      className="rounded-full border px-4 py-2 text-xs font-medium transition-all"
+                      style={
                         filterType === type
-                          ? 'border-[#D4AF37] bg-[#D4AF37]/20 text-[#D4AF37]'
-                          : 'border-white/20 bg-white/5 text-white/60 hover:border-white/30 hover:text-white/80'
-                      }`}
+                          ? {
+                              borderColor: 'var(--app-accent-border-strong)',
+                              background: 'var(--app-accent-surface)',
+                              color: 'var(--app-accent-text-soft)',
+                              backdropFilter: 'var(--card-blur)',
+                              WebkitBackdropFilter: 'var(--card-blur)',
+                            }
+                          : {
+                              borderColor: 'var(--card-border)',
+                              background: 'var(--card-surface)',
+                              color: 'var(--app-text-muted)',
+                              backdropFilter: 'var(--card-blur)',
+                              WebkitBackdropFilter: 'var(--card-blur)',
+                            }
+                      }
                     >
                       {type === 'all' ? '전체' : type}
                     </button>
@@ -138,25 +151,51 @@ export function ConsultationHistoryPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-medium text-white/60">정렬</label>
+                <label className="mb-2 block text-xs font-medium fi-text-muted">정렬</label>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSortOrder('latest')}
-                    className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${
+                    className="rounded-full border px-4 py-2 text-xs font-medium transition-all"
+                    style={
                       sortOrder === 'latest'
-                        ? 'border-[#D4AF37] bg-[#D4AF37]/20 text-[#D4AF37]'
-                        : 'border-white/20 bg-white/5 text-white/60 hover:border-white/30 hover:text-white/80'
-                    }`}
+                        ? {
+                            borderColor: 'var(--app-accent-border-strong)',
+                            background: 'var(--app-accent-surface)',
+                            color: 'var(--app-accent-text-soft)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                        : {
+                            borderColor: 'var(--card-border)',
+                            background: 'var(--card-surface)',
+                            color: 'var(--app-text-muted)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                    }
                   >
                     최신순
                   </button>
                   <button
                     onClick={() => setSortOrder('oldest')}
-                    className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${
+                    className="rounded-full border px-4 py-2 text-xs font-medium transition-all"
+                    style={
                       sortOrder === 'oldest'
-                        ? 'border-[#D4AF37] bg-[#D4AF37]/20 text-[#D4AF37]'
-                        : 'border-white/20 bg-white/5 text-white/60 hover:border-white/30 hover:text-white/80'
-                    }`}
+                        ? {
+                            borderColor: 'var(--app-accent-border-strong)',
+                            background: 'var(--app-accent-surface)',
+                            color: 'var(--app-accent-text-soft)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                        : {
+                            borderColor: 'var(--card-border)',
+                            background: 'var(--card-surface)',
+                            color: 'var(--app-text-muted)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                    }
                   >
                     오래된순
                   </button>
@@ -164,13 +203,13 @@ export function ConsultationHistoryPage() {
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-white/40">
-                  총 <span className="font-semibold text-[#D4AF37]">{filteredItems.length}</span>건
+                <span className="text-xs fi-text-subtle">
+                  총 <span className="font-semibold fi-text-accent">{filteredItems.length}</span>건
                 </span>
                 {filterType !== 'all' && (
                   <button
                     onClick={() => setFilterType('all')}
-                    className="flex items-center gap-1 text-xs text-[#D4AF37]/80 transition-colors hover:text-[#D4AF37]"
+                    className="flex items-center gap-1 text-xs fi-text-accent transition-colors hover:opacity-80"
                   >
                     <X className="h-3 w-3" />
                     필터 초기화
@@ -182,10 +221,10 @@ export function ConsultationHistoryPage() {
         </div>
 
         <div className="px-6 pb-24 pt-4">
-          {loading ? <p className="text-center text-sm text-white/50">상담 내역을 불러오는 중...</p> : null}
+          {loading ? <p className="text-center text-sm fi-text-muted">상담 내역을 불러오는 중...</p> : null}
 
           {error ? (
-            <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+            <div className="fi-danger rounded-2xl px-4 py-3 text-sm">
               {error}
             </div>
           ) : null}
@@ -196,11 +235,11 @@ export function ConsultationHistoryPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center justify-center py-20"
             >
-              <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-500/20 to-violet-600/20">
-                <Calendar className="h-10 w-10 text-purple-400" />
+              <div className="fi-glass mb-4 flex h-20 w-20 items-center justify-center rounded-full">
+                <Calendar className="h-10 w-10" style={{ color: 'var(--glow-purple)' }} />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-white">상담 내역이 없습니다</h3>
-              <p className="text-sm text-white/50">
+              <h3 className="mb-2 text-lg font-semibold fi-text-main">상담 내역이 없습니다</h3>
+              <p className="text-sm fi-text-muted">
                 {filterType !== 'all' ? '해당 조건의 상담 내역이 없습니다' : '첫 상담을 시작해보세요'}
               </p>
             </motion.div>
@@ -214,12 +253,12 @@ export function ConsultationHistoryPage() {
                   transition={{ delay: dateIndex * 0.1 }}
                 >
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-amber-600/20">
-                      <Calendar className="h-5 w-5 text-[#D4AF37]" />
+                    <div className="fi-accent-card flex h-10 w-10 items-center justify-center rounded-full">
+                      <Calendar className="h-5 w-5 fi-text-accent" />
                     </div>
                     <div>
-                      <h2 className="text-base font-semibold text-white">{formatDate(date)}</h2>
-                      <p className="text-xs text-white/40">{group.length}건의 상담</p>
+                      <h2 className="text-base font-semibold fi-text-main">{formatDate(date)}</h2>
+                      <p className="text-xs fi-text-subtle">{group.length}건의 상담</p>
                     </div>
                   </div>
 
@@ -235,7 +274,7 @@ export function ConsultationHistoryPage() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: dateIndex * 0.1 + itemIndex * 0.05 }}
                           onClick={() => handleOpenHistory(item.id)}
-                          className="group relative w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 p-5 text-left backdrop-blur-xl transition-all hover:border-white/20 hover:from-white/8 hover:via-white/[0.04] hover:to-white/8"
+                          className="fi-glass group relative w-full overflow-hidden rounded-2xl p-5 text-left transition-all hover:opacity-95"
                           style={{ boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)' }}
                         >
                           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
@@ -249,32 +288,32 @@ export function ConsultationHistoryPage() {
                                   <TypeIcon className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1">
-                                  <h3 className="mb-1 text-base font-semibold text-white">{typeLabel}</h3>
-                                  <div className="flex items-center gap-2 text-xs text-white/40">
+                                  <h3 className="mb-1 text-base font-semibold fi-text-main">{typeLabel}</h3>
+                                  <div className="flex items-center gap-2 text-xs fi-text-subtle">
                                     <Clock className="h-3 w-3" />
                                     <span>{new Date(item.consultedAt).toLocaleString()}</span>
                                   </div>
                                 </div>
                               </div>
 
-                              <ChevronRight className="h-4 w-4 text-white/40 transition-transform group-hover:translate-x-1" />
+                              <ChevronRight className="h-4 w-4 fi-text-subtle transition-transform group-hover:translate-x-1" />
                             </div>
 
                             <div className="mb-3 flex flex-wrap gap-2">
-                              <span className="rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-3 py-1 text-xs text-[#D4AF37]">
+                              <span className="fi-badge rounded-full px-3 py-1 text-xs">
                                 {item.stockName}
                               </span>
                               {item.tarotCardNames.map((cat) => (
                                 <span
                                   key={`${item.id}-${cat}`}
-                                  className="rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-3 py-1 text-xs text-[#D4AF37]"
+                                  className="fi-badge rounded-full px-3 py-1 text-xs"
                                 >
                                   {cat}
                                 </span>
                               ))}
                             </div>
 
-                            <div className="flex items-center justify-end gap-1 text-xs text-[#D4AF37]/80 transition-colors group-hover:text-[#D4AF37]">
+                            <div className="flex items-center justify-end gap-1 text-xs fi-text-accent transition-colors group-hover:opacity-80">
                               <span>{openingHistoryId === item.id ? '불러오는 중...' : '자세히 보기'}</span>
                               <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                             </div>
