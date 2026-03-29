@@ -8,6 +8,7 @@ import {
   Cake,
   Sparkles,
   ChevronRight,
+  ChevronLeft,
   Moon,
   Sun,
   MessageSquare,
@@ -188,6 +189,45 @@ export function MyPage() {
       gender: normalizeGenderInputValue(user.gender),
     });
   }, [user]);
+
+  const isAnyModalOpen = showBirthTarot || showSaju || showInquiry || showProfileEdit;
+
+  useEffect(() => {
+    if (!isAnyModalOpen) return;
+
+    const { body, documentElement } = document;
+    const scrollY = window.scrollY;
+    const originalBodyStyles = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overscrollBehavior: body.style.overscrollBehavior,
+    };
+    const originalHtmlStyles = {
+      overflow: documentElement.style.overflow,
+      overscrollBehavior: documentElement.style.overscrollBehavior,
+    };
+
+    documentElement.style.overflow = 'hidden';
+    documentElement.style.overscrollBehavior = 'none';
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    body.style.overscrollBehavior = 'none';
+
+    return () => {
+      documentElement.style.overflow = originalHtmlStyles.overflow;
+      documentElement.style.overscrollBehavior = originalHtmlStyles.overscrollBehavior;
+      body.style.overflow = originalBodyStyles.overflow;
+      body.style.position = originalBodyStyles.position;
+      body.style.top = originalBodyStyles.top;
+      body.style.width = originalBodyStyles.width;
+      body.style.overscrollBehavior = originalBodyStyles.overscrollBehavior;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isAnyModalOpen]);
 
   const handleLogout = async () => {
     try {
@@ -403,37 +443,52 @@ export function MyPage() {
       <AnimatePresence>
         {showBirthTarot && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowBirthTarot(false)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-[#120b2b] via-[#1f1147] to-[#0d061d]"
           >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25 }}
-              className="relative mx-4 max-w-sm"
-            >
-              <div className="absolute -top-12 left-0 right-0 text-center">
-                <p className="text-sm text-white/60">화면을 터치하면 닫힙니다</p>
+            <div className="mx-auto min-h-full w-full max-w-md px-5 pb-[max(3.5rem,calc(env(safe-area-inset-bottom)+2.5rem))] pt-[max(1.25rem,env(safe-area-inset-top))]">
+              <div className="sticky top-0 z-10 -mx-5 mb-6 border-b border-white/10 bg-[#120b2b]/88 px-5 pb-4 backdrop-blur-xl">
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <button
+                    onClick={() => setShowBirthTarot(false)}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    뒤로가기
+                  </button>
+                  <button
+                    onClick={() => setShowBirthTarot(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                    aria-label="생일 타로 카드 닫기"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-3xl border-2 border-[#D4AF37] bg-gradient-to-br from-purple-900/95 via-violet-800/90 to-purple-900/95 p-8 shadow-2xl">
+              <div className="relative overflow-hidden rounded-[2rem] border border-[#D4AF37]/35 bg-gradient-to-br from-purple-900/95 via-violet-800/90 to-purple-900/95 p-6 shadow-2xl">
                 <motion.div
-                  className="absolute inset-0 rounded-3xl"
+                  className="absolute inset-0 rounded-[2rem]"
                   animate={{
                     boxShadow: [
-                      '0 0 40px rgba(212, 175, 55, 0.5), inset 0 0 40px rgba(168, 85, 247, 0.4)',
-                      '0 0 60px rgba(212, 175, 55, 0.7), inset 0 0 60px rgba(168, 85, 247, 0.6)',
-                      '0 0 40px rgba(212, 175, 55, 0.5), inset 0 0 40px rgba(168, 85, 247, 0.4)',
+                      '0 0 40px rgba(212, 175, 55, 0.32), inset 0 0 40px rgba(168, 85, 247, 0.25)',
+                      '0 0 60px rgba(212, 175, 55, 0.42), inset 0 0 60px rgba(168, 85, 247, 0.34)',
+                      '0 0 40px rgba(212, 175, 55, 0.32), inset 0 0 40px rgba(168, 85, 247, 0.25)',
                     ],
                   }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  transition={{ duration: 2.4, repeat: Infinity }}
                 />
 
-                <div className="relative mb-6 aspect-[2/3] overflow-hidden rounded-2xl border-2 border-[#D4AF37]/40">
+                <div className="relative mb-6 text-center">
+                  <div className="text-sm text-[#D4AF37]/75">생일 타로 카드</div>
+                  <h2 className="mt-2 text-3xl font-bold text-white">{userData.birthTarot.koreanName}</h2>
+                  <p className="mt-1 text-lg text-white/70">{userData.birthTarot.name}</p>
+                </div>
+
+                <div className="relative mb-6 aspect-[2/3] overflow-hidden rounded-[1.75rem] border-2 border-[#D4AF37]/40">
                   <img
                     src={userData.birthTarot.imageUrl}
                     alt={userData.birthTarot.name}
@@ -442,18 +497,28 @@ export function MyPage() {
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
                 </div>
 
-                <div className="relative space-y-3 text-center">
-                  <div className="text-sm text-[#D4AF37]/70">생일 타로 카드</div>
-                  <h2 className="text-3xl font-bold text-white">{userData.birthTarot.koreanName}</h2>
-                  <p className="text-lg text-white/70">{userData.birthTarot.name}</p>
+                <div className="relative space-y-4">
                   <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-4 py-1.5 text-sm text-[#D4AF37]">
                     <Sparkles className="h-4 w-4" />
                     {userData.birthTarot.number}번 카드
                   </div>
-                  <p className="pt-2 text-sm leading-relaxed text-white/80">{userData.birthTarot.meaning}</p>
+                  <section className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                    <div className="mb-2 text-xs font-medium tracking-[0.18em] text-[#D4AF37]/80">MEANING</div>
+                    <p className="text-sm leading-relaxed text-white/85">{userData.birthTarot.meaning}</p>
+                  </section>
+                  {userData.birthTarot.description ? (
+                    <section className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                      <div className="mb-2 text-xs font-medium tracking-[0.18em] text-[#D4AF37]/80">
+                        DESCRIPTION
+                      </div>
+                      <p className="text-sm leading-relaxed text-white/78">
+                        {userData.birthTarot.description}
+                      </p>
+                    </section>
+                  ) : null}
                 </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -483,7 +548,7 @@ export function MyPage() {
                 </button>
               </div>
 
-              <div className="max-h-[70vh] space-y-6 overflow-y-auto px-6 py-6">
+              <div className="max-h-[82vh] space-y-6 overflow-y-auto px-6 py-6">
                 <div>
                   <h4 className="mb-3 flex items-center gap-2 text-sm font-medium text-[#D4AF37]">
                     <Sparkles className="h-4 w-4" />
@@ -1064,6 +1129,7 @@ function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) 
     koreanName: birthTarot?.koreanName ?? '별',
     number: birthTarot?.number ?? 17,
     meaning: birthTarot?.meaning ?? '희망, 영감, 밝은 미래',
+    description: birthTarot?.description?.trim() || null,
     imageUrl:
       resolveApiAssetUrl(birthTarot?.imageUrl) ??
       'https://images.unsplash.com/photo-1683217956228-d3d24916df55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YXJvdCUyMGNhcmQlMjBteXN0aWNhbHxlbnwxfHx8fDE3NzM3NDg5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',

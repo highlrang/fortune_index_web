@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import { motion, PanInfo, useSpring } from 'motion/react';
+import { AnimatePresence, motion, PanInfo, useSpring } from 'motion/react';
 import { ArrowLeft, Shuffle, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
@@ -22,7 +22,8 @@ const SHUFFLE_ANIMATION_DURATION = 1.2;
 const SHUFFLE_ANIMATION_MS = SHUFFLE_ANIMATION_DURATION * 1000;
 const POST_SHUFFLE_UI_DELAY_MS = 220;
 const SHUFFLE_VERTICAL_TRAVEL = 180;
-const RANDOM_SHUFFLE_ANIMATION_MS = 720;
+const RANDOM_SHUFFLE_ANIMATION_MS = 980;
+const RANDOM_SHUFFLE_CHUNK_COUNT = 4;
 const INITIAL_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
 const CARD_WIDTH = 220;
 const CARD_HEIGHT = 340;
@@ -63,6 +64,51 @@ function getRandomShuffledOrder(order: number[]) {
   }
 
   return next;
+}
+
+function getRandomShuffleChunkMotion(index: number, isAnimating: boolean) {
+  if (!isAnimating) {
+    return {
+      animate: {
+        x: 0,
+        y: 0,
+        rotateZ: 0,
+        scale: 1,
+      },
+      transition: {
+        duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000,
+        ease: [0.22, 1, 0.36, 1] as const,
+      },
+    };
+  }
+
+  const chunkSize = Math.ceil(TOTAL_CARDS / RANDOM_SHUFFLE_CHUNK_COUNT);
+  const chunkIndex = Math.floor(index / chunkSize);
+  const cardIndexInChunk = index % chunkSize;
+  const chunkCenter = chunkIndex - (RANDOM_SHUFFLE_CHUNK_COUNT - 1) / 2;
+  const direction = chunkCenter === 0 ? 1 : Math.sign(chunkCenter);
+  const depthWeight = 1 - index / TOTAL_CARDS;
+  const chunkStrength = 0.9 + Math.abs(chunkCenter) * 0.28;
+  const intraChunkOffset = cardIndexInChunk - (chunkSize - 1) / 2;
+  const spreadX = chunkCenter * 14 * chunkStrength + intraChunkOffset * 2;
+  const spreadY = -(18 + Math.abs(chunkCenter) * 9) * (0.72 + depthWeight * 0.28) + intraChunkOffset * 2.4;
+  const rotation = direction * (7 + Math.abs(chunkCenter) * 3.5) + intraChunkOffset * 1.4;
+  const settleX = spreadX * -0.24;
+  const settleY = spreadY * 0.22;
+
+  return {
+    animate: {
+      x: [0, spreadX * 0.5, spreadX, settleX, 0],
+      y: [0, spreadY * 0.46, spreadY, settleY, 0],
+      rotateZ: [0, rotation * 0.58, rotation, rotation * -0.18, 0],
+      scale: [1, 1.016 + depthWeight * 0.008, 0.994, 1.004, 1],
+    },
+    transition: {
+      duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000,
+      delay: chunkIndex * 0.04 + cardIndexInChunk * 0.012,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  };
 }
 
 const DeckCardFace = memo(function DeckCardFace({
@@ -384,16 +430,92 @@ export function TarotPickerPage() {
               <p className="text-xs text-white/50">{selectedDeck.name} 덱으로 운명의 순서를 만들어보세요</p>
             </div>
           </div>
-          <button
+          <motion.button
             type="button"
             onClick={handleRandomShuffle}
             disabled={isShuffling}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/60 backdrop-blur-xl transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+            className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5 text-white/60 backdrop-blur-xl transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="랜덤 셔플"
             title="랜덤 셔플"
+            whileHover={isShuffling ? undefined : { scale: 1.06 }}
+            whileTap={isShuffling ? undefined : { scale: 0.92, rotate: -8 }}
+            animate={
+              isRandomShuffleAnimating
+                ? {
+                    scale: [1, 1.16, 0.94, 1.06, 1],
+                    rotate: [0, -14, 14, -7, 0],
+                    borderColor: [
+                      'rgba(255,255,255,0.1)',
+                      'rgba(212,175,55,0.85)',
+                      'rgba(168,85,247,0.55)',
+                      'rgba(255,255,255,0.1)',
+                    ],
+                    backgroundColor: [
+                      'rgba(255,255,255,0.05)',
+                      'rgba(212,175,55,0.14)',
+                      'rgba(168,85,247,0.16)',
+                      'rgba(255,255,255,0.05)',
+                    ],
+                  }
+                : {
+                    scale: 1,
+                    rotate: 0,
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                  }
+            }
+            transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Shuffle className="h-4.5 w-4.5" />
-          </button>
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              animate={
+                isRandomShuffleAnimating
+                  ? {
+                      opacity: [0, 0.95, 0],
+                      scale: [0.72, 1.55, 1.9],
+                    }
+                  : { opacity: 0, scale: 1 }
+              }
+              transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: 'easeOut' }}
+              style={{
+                background:
+                  'radial-gradient(circle, rgba(212,175,55,0.46) 0%, rgba(168,85,247,0.24) 42%, rgba(168,85,247,0) 76%)',
+              }}
+            />
+            <motion.div
+              className="absolute inset-[1px] rounded-full"
+              animate={
+                isRandomShuffleAnimating
+                  ? {
+                      opacity: [0.2, 1, 0.34],
+                      boxShadow: [
+                        '0 0 0 rgba(212, 175, 55, 0)',
+                        '0 0 28px rgba(212, 175, 55, 0.5)',
+                        '0 0 16px rgba(168, 85, 247, 0.28)',
+                      ],
+                    }
+                  : {
+                      opacity: 1,
+                      boxShadow: '0 0 0 rgba(212, 175, 55, 0)',
+                    }
+              }
+              transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="relative z-10"
+              animate={
+                isRandomShuffleAnimating
+                  ? {
+                      rotate: [0, -22, 22, -10, 0],
+                      scale: [1, 1.18, 0.95, 1.08, 1],
+                    }
+                  : { rotate: 0, scale: 1 }
+              }
+              transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Shuffle className="h-4.5 w-4.5" />
+            </motion.div>
+          </motion.button>
         </div>
 
         {/* Guide text */}
@@ -407,6 +529,26 @@ export function TarotPickerPage() {
 
         {/* Card deck - horizontal lying stack */}
         <div className="relative mb-8 flex min-h-[450px] items-center justify-center" style={{ perspective: '1200px' }}>
+          <AnimatePresence>
+            {isRandomShuffleAnimating ? (
+              <motion.div
+                key="random-shuffle-burst"
+                className="pointer-events-none absolute inset-x-6 top-8 bottom-8 rounded-full"
+                initial={{ opacity: 0, scale: 0.82 }}
+                animate={{
+                  opacity: [0, 0.72, 0.24, 0],
+                  scale: [0.82, 1.06, 1.16],
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: 'easeOut' }}
+                style={{
+                  background:
+                    'radial-gradient(circle at center, rgba(212,175,55,0.16) 0%, rgba(168,85,247,0.16) 36%, rgba(10,10,18,0) 74%)',
+                  filter: 'blur(8px)',
+                }}
+              />
+            ) : null}
+          </AnimatePresence>
           {!isSplit ? (
             <motion.div
               drag="x"
@@ -422,13 +564,14 @@ export function TarotPickerPage() {
                 willChange: 'transform',
               }}
               animate={{
-                rotateZ: isRandomShuffleAnimating ? [0, -2.5, 2.2, -1, 0.35, 0] : 0,
-                scale: isRandomShuffleAnimating ? [1, 0.985, 1.01, 0.996, 1] : 1,
-                y: isRandomShuffleAnimating ? [0, -8, 3, -2, 0] : 0,
+                rotateZ: isRandomShuffleAnimating ? [0, -1.6, 1.2, -0.7, 0.2, 0] : 0,
+                scale: isRandomShuffleAnimating ? [1, 0.992, 1.008, 0.996, 1] : 1,
+                x: isRandomShuffleAnimating ? [0, -6, 5, -2, 0] : 0,
+                y: isRandomShuffleAnimating ? [0, -5, 2, -1, 0] : 0,
               }}
               transition={{
                 duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000,
-                ease: 'easeInOut',
+                ease: [0.22, 1, 0.36, 1],
               }}
             >
               <div
@@ -443,6 +586,7 @@ export function TarotPickerPage() {
                   const isVisible = i % 2 === 0 || i < 5 || i > TOTAL_CARDS - 6;
                   const isTopCard = i === 0;
                   const isBottomCard = i === TOTAL_CARDS - 1;
+                  const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating);
 
                   return (
                     <motion.div
@@ -455,6 +599,8 @@ export function TarotPickerPage() {
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden',
                       }}
+                      animate={shuffleCardMotion.animate}
+                      transition={shuffleCardMotion.transition}
                     >
                       <DeckCardFace
                         isBottomCard={isBottomCard}

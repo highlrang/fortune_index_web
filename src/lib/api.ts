@@ -698,6 +698,7 @@ export interface BirthTarotProfileResponse {
   koreanName?: string;
   number?: number;
   meaning?: string;
+  description?: string;
   imageUrl?: string | null;
   videoUrl?: string | null;
 }
