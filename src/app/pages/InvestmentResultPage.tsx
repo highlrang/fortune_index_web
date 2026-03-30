@@ -18,6 +18,60 @@ import { BottomNavigation } from '../components/BottomNavigation';
 import type { ConsultResponse, EvidenceFreshnessStatus } from '@/lib/api';
 import { getCurrentUser, getLastConsultResult, hasPremiumConsultingAccess } from '@/lib/session';
 
+const pageGradientStyle = {
+  background:
+    'linear-gradient(135deg, var(--tarot-ambient-start) 0%, var(--tarot-ambient-mid) 52%, var(--tarot-ambient-end) 100%)',
+};
+
+const glassLayerStyle = {
+  borderStyle: 'solid' as const,
+  borderWidth: 'var(--app-hairline-border)',
+  backdropFilter: 'var(--app-card-blur)',
+  WebkitBackdropFilter: 'var(--app-card-blur)',
+};
+
+const glassCardStyle = {
+  ...glassLayerStyle,
+  backgroundColor: 'var(--app-surface-bg)',
+  borderColor: 'var(--app-surface-border)',
+};
+
+const iconButtonStyle = {
+  ...glassCardStyle,
+  color: 'var(--app-icon-muted)',
+};
+
+const accentCardStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--app-accent-border)',
+  background:
+    'linear-gradient(135deg, var(--app-accent-soft) 0%, color-mix(in srgb, var(--app-accent-glow) 45%, transparent) 100%)',
+};
+
+const accentButtonStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--app-accent-border)',
+  backgroundColor: 'var(--app-accent-soft)',
+  color: 'var(--app-accent-text-strong)',
+};
+
+const subtleButtonStyle = {
+  ...glassCardStyle,
+  color: 'var(--app-text-muted)',
+};
+
+const dangerCardStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--app-danger-border)',
+  backgroundColor: 'var(--app-danger-bg)',
+};
+
+const infoCardStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--app-info-border)',
+  backgroundColor: 'var(--app-info-bg)',
+};
+
 const iconByKey = {
   market_analysis: TrendingUp,
   saju_analysis: Sparkles,
@@ -77,12 +131,13 @@ export function InvestmentResultPage() {
 
   if (!consultResult) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950">
+      <div className="min-h-screen" style={pageGradientStyle}>
         <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
-          <p className="mb-4 text-lg text-white">표시할 상담 결과가 없습니다.</p>
+          <p className="mb-4 text-lg" style={{ color: 'var(--tarot-text-main)' }}>표시할 상담 결과가 없습니다.</p>
           <button
             onClick={() => navigate('/consultation')}
-            className="rounded-full border border-amber-400/40 bg-amber-500/10 px-5 py-3 text-sm text-amber-200"
+            className="rounded-full border px-5 py-3 text-sm"
+            style={accentButtonStyle}
           >
             상담하러 가기
           </button>
@@ -92,29 +147,38 @@ export function InvestmentResultPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-auto bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-950">
+    <div className="min-h-screen overflow-auto" style={pageGradientStyle}>
       <div className="fixed inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
       </div>
 
       <div className="relative z-10">
-        <div className="sticky top-0 z-50 bg-gradient-to-b from-indigo-950/95 via-indigo-900/90 to-transparent px-6 py-4 backdrop-blur-xl">
+        <div
+          className="sticky top-0 z-50 px-6 py-4"
+          style={{
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 92%, transparent) 0%, transparent 100%)',
+            backdropFilter: 'var(--app-card-blur)',
+            WebkitBackdropFilter: 'var(--app-card-blur)',
+          }}
+        >
           <div className="flex items-center justify-between">
             <button
               onClick={() => navigate('/home')}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+              className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90"
+              style={iconButtonStyle}
             >
-              <ArrowLeft className="h-4 w-4 text-white/60" />
+              <ArrowLeft className="h-4 w-4" />
             </button>
 
             <div className="text-center">
-              <h1 className="text-lg font-semibold text-white">{titleByMode[consultResult.mode]}</h1>
-              <p className="text-xs text-[#D4AF37]/70">{consultResult.stock.name}</p>
+              <h1 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{titleByMode[consultResult.mode]}</h1>
+              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{consultResult.stock.name}</p>
             </div>
 
-            <button className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10">
-              <Share2 className="h-4 w-4 text-white/60" />
+            <button className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90" style={iconButtonStyle}>
+              <Share2 className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -127,26 +191,28 @@ export function InvestmentResultPage() {
             className="mb-8"
           >
             {hasLimitedEvidence ? (
-              <div className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-5 backdrop-blur-xl">
+              <div className="mb-4 rounded-2xl p-5" style={dangerCardStyle}>
                 <div className="flex items-start gap-3">
-                  <div className="rounded-full border border-rose-400/30 bg-rose-500/10 p-2">
-                    <ShieldAlert className="h-4 w-4 text-rose-200" />
+                  <div className="rounded-full border p-2" style={dangerCardStyle}>
+                    <ShieldAlert className="h-4 w-4" style={{ color: 'var(--app-danger-text)' }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-rose-50">최신 근거가 충분하지 않아 답변이 제한되었습니다.</p>
-                    <p className="mt-2 text-xs leading-6 text-rose-100/80">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--app-danger-text)' }}>최신 근거가 충분하지 않아 답변이 제한되었습니다.</p>
+                    <p className="mt-2 text-xs leading-6" style={{ color: 'var(--app-text-soft)' }}>
                       {consultResult.limitations?.[0]?.message ?? deriveLimitedMessage(consultResult)}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
                         onClick={() => navigate('/consultation', { state: { selectedType: 'market' } })}
-                        className="rounded-full border border-rose-300/30 bg-rose-400/10 px-4 py-2 text-xs text-rose-50"
+                        className="rounded-full border px-4 py-2 text-xs"
+                        style={dangerCardStyle}
                       >
                         다시 시도
                       </button>
                       <button
                         onClick={() => navigate('/consultation')}
-                        className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs text-white/75"
+                        className="rounded-full border px-4 py-2 text-xs"
+                        style={subtleButtonStyle}
                       >
                         일반 조언 다시 보기
                       </button>
@@ -156,27 +222,34 @@ export function InvestmentResultPage() {
               </div>
             ) : null}
 
-            <div className="relative overflow-hidden rounded-3xl border border-[#D4AF37]/30 bg-gradient-to-br from-purple-900/40 via-violet-800/30 to-purple-900/40 p-8 backdrop-blur-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.05]" />
+            <div className="relative overflow-hidden rounded-3xl p-8" style={accentCardStyle}>
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
               <div className="relative">
                 <div className="mb-4 flex items-center justify-center gap-2">
-                  <Sparkles className="h-5 w-5 text-[#D4AF37]" />
-                  <h2 className="text-center text-sm font-medium uppercase tracking-wider text-[#D4AF37]">
+                  <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-point-color)' }} />
+                  <h2 className="text-center text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--app-accent-text-soft)' }}>
                     투자 확신 점수
                   </h2>
                 </div>
 
                 <div className="mb-3 flex items-center justify-center">
-                  <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-[#D4AF37]/50 bg-gradient-to-br from-[#D4AF37]/20 via-amber-600/15 to-[#D4AF37]/20">
+                  <div
+                    className="relative flex h-40 w-40 items-center justify-center rounded-full border-4"
+                    style={{
+                      borderColor: 'var(--app-accent-border-strong)',
+                      background:
+                        'linear-gradient(135deg, var(--app-accent-soft) 0%, color-mix(in srgb, var(--app-accent-glow) 35%, transparent) 100%)',
+                    }}
+                  >
                     <div className="text-center">
-                      <span className="text-6xl font-bold text-white">{confidenceScore}</span>
-                      <span className="ml-2 text-2xl text-white/60">점</span>
+                      <span className="text-6xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{confidenceScore}</span>
+                      <span className="ml-2 text-2xl" style={{ color: 'var(--app-text-muted)' }}>점</span>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-center text-base font-medium text-white/80">
+                <p className="text-center text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
                   {confidenceScore >= 80 ? '매우 긍정적인 흐름' : confidenceScore >= 60 ? '긍정적인 흐름' : '신중한 접근 필요'}
                 </p>
               </div>
@@ -189,26 +262,26 @@ export function InvestmentResultPage() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="mb-6"
           >
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 p-6 backdrop-blur-xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
+            <div className="relative overflow-hidden rounded-2xl p-6" style={glassCardStyle}>
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
               <div className="relative space-y-4">
-                <h3 className="text-center text-base font-semibold text-white">오늘의 핵심 요약</h3>
+                <h3 className="text-center text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
 
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-orange-600/20">
-                    <Clock className="h-4 w-4 text-amber-400" />
+                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
+                    <Clock className="h-4 w-4" />
                   </div>
-                  <p className="flex-1 text-sm leading-relaxed text-white/80">{consultResult.ai.finalAdvice}</p>
+                  <p className="flex-1 text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{consultResult.ai.finalAdvice}</p>
                 </div>
 
                 {hasPremiumAccess && consultResult.thread?.id ? (
-                  <div className="rounded-2xl border border-cyan-300/20 bg-cyan-500/10 p-4">
-                    <div className="flex items-center gap-2 text-cyan-100">
+                  <div className="rounded-2xl p-4" style={infoCardStyle}>
+                    <div className="flex items-center gap-2" style={{ color: 'var(--app-info-text)' }}>
                       <Layers className="h-4 w-4" />
                       <p className="text-sm font-medium">이 상담 이어서 질문하기</p>
                     </div>
-                    <p className="mt-2 text-xs leading-5 text-cyan-50/75">
+                    <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-soft)' }}>
                       이전 흐름은 이어지지만 시세, 뉴스, 평균단가는 다음 요청에서 다시 확인합니다.
                     </p>
                     <button
@@ -221,7 +294,8 @@ export function InvestmentResultPage() {
                           },
                         })
                       }
-                      className="mt-4 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-xs text-cyan-50"
+                      className="mt-4 rounded-full border px-4 py-2 text-xs"
+                      style={infoCardStyle}
                     >
                       이어서 질문하기
                     </button>
@@ -239,10 +313,10 @@ export function InvestmentResultPage() {
               transition={{ delay: 0.15, duration: 0.6 }}
               className="mb-6"
             >
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+              <div className="rounded-2xl p-6" style={glassCardStyle}>
                 <div className="mb-4 flex items-center gap-2">
-                  <RefreshCw className="h-4 w-4 text-cyan-200" />
-                  <h3 className="text-base font-semibold text-white">이번 답변의 근거</h3>
+                  <RefreshCw className="h-4 w-4" style={{ color: 'var(--app-info-text)' }} />
+                  <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>이번 답변의 근거</h3>
                 </div>
 
                 <div className="mb-4 flex flex-wrap gap-2">
@@ -257,17 +331,17 @@ export function InvestmentResultPage() {
                   ) : null}
                 </div>
 
-                <div className="space-y-3 text-sm text-white/75">
+                <div className="space-y-3 text-sm" style={{ color: 'var(--app-text-soft)' }}>
                   {evidenceItems.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl bg-black/10 px-4 py-3">
-                      <span className="text-white/60">{item.label}</span>
-                      <span className="text-right text-white">{formatEvidenceDate(item.value, item.status)}</span>
+                    <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
+                      <span style={{ color: 'var(--app-text-muted)' }}>{item.label}</span>
+                      <span className="text-right" style={{ color: 'var(--tarot-text-main)' }}>{formatEvidenceDate(item.value, item.status)}</span>
                     </div>
                   ))}
                   {sourceCount ? (
-                    <div className="flex items-center justify-between gap-3 rounded-xl bg-black/10 px-4 py-3">
-                      <span className="text-white/60">출처</span>
-                      <span className="text-white">{sourceCount}건</span>
+                    <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
+                      <span style={{ color: 'var(--app-text-muted)' }}>출처</span>
+                      <span style={{ color: 'var(--tarot-text-main)' }}>{sourceCount}건</span>
                     </div>
                   ) : null}
                 </div>
@@ -283,22 +357,22 @@ export function InvestmentResultPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
               >
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 p-6 backdrop-blur-xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
+                <div className="relative overflow-hidden rounded-2xl p-6" style={glassCardStyle}>
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
                   <div className="relative">
                     <div className="mb-4 flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-amber-600/20">
-                        <section.icon className="h-6 w-6 text-[#D4AF37]" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full" style={accentButtonStyle}>
+                        <section.icon className="h-6 w-6" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-white">{section.title}</h3>
-                        <p className="text-xs text-white/50">{section.key}</p>
+                        <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
+                        <p className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>{section.key}</p>
                       </div>
                     </div>
 
-                    <div className="rounded-xl bg-white/5 p-4">
-                      <p className="text-sm leading-7 text-white/70 whitespace-pre-wrap">{section.content}</p>
+                    <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
+                      <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
                     </div>
                   </div>
                 </div>
@@ -307,13 +381,14 @@ export function InvestmentResultPage() {
           </div>
 
           {consultResult.tarot?.cards?.length ? (
-            <div className="mt-8 rounded-2xl border border-purple-400/20 bg-purple-500/5 p-6 backdrop-blur-xl">
-              <h3 className="mb-4 text-base font-semibold text-white">선택된 타로 카드</h3>
+            <div className="mt-8 rounded-2xl p-6" style={glassCardStyle}>
+              <h3 className="mb-4 text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>선택된 타로 카드</h3>
               <div className="flex flex-wrap gap-2">
                 {consultResult.tarot.cards.map((card) => (
                   <span
                     key={`${card.code}-${card.selectedIndex}`}
-                    className="rounded-full border border-purple-400/30 bg-purple-500/10 px-3 py-2 text-xs text-purple-200"
+                    className="rounded-full border px-3 py-2 text-xs"
+                    style={accentButtonStyle}
                   >
                     {card.name}
                   </span>
@@ -325,22 +400,25 @@ export function InvestmentResultPage() {
           <div className="mt-8 flex items-center justify-between">
             <button
               onClick={() => setIsLiked((prev) => !prev)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+              className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90"
+              style={iconButtonStyle}
             >
-              <Heart className={`h-4 w-4 ${isLiked ? 'text-[#D4AF37]' : 'text-white/60'}`} />
+              <Heart className="h-4 w-4" style={{ color: isLiked ? 'var(--tarot-point-color)' : 'var(--app-icon-muted)' }} />
             </button>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+                className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90"
+                style={iconButtonStyle}
               >
-                <Trash2 className="h-4 w-4 text-white/60" />
+                <Trash2 className="h-4 w-4" />
               </button>
 
               <button
                 onClick={() => navigate('/consultation-history')}
-                className="rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-5 py-3 text-sm text-[#D4AF37]"
+                className="rounded-full border px-5 py-3 text-sm"
+                style={accentButtonStyle}
               >
                 상담 내역 보기
               </button>
@@ -348,24 +426,26 @@ export function InvestmentResultPage() {
           </div>
 
           {showDeleteConfirm ? (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 p-6 backdrop-blur-xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'var(--app-modal-backdrop)' }}>
+              <div className="relative overflow-hidden rounded-2xl p-6" style={glassCardStyle}>
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
                 <div className="relative">
-                  <h3 className="mb-5 text-center text-base font-semibold text-white">삭제 확인</h3>
-                  <p className="text-center text-sm text-white/80">이 투자 운세 결과를 닫고 홈으로 이동할까요?</p>
+                  <h3 className="mb-5 text-center text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>삭제 확인</h3>
+                  <p className="text-center text-sm" style={{ color: 'var(--app-text-soft)' }}>이 투자 운세 결과를 닫고 홈으로 이동할까요?</p>
 
                   <div className="mt-6 flex items-center justify-center space-x-4">
                     <button
-                      className="flex h-8 w-24 items-center justify-center rounded-xl bg-gradient-to-br from-[#D4AF37]/20 via-amber-600/15 to-[#D4AF37]/20 text-sm font-medium text-white"
+                      className="flex h-8 w-24 items-center justify-center rounded-xl border text-sm font-medium"
+                      style={accentButtonStyle}
                       onClick={() => navigate('/home')}
                     >
                       확인
                     </button>
 
                     <button
-                      className="flex h-8 w-24 items-center justify-center rounded-xl bg-gradient-to-br from-[#D4AF37]/20 via-amber-600/15 to-[#D4AF37]/20 text-sm font-medium text-white"
+                      className="flex h-8 w-24 items-center justify-center rounded-xl border text-sm font-medium"
+                      style={subtleButtonStyle}
                       onClick={() => setShowDeleteConfirm(false)}
                     >
                       취소

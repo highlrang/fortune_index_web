@@ -406,6 +406,64 @@ export function MyPage() {
     }
   };
 
+  const handleInvestmentStyleChange = async (nextStyle: 'stable' | 'aggressive') => {
+    if (!user || isSavingSettings) return;
+
+    const nextValue = nextStyle === 'aggressive' ? 'AGGRESSIVE' : 'STABLE';
+    if (user.investmentRiskProfile === nextValue) return;
+
+    const previousUser = user;
+    const optimisticUser = { ...user, investmentRiskProfile: nextValue };
+
+    setSettingsSaveError('');
+    setUser(optimisticUser);
+    updateSessionUser(optimisticUser);
+    setIsSavingSettings(true);
+
+    try {
+      const updatedUser = await updateMyProfile({ investmentRiskProfile: nextValue });
+      updateSessionUser(updatedUser);
+      setUser(updatedUser);
+    } catch (error) {
+      setUser(previousUser);
+      updateSessionUser(previousUser);
+      setSettingsSaveError(
+        error instanceof Error ? error.message : '투자 성향 저장 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleVirtualInvestmentToggle = async () => {
+    if (!user || isSavingSettings) return;
+
+    const nextValue = !virtualInvestmentEnabled;
+    const previousUser = user;
+    const optimisticUser = { ...user, virtualInvestmentEnabled: nextValue };
+
+    setSettingsSaveError('');
+    setVirtualInvestmentEnabled(nextValue);
+    setUser(optimisticUser);
+    updateSessionUser(optimisticUser);
+    setIsSavingSettings(true);
+
+    try {
+      const updatedUser = await updateMyProfile({ virtualInvestmentEnabled: nextValue });
+      updateSessionUser(updatedUser);
+      setUser(updatedUser);
+    } catch (error) {
+      setVirtualInvestmentEnabled(previousUser.virtualInvestmentEnabled ?? false);
+      setUser(previousUser);
+      updateSessionUser(previousUser);
+      setSettingsSaveError(
+        error instanceof Error ? error.message : '가상 투자 수익률 설정 저장 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
   const handleTarotDeckSelect = async (deckId: string) => {
     if (deckId === selectedTarotDeckId || isSavingTarotDeck) return;
 
@@ -491,7 +549,7 @@ export function MyPage() {
                 </button>
               </div>
 
-              <div className="space-y-4 px-6 py-6">
+              <div className="space-y-4 px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                 <ProfileField label="이름">
                   <input
                     value={profileEditDraft.name}
@@ -1030,12 +1088,12 @@ export function MyPage() {
                 <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>투자 성향</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div
-                  className={`rounded-xl border px-4 py-2.5 text-center text-sm font-medium ${
-                    investmentStyle === 'stable'
-                      ? ''
-                      : ''
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => handleInvestmentStyleChange('stable')}
+                  disabled={isSavingSettings}
+                  aria-pressed={investmentStyle === 'stable'}
+                  className="rounded-xl border px-4 py-2.5 text-center text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   style={
                     investmentStyle === 'stable'
                       ? { ...accentIconStyle, boxShadow: '0 12px 24px -20px var(--app-accent-glow)' }
@@ -1044,13 +1102,13 @@ export function MyPage() {
                 >
                   <Shield className="mx-auto mb-1 h-5 w-5" />
                   안정형
-                </div>
-                <div
-                  className={`rounded-xl border px-4 py-2.5 text-center text-sm font-medium ${
-                    investmentStyle === 'aggressive'
-                      ? ''
-                      : ''
-                  }`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleInvestmentStyleChange('aggressive')}
+                  disabled={isSavingSettings}
+                  aria-pressed={investmentStyle === 'aggressive'}
+                  className="rounded-xl border px-4 py-2.5 text-center text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   style={
                     investmentStyle === 'aggressive'
                       ? { ...accentIconStyle, boxShadow: '0 12px 24px -20px var(--app-accent-glow)' }
@@ -1059,7 +1117,7 @@ export function MyPage() {
                 >
                   <TrendingUp className="mx-auto mb-1 h-5 w-5" />
                   공격형
-                </div>
+                </button>
               </div>
             </div>
 
@@ -1083,7 +1141,8 @@ export function MyPage() {
               icon={TrendingUp}
               label="가상 투자 수익률"
               enabled={virtualInvestmentEnabled}
-              onToggle={() => setVirtualInvestmentEnabled(!virtualInvestmentEnabled)}
+              onToggle={handleVirtualInvestmentToggle}
+              disabled={isSavingSettings}
             />
 
             {settingsSaveError ? (

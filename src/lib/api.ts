@@ -665,8 +665,10 @@ export interface UpdateMyProfilePayload {
   birthDate?: string | null;
   birthTime?: string | null;
   gender?: 'F' | 'M' | string | null;
+  investmentRiskProfile?: 'STABLE' | 'AGGRESSIVE';
   preferredTarotDeckId?: string | null;
   notificationEnabled?: boolean;
+  virtualInvestmentEnabled?: boolean;
   darkModeEnabled?: boolean;
 }
 
