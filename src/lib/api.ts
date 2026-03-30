@@ -165,14 +165,17 @@ async function refreshAccessToken() {
 
       const payload = await parseResponsePayload(response);
 
-      if (!response.ok || !payload || typeof payload !== 'object' || !('tokens' in payload)) {
+      if (response.status === 401) {
         clearSession();
+        return false;
+      }
+
+      if (!response.ok || !payload || typeof payload !== 'object' || !('tokens' in payload)) {
         return false;
       }
 
       const refreshedSession = toRefreshedSessionState(session, payload);
       if (!refreshedSession) {
-        clearSession();
         return false;
       }
 
