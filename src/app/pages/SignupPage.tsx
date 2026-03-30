@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { LoaderCircle, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { sendEmailVerificationMail } from '@/lib/api';
+import { requestSignupEmailCode } from '@/lib/api';
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupPage() {
@@ -24,7 +24,7 @@ export function SignupPage() {
     setIsSubmitting(true);
 
     try {
-      await sendEmailVerificationMail(email);
+      await requestSignupEmailCode(email);
       navigate(`/signup/email-check?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '인증 메일 발송에 실패했습니다.');

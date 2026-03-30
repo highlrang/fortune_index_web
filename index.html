@@ -5,6 +5,28 @@
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Stock Oracle</title>
+      <script>
+        (function () {
+          var storageKey = 'fortune-index-theme';
+          var defaultTheme = 'dark';
+
+          try {
+            var storedTheme = window.localStorage.getItem(storageKey);
+            var theme = storedTheme === 'light' || storedTheme === 'dark'
+              ? storedTheme
+              : defaultTheme;
+            var root = document.documentElement;
+
+            root.dataset.theme = theme;
+            root.style.colorScheme = theme;
+            root.classList.toggle('dark', theme === 'dark');
+          } catch (error) {
+            document.documentElement.dataset.theme = defaultTheme;
+            document.documentElement.style.colorScheme = defaultTheme;
+            document.documentElement.classList.add('dark');
+          }
+        })();
+      </script>
     </head>
 
     <body>

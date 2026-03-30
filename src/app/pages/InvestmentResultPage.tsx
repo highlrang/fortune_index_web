@@ -400,10 +400,9 @@ function getEvidenceBadgeLabel(kind: 'market' | 'news' | 'position', status: Evi
 }
 
 function getEvidenceBadgeClass(status: EvidenceFreshnessStatus) {
-  if (status === 'FRESH') return 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100';
-  if (status === 'PARTIAL') return 'border-amber-400/30 bg-amber-500/10 text-amber-100';
-  if (status === 'STALE') return 'border-orange-400/30 bg-orange-500/10 text-orange-100';
-  return 'border-rose-400/30 bg-rose-500/10 text-rose-100';
+  if (status === 'FRESH') return 'fi-status-badge-success';
+  if (status === 'PARTIAL' || status === 'STALE') return 'fi-status-badge-warning';
+  return 'fi-status-badge-danger';
 }
 
 function formatEvidenceDate(value?: string, status?: EvidenceFreshnessStatus) {

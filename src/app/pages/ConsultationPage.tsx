@@ -427,9 +427,9 @@ function getThreadStatusLabel(status: ConsultingThreadStatus) {
 }
 
 function getThreadBadgeClass(status: ConsultingThreadStatus) {
-  if (status === 'EXPIRING_SOON') return 'border-amber-400/30 bg-amber-500/10 text-amber-200';
-  if (status === 'EXPIRED' || status === 'CLOSED') return 'border-rose-400/30 bg-rose-500/10 text-rose-100';
-  return 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100';
+  if (status === 'EXPIRING_SOON') return 'fi-status-badge-warning';
+  if (status === 'EXPIRED' || status === 'CLOSED') return 'fi-status-badge-danger';
+  return 'fi-status-badge-success';
 }
 
 function formatRelativeTime(value?: string) {

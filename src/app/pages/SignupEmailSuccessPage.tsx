@@ -27,33 +27,18 @@ export function SignupEmailSuccessPage() {
           style={{
             borderWidth: 'var(--app-hairline-border)',
             borderStyle: 'solid',
-            borderColor: 'rgba(16, 185, 129, 0.32)',
-            background: 'rgba(16, 185, 129, 0.12)',
+            borderColor: 'var(--app-success-border)',
+            background: 'var(--app-success-bg)',
             backdropFilter: 'var(--card-blur)',
             WebkitBackdropFilter: 'var(--card-blur)',
           }}
         >
-          <CheckCircle2 className="h-10 w-10 text-emerald-300" />
+          <CheckCircle2 className="fi-status-icon-success h-10 w-10" />
         </div>
 
         <div className="space-y-2">
           <p className="text-lg fi-text-main">메일 인증이 확인되었습니다.</p>
           <p className="break-all text-sm leading-6 fi-text-muted">{email || '인증된 이메일'}</p>
-        </div>
-
-        <div
-          className="rounded-xl border px-4 py-4 text-sm leading-6"
-          style={{
-            borderWidth: 'var(--app-hairline-border)',
-            borderStyle: 'solid',
-            borderColor: 'rgba(16, 185, 129, 0.24)',
-            background: 'rgba(16, 185, 129, 0.08)',
-            color: 'rgb(209, 250, 229)',
-            backdropFilter: 'var(--card-blur)',
-            WebkitBackdropFilter: 'var(--card-blur)',
-          }}
-        >
-          앱 WebView 환경에서는 인증 완료 메시지를 함께 전달하도록 준비되어 있습니다.
         </div>
 
         <Link

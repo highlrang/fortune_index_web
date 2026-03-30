@@ -35,7 +35,14 @@ type QueryValue = string | number | boolean | null | undefined;
 let refreshPromise: Promise<boolean> | null = null;
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await performRequest(path, options);
+  let response: Response;
+
+  try {
+    response = await performRequest(path, options);
+  } catch (error) {
+    throw normalizeUnknownError(error);
+  }
+
   const payload = await parseResponsePayload(response);
 
   if (response.status === 401 && shouldAttemptRefresh(path, options)) {
@@ -192,11 +199,15 @@ function safeJsonParse(text: string) {
 function resolveErrorMessage(payload: unknown, status: number) {
   if (payload && typeof payload === 'object') {
     if ('message' in payload && typeof payload.message === 'string') {
-      return payload.message;
+      return localizeErrorMessage(payload.message, status);
     }
     if ('error' in payload && typeof payload.error === 'string') {
-      return payload.error;
+      return localizeErrorMessage(payload.error, status);
     }
+  }
+
+  if (typeof payload === 'string' && payload.trim()) {
+    return localizeErrorMessage(payload, status);
   }
 
   if (status === 401) return '인증이 필요합니다.';
@@ -204,6 +215,110 @@ function resolveErrorMessage(payload: unknown, status: number) {
   if (status === 404) return '요청한 데이터를 찾을 수 없습니다.';
   if (status === 503) return '서버가 일시적으로 응답하지 않습니다.';
   return '요청 처리 중 오류가 발생했습니다.';
+}
+
+function localizeErrorMessage(message: string, status?: number) {
+  const normalized = message.trim();
+  if (!normalized) {
+    return fallbackStatusMessage(status);
+  }
+
+  const lowered = normalized.toLowerCase();
+
+  if (
+    lowered === 'unauthorized' ||
+    lowered === '401 unauthorized' ||
+    lowered.includes('unauthorized') ||
+    lowered.includes('access token') ||
+    lowered.includes('jwt')
+  ) {
+    return '인증이 필요합니다.';
+  }
+
+  if (
+    lowered === 'forbidden' ||
+    lowered === '403 forbidden' ||
+    lowered.includes('forbidden') ||
+    lowered.includes('access denied')
+  ) {
+    return '권한이 없습니다.';
+  }
+
+  if (
+    lowered === 'not found' ||
+    lowered === '404 not found' ||
+    lowered.includes('not found')
+  ) {
+    return '요청한 데이터를 찾을 수 없습니다.';
+  }
+
+  if (
+    lowered.includes('failed to fetch') ||
+    lowered.includes('networkerror') ||
+    lowered.includes('network error') ||
+    lowered.includes('load failed') ||
+    lowered.includes('fetch failed')
+  ) {
+    return '네트워크 연결을 확인해주세요.';
+  }
+
+  if (
+    lowered.includes('timeout') ||
+    lowered.includes('timed out') ||
+    lowered.includes('request timeout')
+  ) {
+    return '요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+  }
+
+  if (
+    lowered.includes('internal server error') ||
+    lowered === '500' ||
+    lowered === '500 internal server error'
+  ) {
+    return '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  }
+
+  if (
+    lowered.includes('service unavailable') ||
+    lowered === '503' ||
+    lowered === '503 service unavailable'
+  ) {
+    return '서버가 일시적으로 응답하지 않습니다.';
+  }
+
+  if (/^\d{3}\s+[a-z]/i.test(normalized)) {
+    return fallbackStatusMessage(status);
+  }
+
+  return normalized;
+}
+
+function fallbackStatusMessage(status?: number) {
+  if (status === 400) return '잘못된 요청입니다.';
+  if (status === 401) return '인증이 필요합니다.';
+  if (status === 403) return '권한이 없습니다.';
+  if (status === 404) return '요청한 데이터를 찾을 수 없습니다.';
+  if (status === 408) return '요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+  if (status === 429) return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.';
+  if (status === 500) return '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  if (status === 503) return '서버가 일시적으로 응답하지 않습니다.';
+  return '요청 처리 중 오류가 발생했습니다.';
+}
+
+function normalizeUnknownError(error: unknown) {
+  if (error instanceof ApiError) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return new Error(localizeErrorMessage(error.message));
+  }
+
+  if (typeof error === 'string') {
+    return new Error(localizeErrorMessage(error));
+  }
+
+  return new Error('요청 처리 중 오류가 발생했습니다.');
 }
 
 function buildQuery(params: Record<string, QueryValue | QueryValue[] | Record<string, unknown>>) {
@@ -337,6 +452,68 @@ export interface TotalIndexResponse {
     tarotScore: number;
     tarotCardName: string;
   };
+}
+
+export type HomeMarketStatus = 'OK' | 'MARKET_CLOSED' | 'UNAVAILABLE' | string;
+
+export interface HomeInvestmentMarketResponse {
+  code: string;
+  label: string;
+  value: number;
+  score: number;
+  change: number;
+  changeRate: number;
+  asOf: string;
+  status?: HomeMarketStatus;
+}
+
+export interface HomeFortuneResponse {
+  dailyGanji: string;
+  score: number;
+}
+
+export interface HomeTarotResponse {
+  cardName: string;
+  score: number;
+}
+
+export interface HomeInvestmentIndexResponse {
+  totalScore: number;
+  summary: string;
+  market: HomeInvestmentMarketResponse;
+  fortune: HomeFortuneResponse;
+  tarot: HomeTarotResponse;
+}
+
+export interface HomeStockItemResponse {
+  ticker: string;
+  name: string;
+  price: number;
+  changeRate: number;
+  currency: 'KRW' | 'USD' | string;
+}
+
+export interface HomeStocksResponse {
+  domestic: HomeStockItemResponse[];
+  foreign: HomeStockItemResponse[];
+}
+
+export interface HomeSummaryResponse {
+  investmentIndex: HomeInvestmentIndexResponse;
+  stocks: HomeStocksResponse;
+}
+
+export interface HomeIndexChartPointResponse {
+  time: string;
+  value: number;
+}
+
+export interface HomeIndexChartResponse {
+  indexCode: string;
+  label: string;
+  asOf: string;
+  status?: HomeMarketStatus;
+  points: HomeIndexChartPointResponse[];
 }
 
 export interface TarotCardConsultResponse {
@@ -832,6 +1009,16 @@ export async function confirmPasswordReset(payload: PasswordResetConfirmPayload)
 
 export async function getInvestmentIndex() {
   return request<TotalIndexResponse>('/api/v1/investment-index');
+}
+
+export async function getHomeSummary() {
+  return request<HomeSummaryResponse>('/api/v1/home/summary');
+}
+
+export async function getHomeIndexChart(indexCode: string, period = '1D') {
+  return request<HomeIndexChartResponse>(
+    `/api/v1/home/index-chart${buildQuery({ indexCode, period })}`,
+  );
 }
 
 export async function getScenarios() {

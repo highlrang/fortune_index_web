@@ -1,6 +1,7 @@
-import { Bell, Sparkles } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Bell } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { getHomeSummary, type HomeSummaryResponse } from '@/lib/api';
 import { InvestmentGauge } from '../components/InvestmentGauge';
 import { StockAnalysisCard } from '../components/StockAnalysisCard';
 import { AIStrategyButton } from '../components/AIStrategyButton';
@@ -8,6 +9,32 @@ import { BottomNavigation } from '../components/BottomNavigation';
 
 export function HomePage() {
   const navigate = useNavigate();
+  const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const preferredMarket = summary?.investmentIndex.market.code === 'NASDAQ' ? 'foreign' : 'domestic';
+
+  useEffect(() => {
+    let active = true;
+
+    getHomeSummary()
+      .then((response) => {
+        if (!active) return;
+        setSummary(response);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : '홈 데이터를 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!active) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="fi-page min-h-screen pb-24">
@@ -37,12 +64,21 @@ export function HomePage() {
 
         {/* Investment Gauge */}
         <div className="mb-8">
-          <InvestmentGauge />
+          <InvestmentGauge
+            data={summary?.investmentIndex}
+            isLoading={isLoading}
+            error={error}
+          />
         </div>
 
         {/* Stock Analysis Cards */}
         <div className="mb-8">
-          <StockAnalysisCard />
+          <StockAnalysisCard
+            data={summary?.stocks}
+            isLoading={isLoading}
+            error={error}
+            preferredMarket={preferredMarket}
+          />
         </div>
 
         {/* AI Strategy Button */}

@@ -101,6 +101,16 @@
   --app-danger-bg: rgba(239, 68, 68, 0.1);
   --app-danger-border: rgba(239, 68, 68, 0.3);
   --app-danger-text: rgb(248, 113, 113);
+  --app-success-bg: rgba(16, 185, 129, 0.1);
+  --app-success-border: rgba(16, 185, 129, 0.28);
+  --app-success-text: rgb(209, 250, 229);
+  --app-success-icon: rgb(110, 231, 183);
+  --app-warning-bg: rgba(245, 158, 11, 0.14);
+  --app-warning-border: rgba(245, 158, 11, 0.28);
+  --app-warning-text: rgb(254, 240, 138);
+  --app-info-bg: rgba(139, 92, 246, 0.14);
+  --app-info-border: rgba(139, 92, 246, 0.28);
+  --app-info-text: rgb(221, 214, 254);
   --app-card-blur: var(--card-blur);
   --app-hairline-border: 0.5px;
   --app-surface-shadow: rgba(5, 7, 16, 0.28);
@@ -167,6 +177,16 @@
   --app-danger-bg: rgba(239, 68, 68, 0.08);
   --app-danger-border: rgba(239, 68, 68, 0.22);
   --app-danger-text: rgb(220, 38, 38);
+  --app-success-bg: rgba(16, 185, 129, 0.12);
+  --app-success-border: rgba(16, 185, 129, 0.24);
+  --app-success-text: rgb(20, 83, 45);
+  --app-success-icon: rgb(21, 128, 61);
+  --app-warning-bg: rgba(245, 158, 11, 0.14);
+  --app-warning-border: rgba(245, 158, 11, 0.26);
+  --app-warning-text: rgb(120, 53, 15);
+  --app-info-bg: rgba(139, 92, 246, 0.12);
+  --app-info-border: rgba(139, 92, 246, 0.22);
+  --app-info-text: rgb(91, 33, 182);
   --app-card-blur: var(--card-blur);
   --app-hairline-border: 0.5px;
   --app-surface-shadow: rgba(145, 120, 78, 0.16);
@@ -468,5 +488,49 @@
   [data-theme='light'] .fi-toggle-track[data-enabled='false'] {
     background: rgba(69, 69, 69, 0.14);
     border-color: rgba(69, 69, 69, 0.18);
+  }
+
+  .fi-status-text-success {
+    color: var(--app-success-text);
+  }
+
+  .fi-status-text-warning {
+    color: var(--app-warning-text);
+  }
+
+  .fi-status-text-info {
+    color: var(--app-info-text);
+  }
+
+  .fi-status-text-danger {
+    color: var(--app-danger-text);
+  }
+
+  .fi-status-icon-success {
+    color: var(--app-success-icon);
+  }
+
+  .fi-status-badge-success {
+    color: var(--app-success-text);
+    background: var(--app-success-bg);
+    border-color: var(--app-success-border);
+  }
+
+  .fi-status-badge-warning {
+    color: var(--app-warning-text);
+    background: var(--app-warning-bg);
+    border-color: var(--app-warning-border);
+  }
+
+  .fi-status-badge-info {
+    color: var(--app-info-text);
+    background: var(--app-info-bg);
+    border-color: var(--app-info-border);
+  }
+
+  .fi-status-badge-danger {
+    color: var(--app-danger-text);
+    background: var(--app-danger-bg);
+    border-color: var(--app-danger-border);
   }
 }

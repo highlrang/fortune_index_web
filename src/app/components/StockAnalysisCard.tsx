@@ -1,38 +1,36 @@
-import { TrendingUp, TrendingDown, Activity, Sparkles } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { TrendingDown, TrendingUp } from 'lucide-react';
+import type { HomeStockItemResponse, HomeStocksResponse } from '@/lib/api';
+import { Skeleton } from './ui/skeleton';
 
-interface StockData {
-  name: string;
-  ticker: string;
-  price: number;
-  change: number;
-  currency: 'KRW' | 'USD';
+interface StockAnalysisCardProps {
+  data?: HomeStocksResponse | null;
+  isLoading?: boolean;
+  error?: string;
+  preferredMarket?: 'domestic' | 'foreign';
 }
 
-const domesticStocks: StockData[] = [
-  { name: '삼성전자', ticker: '005930', price: 71500, change: 2.34, currency: 'KRW' },
-  { name: 'SK하이닉스', ticker: '000660', price: 182750, change: -1.12, currency: 'KRW' },
-  { name: '카카오', ticker: '035720', price: 48200, change: 1.85, currency: 'KRW' },
-];
+export function StockAnalysisCard({
+  data = null,
+  isLoading = false,
+  error = '',
+  preferredMarket = 'domestic',
+}: StockAnalysisCardProps) {
+  const [activeMarket, setActiveMarket] = useState<'domestic' | 'foreign'>(preferredMarket);
 
-const foreignStocks: StockData[] = [
-  { name: 'Apple Inc.', ticker: 'AAPL', price: 178.42, change: 1.23, currency: 'USD' },
-  { name: 'Tesla', ticker: 'TSLA', price: 248.15, change: -0.87, currency: 'USD' },
-  { name: 'NVIDIA', ticker: 'NVDA', price: 892.34, change: 3.45, currency: 'USD' },
-];
+  useEffect(() => {
+    setActiveMarket(preferredMarket);
+  }, [preferredMarket]);
 
-export function StockAnalysisCard() {
-  const [activeMarket, setActiveMarket] = useState<'domestic' | 'foreign'>('domestic');
-  
-  const currentStocks = activeMarket === 'domestic' ? domesticStocks : foreignStocks;
+  const currentStocks = activeMarket === 'domestic' ? data?.domestic ?? [] : data?.foreign ?? [];
+  const title = activeMarket === 'domestic' ? '국내주식 현황' : '해외주식 현황';
 
   return (
     <div className="space-y-4">
       {/* Stock Prices Card */}
       <div className="fi-glass relative overflow-hidden rounded-2xl p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-medium fi-text-soft">국내주식 현황</h3>
+          <h3 className="text-sm font-medium fi-text-soft">{title}</h3>
           <button className="text-xs fi-text-accent hover:opacity-80">전체보기</button>
         </div>
         
@@ -71,43 +69,67 @@ export function StockAnalysisCard() {
         </div>
         
         <div className="space-y-3">
-          {currentStocks.map((stock) => (
-            <div
-              key={stock.ticker}
-              className="fi-glass flex items-center justify-between rounded-lg p-3"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium fi-text-main">{stock.name}</p>
-                  <span className="text-xs fi-text-subtle">{stock.ticker}</span>
-                </div>
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="text-base fi-text-main">
-                    {stock.currency === 'KRW' 
-                      ? `₩${stock.price.toLocaleString()}`
-                      : `$${stock.price.toFixed(2)}`
-                    }
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {stock.change >= 0 ? (
-                      <TrendingUp className="h-3 w-3 text-emerald-400" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3 text-rose-400" />
-                    )}
-                    <span
-                      className={`text-xs ${
-                        stock.change >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                      }`}
-                    >
-                      {stock.change >= 0 ? '+' : ''}{stock.change}%
-                    </span>
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`${activeMarket}-${index}`}
+                className="fi-glass flex items-center justify-between rounded-lg p-3"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-24 bg-white/10" />
+                    <Skeleton className="h-3 w-12 bg-white/10" />
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Skeleton className="h-5 w-20 bg-white/10" />
+                    <Skeleton className="h-3 w-14 bg-white/10" />
                   </div>
                 </div>
               </div>
+            ))
+          ) : currentStocks.length > 0 ? (
+            currentStocks.map((stock) => (
+              <div
+                key={`${activeMarket}-${stock.ticker}`}
+                className="fi-glass flex items-center justify-between rounded-lg p-3"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium fi-text-main">{stock.name}</p>
+                    <span className="text-xs fi-text-subtle">{stock.ticker}</span>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-base fi-text-main">{formatStockPrice(stock)}</span>
+                    <div className="flex items-center gap-1">
+                      {stock.changeRate >= 0 ? (
+                        <TrendingUp className="h-3 w-3 text-emerald-400" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3 text-rose-400" />
+                      )}
+                      <span className={stock.changeRate >= 0 ? 'text-xs text-emerald-400' : 'text-xs text-rose-400'}>
+                        {stock.changeRate >= 0 ? '+' : ''}
+                        {stock.changeRate.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="fi-glass rounded-lg p-4 text-center text-xs fi-text-muted">
+              {error || '표시할 주식 데이터가 없습니다.'}
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>
   );
+}
+
+function formatStockPrice(stock: HomeStockItemResponse) {
+  if (stock.currency === 'KRW') {
+    return `₩${stock.price.toLocaleString()}`;
+  }
+
+  return `$${stock.price.toFixed(2)}`;
 }

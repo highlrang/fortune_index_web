@@ -74,11 +74,11 @@ export function NotificationsPage() {
   const getTypeColor = (type: Notification['type']) => {
     switch (type) {
       case 'fortune':
-        return 'from-purple-500/20 to-violet-600/20 border-purple-500/30 text-purple-400';
+        return 'from-purple-500/20 to-violet-600/20 border-purple-500/30 fi-status-text-info';
       case 'market':
-        return 'from-emerald-500/20 to-green-600/20 border-emerald-500/30 text-emerald-400';
+        return 'from-emerald-500/20 to-green-600/20 border-emerald-500/30 fi-status-text-success';
       case 'system':
-        return 'from-amber-500/20 to-orange-600/20 border-amber-500/30 text-amber-400';
+        return 'from-amber-500/20 to-orange-600/20 border-amber-500/30 fi-status-text-warning';
       default:
         return 'from-white/10 to-white/5 border-white/10 text-white/60';
     }

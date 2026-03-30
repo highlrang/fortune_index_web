@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { LoaderCircle, Mail, RefreshCw } from 'lucide-react';
 import {
   getEmailVerificationStatus,
-  sendEmailVerificationMail,
+  requestSignupEmailCode,
   type EmailVerificationStatusResponse,
 } from '@/lib/api';
 import { SignupStageLayout } from '../components/SignupStageLayout';
@@ -21,7 +21,7 @@ export function SignupEmailPendingPage() {
   const [statusMessage, setStatusMessage] = useState('메일 인증 상태를 자동으로 확인하고 있습니다.');
   const [isSending, setIsSending] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [hasTimedOut, setHasTimedOut] = useState(false);
 
   const startedAtRef = useRef(Date.now());
@@ -122,7 +122,7 @@ export function SignupEmailPendingPage() {
     setIsSending(true);
 
     try {
-      await sendEmailVerificationMail(email);
+      await requestSignupEmailCode(email);
       startedAtRef.current = Date.now();
       setHasTimedOut(false);
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
@@ -196,16 +196,11 @@ export function SignupEmailPendingPage() {
           <p className="mt-2 break-all text-base fi-text-main">{email}</p>
         </div>
 
-        <div className="fi-glass rounded-xl px-4 py-4 text-sm leading-6 fi-text-muted">
-          <div className="flex items-center gap-2 fi-text-accent">
-            <LoaderCircle className="h-4 w-4 animate-spin" />
-            <span>3초마다 인증 상태를 확인 중입니다.</span>
+        {hasTimedOut ? (
+          <div className="fi-glass rounded-xl px-4 py-4 text-sm leading-6 fi-text-muted">
+            <p className="fi-text-accent">자동 확인이 종료되었습니다. 재전송 후 다시 시도해주세요.</p>
           </div>
-          <p className="mt-3 fi-text-muted">{statusMessage}</p>
-          {hasTimedOut ? (
-            <p className="mt-3 fi-text-accent">자동 확인이 종료되었습니다. 재전송 후 다시 시도해주세요.</p>
-          ) : null}
-        </div>
+        ) : null}
 
         {error ? (
           <div className="fi-danger rounded-xl px-4 py-3 text-sm">
@@ -241,9 +236,9 @@ export function SignupEmailPendingPage() {
             style={{
               borderWidth: 'var(--app-hairline-border)',
               borderStyle: 'solid',
-              borderColor: 'rgba(16, 185, 129, 0.28)',
-              background: 'rgba(16, 185, 129, 0.1)',
-              color: 'rgb(209, 250, 229)',
+              borderColor: 'var(--app-success-border)',
+              background: 'var(--app-success-bg)',
+              color: 'var(--app-success-text)',
               backdropFilter: 'var(--card-blur)',
               WebkitBackdropFilter: 'var(--card-blur)',
             }}
