@@ -55,6 +55,21 @@ const tarotPageVars = {
   color: 'var(--tarot-text-main)',
 };
 
+const glassPanelStyle = {
+  borderColor: 'var(--app-surface-border)',
+  backgroundColor: 'var(--app-surface-bg)',
+  backdropFilter: 'var(--app-card-blur)',
+  WebkitBackdropFilter: 'var(--app-card-blur)',
+};
+
+const accentPanelStyle = {
+  borderColor: 'var(--tarot-cta-border)',
+  background:
+    'linear-gradient(135deg, color-mix(in srgb, var(--tarot-card-cover-start) 78%, transparent) 0%, color-mix(in srgb, var(--tarot-cta-mid) 58%, transparent) 100%)',
+  backdropFilter: 'var(--app-card-blur)',
+  WebkitBackdropFilter: 'var(--app-card-blur)',
+};
+
 function getCutShuffledOrder(order: number[], cutIndex: number) {
   return [...order.slice(cutIndex), ...order.slice(0, cutIndex)];
 }
@@ -127,17 +142,17 @@ const DeckCardFace = memo(function DeckCardFace({
         ...deckCardFaceStyle,
         opacity: isVisible ? (isTopCard || isBottomCard ? 1 : 0.95) : 0.3,
         background:
-          'linear-gradient(135deg, var(--tarot-card-bg-strong) 0%, var(--tarot-card-bg) 52%, var(--tarot-card-bg-strong) 100%)',
-        borderColor: 'var(--tarot-point-border)',
+          'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
+        borderColor: 'var(--tarot-card-cover-border)',
         boxShadow: isTopCard || isBottomCard
-          ? '0 6px 20px rgba(0, 0, 0, 0.22)'
+          ? '0 10px 28px var(--tarot-card-cover-glow)'
           : '0 1px 2px rgba(0, 0, 0, 0.1)',
       }}
     >
       <div className="absolute inset-0 rounded-2xl border" style={{ borderColor: 'var(--tarot-card-line-soft)' }} />
       {isTopCard && (
         <>
-          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.12] via-transparent to-white/[0.06]" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
           <motion.div
             className="absolute inset-0 rounded-2xl"
             style={{
@@ -152,31 +167,31 @@ const DeckCardFace = memo(function DeckCardFace({
               <polygon
                 points="50,20 75,35 75,65 50,80 25,65 25,35"
                 fill="none"
-                stroke="var(--tarot-text-main)"
+                stroke="var(--tarot-card-sigil)"
                 strokeWidth="0.8"
                 opacity="0.4"
               />
               <polygon
                 points="50,30 68,42 68,58 50,70 32,58 32,42"
                 fill="none"
-                stroke="var(--tarot-text-main)"
+                stroke="var(--tarot-card-sigil)"
                 strokeWidth="0.6"
                 opacity="0.35"
               />
-              <circle cx="50" cy="50" r="5" fill="var(--tarot-text-main)" opacity="0.5" />
-              <circle cx="50" cy="50" r="2.5" fill="var(--tarot-text-main)" opacity="0.7" />
-              <circle cx="50" cy="15" r="2" fill="var(--tarot-text-main)" opacity="0.3" />
-              <circle cx="50" cy="85" r="2" fill="var(--tarot-text-main)" opacity="0.3" />
-              <line x1="50" y1="50" x2="50" y2="20" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="75" y2="35" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="75" y2="65" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="50" y2="80" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <text x="50" y="105" fontSize="10" fill="var(--tarot-text-main)" opacity="0.3" textAnchor="middle" fontFamily="serif">
+              <circle cx="50" cy="50" r="5" fill="var(--tarot-card-sigil)" opacity="0.42" />
+              <circle cx="50" cy="50" r="2.5" fill="var(--tarot-card-sigil)" opacity="0.62" />
+              <circle cx="50" cy="15" r="2" fill="var(--tarot-card-sigil-soft)" opacity="0.42" />
+              <circle cx="50" cy="85" r="2" fill="var(--tarot-card-sigil-soft)" opacity="0.42" />
+              <line x1="50" y1="50" x2="50" y2="20" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="75" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="75" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="50" y2="80" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <text x="50" y="105" fontSize="10" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
                 ✦ ARCANA ✦
               </text>
-              <text x="50" y="120" fontSize="7" fill="var(--tarot-text-main)" opacity="0.2" textAnchor="middle" fontFamily="serif">
+              <text x="50" y="120" fontSize="7" fill="var(--tarot-card-sigil-soft)" opacity="0.28" textAnchor="middle" fontFamily="serif">
                 MAJOR
               </text>
             </svg>
@@ -186,7 +201,7 @@ const DeckCardFace = memo(function DeckCardFace({
 
       {isBottomCard && (
         <>
-          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.12] via-transparent to-white/[0.06]" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
           <motion.div
             className="absolute inset-0 rounded-2xl"
             style={{
@@ -198,11 +213,11 @@ const DeckCardFace = memo(function DeckCardFace({
           />
           <div className="absolute inset-0 flex items-center justify-center p-8">
             <svg className="h-full w-full" viewBox="0 0 100 140">
-              <rect x="8" y="8" width="84" height="124" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" rx="4" />
-              <rect x="12" y="12" width="76" height="116" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.4" opacity="0.25" rx="3" />
-              <circle cx="50" cy="70" r="25" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.6" opacity="0.35" />
-              <circle cx="50" cy="70" r="20" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <circle cx="50" cy="70" r="15" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.4" opacity="0.25" />
+              <rect x="8" y="8" width="84" height="124" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.34" rx="4" />
+              <rect x="12" y="12" width="76" height="116" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="0.4" opacity="0.28" rx="3" />
+              <circle cx="50" cy="70" r="25" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="0.6" opacity="0.35" />
+              <circle cx="50" cy="70" r="20" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <circle cx="50" cy="70" r="15" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="0.4" opacity="0.25" />
               {[...Array(8)].map((_, idx) => {
                 const angle = (idx * 45 - 90) * (Math.PI / 180);
                 const x2 = 50 + Math.cos(angle) * 15;
@@ -214,25 +229,25 @@ const DeckCardFace = memo(function DeckCardFace({
                     y1="70"
                     x2={x2}
                     y2={y2}
-                    stroke="var(--tarot-text-main)"
+                    stroke="var(--tarot-card-sigil)"
                     strokeWidth="0.4"
                     opacity="0.3"
                   />
                 );
               })}
-              <circle cx="50" cy="70" r="3" fill="var(--tarot-text-main)" opacity="0.5" />
-              <circle cx="50" cy="70" r="1.5" fill="var(--tarot-text-main)" opacity="0.7" />
-              <circle cx="50" cy="25" r="8" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.5" opacity="0.3" />
-              <circle cx="50" cy="25" r="5" fill="none" stroke="var(--tarot-text-main)" strokeWidth="0.4" opacity="0.25" />
-              <circle cx="50" cy="25" r="2" fill="var(--tarot-text-main)" opacity="0.4" />
-              <text x="20" y="22" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
-              <text x="77" y="22" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
-              <text x="20" y="126" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
-              <text x="77" y="126" fontSize="8" fill="var(--tarot-text-main)" opacity="0.25">✦</text>
-              <text x="50" y="112" fontSize="7" fill="var(--tarot-text-main)" opacity="0.25" textAnchor="middle" fontFamily="serif">
+              <circle cx="50" cy="70" r="3" fill="var(--tarot-card-sigil)" opacity="0.46" />
+              <circle cx="50" cy="70" r="1.5" fill="var(--tarot-card-sigil)" opacity="0.66" />
+              <circle cx="50" cy="25" r="8" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+              <circle cx="50" cy="25" r="5" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="0.4" opacity="0.25" />
+              <circle cx="50" cy="25" r="2" fill="var(--tarot-card-sigil)" opacity="0.38" />
+              <text x="20" y="22" fontSize="8" fill="var(--tarot-card-sigil-soft)" opacity="0.3">✦</text>
+              <text x="77" y="22" fontSize="8" fill="var(--tarot-card-sigil-soft)" opacity="0.3">✦</text>
+              <text x="20" y="126" fontSize="8" fill="var(--tarot-card-sigil-soft)" opacity="0.3">✦</text>
+              <text x="77" y="126" fontSize="8" fill="var(--tarot-card-sigil-soft)" opacity="0.3">✦</text>
+              <text x="50" y="112" fontSize="7" fill="var(--tarot-card-sigil)" opacity="0.28" textAnchor="middle" fontFamily="serif">
                 TAROT
               </text>
-              <text x="50" y="122" fontSize="6" fill="var(--tarot-text-main)" opacity="0.2" textAnchor="middle" fontFamily="serif">
+              <text x="50" y="122" fontSize="6" fill="var(--tarot-card-sigil-soft)" opacity="0.24" textAnchor="middle" fontFamily="serif">
                 MYSTIC ORACLE
               </text>
             </svg>
@@ -549,12 +564,38 @@ export function TarotPickerPage() {
         </div>
 
         {/* Guide text */}
-        <div className="mb-4 text-center">
-          <p className="text-base leading-relaxed" style={{ color: 'var(--tarot-guide-text)' }}>
-            {isSplit 
-              ? '덱을 터치해서 위아래 순서를 바꿔보세요' 
-              : '측면을 터치해서 분리하고, 좌우로 회전시켜보세요'}
-          </p>
+        <div className="mb-6 grid gap-3">
+          <div className="rounded-[1.75rem] border px-4 py-4" style={accentPanelStyle}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[10px] font-semibold tracking-[0.26em]" style={{ color: 'var(--app-accent-text-soft)' }}>
+                  TAROT RITUAL
+                </div>
+                <h2 className="mt-2 text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>
+                  {selectedDeck.name}
+                </h2>
+                <p className="mt-1 text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>
+                  {selectedDeck.description || '지금의 질문에 맞는 흐름으로 카드를 정렬해보세요.'}
+                </p>
+              </div>
+              <div className="rounded-full border px-3 py-1 text-[11px] font-medium" style={{ ...glassPanelStyle, color: 'var(--app-accent-text-soft)' }}>
+                78 CARD DECK
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[1.5rem] border px-4 py-3" style={glassPanelStyle}>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--tarot-guide-text)' }}>
+                {isSplit
+                  ? '덱을 터치해 순서를 교차시키고, 손끝으로 마지막 흐름을 고르세요.'
+                  : '측면을 눌러 덱을 가르고, 좌우로 천천히 돌려 오늘의 리듬을 정하세요.'}
+              </p>
+              <div className="hidden min-w-fit rounded-full border px-3 py-1 text-[11px] md:block" style={{ ...glassPanelStyle, color: 'var(--app-text-muted)' }}>
+                SHUFFLE FLOW
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Card deck - horizontal lying stack */}
@@ -883,6 +924,9 @@ export function TarotPickerPage() {
                 </span>
               </div>
             </motion.button>
+            <p className="mt-3 text-center text-xs tracking-[0.18em]" style={{ color: 'var(--app-text-subtle)' }}>
+              PREPARED FOR REVEAL
+            </p>
           </motion.div>
         </div>
       </div>

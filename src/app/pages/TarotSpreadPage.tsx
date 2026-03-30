@@ -20,6 +20,56 @@ const CARD_HEIGHT = 128;
 const CARD_OVERLAP = 26; // Cards overlap 70% (30% visible)
 const DEFAULT_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
 
+const pageGradientStyle = {
+  background:
+    'linear-gradient(180deg, var(--tarot-ambient-start) 0%, var(--tarot-ambient-mid) 52%, var(--tarot-ambient-end) 100%)',
+};
+
+const glassLayerStyle = {
+  borderStyle: 'solid' as const,
+  borderWidth: 'var(--app-hairline-border)',
+  backdropFilter: 'var(--app-card-blur)',
+  WebkitBackdropFilter: 'var(--app-card-blur)',
+};
+
+const glassCardStyle = {
+  ...glassLayerStyle,
+  backgroundColor: 'var(--app-surface-bg)',
+  borderColor: 'var(--app-surface-border)',
+};
+
+const accentButtonStyle = {
+  ...glassLayerStyle,
+  borderColor: 'var(--tarot-cta-border)',
+  background:
+    'linear-gradient(135deg, var(--tarot-cta-start) 0%, var(--tarot-cta-mid) 50%, var(--tarot-cta-end) 100%)',
+  color: 'var(--tarot-text-main)',
+};
+
+const cardBackStyle = {
+  borderColor: 'var(--tarot-card-cover-border)',
+  background:
+    'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
+};
+
+function TarotCardBackPattern() {
+  return (
+    <svg className="h-full w-full" viewBox="0 0 100 140">
+      <polygon points="50,25 70,38 70,62 50,75 30,62 30,38" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="1.2" opacity="0.55" />
+      <polygon points="50,32 65,42 65,58 50,68 35,58 35,42" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="0.8" opacity="0.48" />
+      <circle cx="50" cy="50" r="6" fill="var(--tarot-card-sigil)" opacity="0.5" />
+      <circle cx="50" cy="50" r="3.5" fill="var(--tarot-card-sigil)" opacity="0.72" />
+      <line x1="50" y1="50" x2="50" y2="25" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
+      <line x1="50" y1="50" x2="70" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
+      <line x1="50" y1="50" x2="70" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
+      <line x1="50" y1="50" x2="50" y2="75" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
+      <line x1="50" y1="50" x2="30" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
+      <line x1="50" y1="50" x2="30" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
+      <text x="50" y="100" fontSize="7" fill="var(--tarot-card-sigil)" opacity="0.42" textAnchor="middle" fontFamily="serif">ARCANA</text>
+    </svg>
+  );
+}
+
 export function TarotSpreadPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,19 +140,16 @@ export function TarotSpreadPage() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0A0A12]">
-      {/* Mystic night sky background */}
+    <div className="fixed inset-0 overflow-hidden" style={pageGradientStyle}>
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A1E] via-[#0D1330] to-[#0A0A1E]" />
-        
-        {/* Star field */}
         {Array.from({ length: 50 }).map((_, i) => (
           <motion.div
             key={i}
-            className="absolute h-0.5 w-0.5 rounded-full bg-white"
+            className="absolute h-0.5 w-0.5 rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
+              backgroundColor: 'var(--tarot-text-main)',
             }}
             animate={{
               opacity: [0.2, 0.7, 0.2],
@@ -116,8 +163,15 @@ export function TarotSpreadPage() {
         ))}
       </div>
 
-      {/* Top Header */}
-      <div className="absolute left-0 right-0 top-0 z-50 bg-gradient-to-b from-[#0A0A12]/90 via-[#0A0A12]/70 to-transparent px-4 py-3">
+      <div
+        className="absolute left-0 right-0 top-0 z-50 px-4 py-3"
+        style={{
+          background:
+            'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 92%, transparent) 0%, transparent 100%)',
+          backdropFilter: 'var(--app-card-blur)',
+          WebkitBackdropFilter: 'var(--app-card-blur)',
+        }}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -129,13 +183,14 @@ export function TarotSpreadPage() {
                   },
                 })
               }
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-xl transition-colors hover:bg-white/10"
+              className="flex h-9 w-9 items-center justify-center rounded-full border transition-opacity hover:opacity-90"
+              style={glassCardStyle}
             >
-              <ArrowLeft className="h-4 w-4 text-white/60" />
+              <ArrowLeft className="h-4 w-4" style={{ color: 'var(--app-icon-muted)' }} />
             </button>
             <div>
-              <h1 className="text-base font-medium text-white">타로 카드 선택</h1>
-              <p className="text-xs text-[#D4AF37]/70">
+              <h1 className="text-base font-medium" style={{ color: 'var(--tarot-text-main)' }}>타로 카드 선택</h1>
+              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>
                 {selectedDeck.name} · {selectedCards.length} / {MAX_SELECTIONS} 선택
               </p>
             </div>
@@ -146,11 +201,19 @@ export function TarotSpreadPage() {
             {Array.from({ length: MAX_SELECTIONS }).map((_, i) => (
               <motion.div
                 key={i}
-                className={`h-2.5 w-2.5 rounded-full border ${
+                className="h-2.5 w-2.5 rounded-full border"
+                style={
                   i < selectedCards.length
-                    ? 'border-[#D4AF37] bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]'
-                    : 'border-white/30 bg-transparent'
-                }`}
+                    ? {
+                        borderColor: 'var(--tarot-point-color)',
+                        backgroundColor: 'var(--tarot-point-color)',
+                        boxShadow: '0 0 8px var(--tarot-card-cover-glow)',
+                      }
+                    : {
+                        borderColor: 'var(--tarot-card-line)',
+                        backgroundColor: 'transparent',
+                      }
+                }
                 animate={{
                   scale: i < selectedCards.length ? [1, 1.4, 1] : 1,
                 }}
@@ -163,17 +226,15 @@ export function TarotSpreadPage() {
         </div>
 
         <div className="mx-auto mt-2 max-w-7xl">
-          <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/65 backdrop-blur-xl">
+          <div className="inline-flex rounded-full border px-3 py-1 text-[11px]" style={{ ...glassCardStyle, color: 'var(--app-text-muted)' }}>
             가로로 돌려서 이용하시면 카드 선택이 더 편합니다
           </div>
         </div>
       </div>
 
-      {/* TOP SECTION - Card Holder Slots (1/3 of screen) */}
-      <div className="absolute left-0 right-0 top-0 z-40 h-[33%] border-b border-white/5 pt-16">
-        {/* Soft golden glow background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#D4AF37]/3 to-transparent" />
-        <div className="absolute left-1/2 top-1/2 h-40 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/6 blur-3xl" />
+      <div className="absolute left-0 right-0 top-0 z-40 h-[33%] pt-16" style={{ borderBottom: '1px solid var(--app-surface-divider)' }}>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 0%, var(--tarot-card-cover-glow) 50%, transparent 100%)', opacity: 0.35 }} />
+        <div className="absolute left-1/2 top-1/2 h-40 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-card-cover-glow)' }} />
 
         {/* Card Slots */}
         <div className="flex h-full items-center justify-center gap-3 px-4">
@@ -191,20 +252,21 @@ export function TarotSpreadPage() {
               >
                 {/* Empty Slot */}
                 <motion.div
-                  className={`overflow-hidden rounded-xl border border-dashed bg-white/[0.02] backdrop-blur-sm transition-all ${
-                    hasCard ? 'border-[#D4AF37]/30' : 'border-white/15'
-                  }`}
+                  className="overflow-hidden rounded-xl border border-dashed transition-all"
                   style={{
                     width: `${CARD_WIDTH}px`,
                     height: `${CARD_HEIGHT}px`,
+                    ...glassCardStyle,
+                    borderColor: hasCard ? 'var(--tarot-card-cover-border)' : 'var(--tarot-card-line-soft)',
+                    backgroundColor: 'color-mix(in srgb, var(--app-surface-bg) 70%, transparent)',
                   }}
                   animate={{
                     boxShadow: hasCard
-                      ? '0 0 15px rgba(212, 175, 55, 0.25)'
+                      ? '0 0 15px var(--tarot-card-cover-glow)'
                       : [
-                          '0 0 8px rgba(255, 255, 255, 0.08)',
-                          '0 0 12px rgba(255, 255, 255, 0.12)',
-                          '0 0 8px rgba(255, 255, 255, 0.08)',
+                          '0 0 8px color-mix(in srgb, var(--tarot-card-line) 35%, transparent)',
+                          '0 0 12px color-mix(in srgb, var(--tarot-card-line) 55%, transparent)',
+                          '0 0 8px color-mix(in srgb, var(--tarot-card-line) 35%, transparent)',
                         ],
                   }}
                   transition={{
@@ -214,7 +276,7 @@ export function TarotSpreadPage() {
                 >
                   {!hasCard && (
                     <div className="flex h-full items-center justify-center">
-                      <span className="text-2xl text-white/15">{slotIndex + 1}</span>
+                      <span className="text-2xl" style={{ color: 'var(--app-text-subtle)' }}>{slotIndex + 1}</span>
                     </div>
                   )}
                 </motion.div>
@@ -237,20 +299,21 @@ export function TarotSpreadPage() {
                       whileTap={{ scale: 0.95 }}
                     >
                       <div
-                        className="h-full w-full overflow-hidden rounded-xl border border-[#D4AF37] bg-gradient-to-br from-purple-900/95 via-violet-800/90 to-purple-900/95"
+                        className="h-full w-full overflow-hidden rounded-xl border"
                         style={{
-                          boxShadow: '0 0 20px rgba(212, 175, 55, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.35)',
+                          ...cardBackStyle,
+                          boxShadow: '0 0 20px var(--tarot-card-cover-glow), inset 0 0 18px rgba(255, 255, 255, 0.12)',
                         }}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.12] via-transparent to-white/[0.06]" />
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
                         
                         <motion.div
                           className="absolute inset-0"
                           animate={{
                             boxShadow: [
-                              'inset 0 0 15px rgba(168, 85, 247, 0.3)',
-                              'inset 0 0 25px rgba(168, 85, 247, 0.5)',
-                              'inset 0 0 15px rgba(168, 85, 247, 0.3)',
+                              'inset 0 0 15px rgba(255,255,255,0.08)',
+                              'inset 0 0 25px var(--tarot-card-cover-glow)',
+                              'inset 0 0 15px rgba(255,255,255,0.08)',
                             ],
                           }}
                           transition={{
@@ -260,19 +323,7 @@ export function TarotSpreadPage() {
                         />
 
                         <div className="absolute inset-0 flex items-center justify-center p-3">
-                          <svg className="h-full w-full" viewBox="0 0 100 140">
-                            <polygon points="50,25 70,38 70,62 50,75 30,62 30,38" fill="none" stroke="white" strokeWidth="1.2" opacity="0.5" />
-                            <polygon points="50,32 65,42 65,58 50,68 35,58 35,42" fill="none" stroke="white" strokeWidth="0.8" opacity="0.45" />
-                            <circle cx="50" cy="50" r="6" fill="white" opacity="0.6" />
-                            <circle cx="50" cy="50" r="3.5" fill="white" opacity="0.8" />
-                            <line x1="50" y1="50" x2="50" y2="25" stroke="white" strokeWidth="0.7" opacity="0.4" />
-                            <line x1="50" y1="50" x2="70" y2="38" stroke="white" strokeWidth="0.7" opacity="0.4" />
-                            <line x1="50" y1="50" x2="70" y2="62" stroke="white" strokeWidth="0.7" opacity="0.4" />
-                            <line x1="50" y1="50" x2="50" y2="75" stroke="white" strokeWidth="0.7" opacity="0.4" />
-                            <line x1="50" y1="50" x2="30" y2="62" stroke="white" strokeWidth="0.7" opacity="0.4" />
-                            <line x1="50" y1="50" x2="30" y2="38" stroke="white" strokeWidth="0.7" opacity="0.4" />
-                            <text x="50" y="100" fontSize="7" fill="white" opacity="0.45" textAnchor="middle" fontFamily="serif">ARCANA</text>
-                          </svg>
+                          <TarotCardBackPattern />
                         </div>
 
                         {/* Remove number badge */}
@@ -288,10 +339,9 @@ export function TarotSpreadPage() {
 
       {/* BOTTOM SECTION - Ultra-Dense Horizontal Carousel (2/3 of screen) */}
       <div className="absolute bottom-0 left-0 right-0 z-30 h-[67%]">
-        {/* Gradient glow to indicate card mass */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-purple-500/10 via-transparent to-transparent" />
-        <div className="pointer-events-none absolute left-0 top-1/2 h-48 w-1/4 -translate-y-1/2 bg-gradient-to-r from-violet-500/8 to-transparent blur-2xl" />
-        <div className="pointer-events-none absolute right-0 top-1/2 h-48 w-1/4 -translate-y-1/2 bg-gradient-to-l from-violet-500/8 to-transparent blur-2xl" />
+        <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, var(--tarot-card-cover-glow) 0%, transparent 35%)', opacity: 0.4 }} />
+        <div className="pointer-events-none absolute left-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(90deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
+        <div className="pointer-events-none absolute right-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(270deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
 
         {/* Cards Container */}
         <div 
@@ -355,23 +405,21 @@ export function TarotSpreadPage() {
                   }}
                 >
                   <motion.div
-                    className={`overflow-hidden rounded-lg border bg-gradient-to-br from-purple-900/90 via-violet-800/85 to-purple-900/90 shadow-lg transition-all ${
-                      isCentered && !isSelected
-                        ? 'border-[#D4AF37]'
-                        : 'border-[#D4AF37]/20'
-                    }`}
+                    className="overflow-hidden rounded-lg border shadow-lg transition-all"
                     style={{
                       width: `${CARD_WIDTH}px`,
                       height: `${CARD_HEIGHT}px`,
+                      ...cardBackStyle,
+                      borderColor: isCentered && !isSelected ? 'var(--tarot-card-cover-border)' : 'color-mix(in srgb, var(--tarot-card-cover-border) 45%, transparent)',
                       boxShadow: isCentered && !isSelected
-                        ? '0 0 25px rgba(212, 175, 55, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.4)'
+                        ? '0 0 25px var(--tarot-card-cover-glow), inset 0 0 20px rgba(255,255,255,0.12)'
                         : '0 4px 12px rgba(0, 0, 0, 0.4)',
                     }}
                     whileHover={!isDragging && !isSelected ? { scale: 1.03 } : {}}
                     whileTap={!isDragging && !isSelected ? { scale: 0.97 } : {}}
                   >
                     {/* Glass effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.12] via-transparent to-white/[0.06]" />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
                     
                     {/* Center card glow */}
                     {isCentered && (
@@ -379,9 +427,9 @@ export function TarotSpreadPage() {
                         className="absolute inset-0 rounded-lg"
                         animate={{
                           boxShadow: [
-                            'inset 0 0 15px rgba(168, 85, 247, 0.35)',
-                            'inset 0 0 25px rgba(168, 85, 247, 0.55)',
-                            'inset 0 0 15px rgba(168, 85, 247, 0.35)',
+                            'inset 0 0 15px rgba(255,255,255,0.08)',
+                            'inset 0 0 25px var(--tarot-card-cover-glow)',
+                            'inset 0 0 15px rgba(255,255,255,0.08)',
                           ],
                         }}
                         transition={{
@@ -393,34 +441,22 @@ export function TarotSpreadPage() {
                     
                     {/* Card back pattern */}
                     <div className="absolute inset-0 flex items-center justify-center p-3">
-                      <svg className="h-full w-full" viewBox="0 0 100 140">
-                        <polygon points="50,25 70,38 70,62 50,75 30,62 30,38" fill="none" stroke="white" strokeWidth="1.2" opacity="0.45" />
-                        <polygon points="50,32 65,42 65,58 50,68 35,58 35,42" fill="none" stroke="white" strokeWidth="0.8" opacity="0.4" />
-                        <circle cx="50" cy="50" r="6" fill="white" opacity="0.55" />
-                        <circle cx="50" cy="50" r="3.5" fill="white" opacity="0.75" />
-                        <line x1="50" y1="50" x2="50" y2="25" stroke="white" strokeWidth="0.6" opacity="0.35" />
-                        <line x1="50" y1="50" x2="70" y2="38" stroke="white" strokeWidth="0.6" opacity="0.35" />
-                        <line x1="50" y1="50" x2="70" y2="62" stroke="white" strokeWidth="0.6" opacity="0.35" />
-                        <line x1="50" y1="50" x2="50" y2="75" stroke="white" strokeWidth="0.6" opacity="0.35" />
-                        <line x1="50" y1="50" x2="30" y2="62" stroke="white" strokeWidth="0.6" opacity="0.35" />
-                        <line x1="50" y1="50" x2="30" y2="38" stroke="white" strokeWidth="0.6" opacity="0.35" />
-                        <text x="50" y="100" fontSize="7" fill="white" opacity="0.4" textAnchor="middle" fontFamily="serif">ARCANA</text>
-                      </svg>
+                      <TarotCardBackPattern />
                     </div>
 
-                    {/* Gold edge highlight */}
-                    <div className="pointer-events-none absolute inset-0 rounded-lg border border-[#D4AF37]/12" />
+                    <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
 
                     {/* Center indicator */}
                     {isCentered && (
                       <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2">
                         <motion.div
-                          className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]"
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ backgroundColor: 'var(--tarot-point-color)' }}
                           animate={{
                             boxShadow: [
-                              '0 0 4px rgba(212, 175, 55, 0.5)',
-                              '0 0 8px rgba(212, 175, 55, 0.8)',
-                              '0 0 4px rgba(212, 175, 55, 0.5)',
+                              '0 0 4px var(--tarot-card-cover-glow)',
+                              '0 0 8px var(--tarot-card-cover-glow)',
+                              '0 0 4px var(--tarot-card-cover-glow)',
                             ],
                           }}
                           transition={{
@@ -446,19 +482,20 @@ export function TarotSpreadPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={handleConfirm}
-            className="group relative overflow-hidden rounded-full border border-[#D4AF37]/60 bg-gradient-to-br from-[#D4AF37]/50 via-amber-600/40 to-[#D4AF37]/50 px-6 py-2.5 backdrop-blur-xl transition-all hover:border-[#D4AF37]/80"
+            className="group relative overflow-hidden rounded-full border px-6 py-2.5 transition-all"
+            style={accentButtonStyle}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.2] via-transparent to-white/[0.1]" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.24) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
             
             <motion.div
               className="absolute inset-0 rounded-full"
               animate={{
                 boxShadow: [
-                  '0 0 18px rgba(212, 175, 55, 0.5), inset 0 0 18px rgba(212, 175, 55, 0.3)',
-                  '0 0 28px rgba(212, 175, 55, 0.7), inset 0 0 28px rgba(212, 175, 55, 0.5)',
-                  '0 0 18px rgba(212, 175, 55, 0.5), inset 0 0 18px rgba(212, 175, 55, 0.3)',
+                  '0 0 18px var(--tarot-card-cover-glow), inset 0 0 18px var(--tarot-card-cover-glow)',
+                  '0 0 28px var(--tarot-card-cover-glow), inset 0 0 28px var(--tarot-card-cover-glow)',
+                  '0 0 18px var(--tarot-card-cover-glow), inset 0 0 18px var(--tarot-card-cover-glow)',
                 ],
               }}
               transition={{
@@ -469,16 +506,15 @@ export function TarotSpreadPage() {
             />
 
             <div className="relative flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-white" />
-              <span className="text-sm font-bold text-white">운세 보기</span>
+              <Sparkles className="h-4 w-4" style={{ color: 'var(--tarot-text-main)' }} />
+              <span className="text-sm font-bold" style={{ color: 'var(--tarot-text-main)' }}>운세 보기</span>
             </div>
           </motion.button>
         )}
       </div>
 
-      {/* Instruction hint */}
       <div className="absolute bottom-20 left-0 right-0 z-10 text-center">
-        <p className="text-xs text-white/35">
+        <p className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>
           좌우로 드래그하여 카드를 탐색하세요
         </p>
       </div>
