@@ -108,6 +108,21 @@ const inputStyle = {
   color: 'var(--tarot-text-main)',
 };
 
+const sectorOptions = [
+  { label: '기술', value: 'TECHNOLOGY' },
+  { label: '금융', value: 'FINANCE' },
+  { label: '헬스케어', value: 'HEALTHCARE' },
+  { label: '에너지', value: 'ENERGY' },
+  { label: '소비재', value: 'CONSUMER' },
+  { label: '산업재', value: 'INDUSTRIAL' },
+  { label: '소재', value: 'MATERIALS' },
+  { label: '통신', value: 'TELECOMMUNICATION' },
+  { label: '부동산', value: 'REAL_ESTATE' },
+  { label: 'ETF', value: 'ETF' },
+];
+
+const sectorLabelMap = new Map(sectorOptions.map((sector) => [sector.value, sector.label]));
+
 export function MyPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<SessionUser | null>(() => getCurrentUser());
@@ -133,6 +148,7 @@ export function MyPage() {
     birthDate: '',
     birthTime: '',
     gender: '',
+    preferredSectors: [] as string[],
   });
 
   useEffect(() => {
@@ -223,6 +239,7 @@ export function MyPage() {
       gender,
       age,
       preferredSectors: user.preferredSectors,
+      preferredSectorLabels: user.preferredSectors.map((sector) => sectorLabelMap.get(sector) ?? sector),
       tokenExpiresAt: session ? new Date(session.tokens.accessTokenExpiresAt).toLocaleString() : '-',
       birthTarot: normalizedBirthTarot,
       saju: normalizedSaju,
@@ -262,6 +279,7 @@ export function MyPage() {
       birthDate: normalizeDateInputValue(user.birthDate),
       birthTime: normalizeTimeInputValue(user.birthTime),
       gender: normalizeGenderInputValue(user.gender),
+      preferredSectors: user.preferredSectors ?? [],
     });
   }, [user]);
 
@@ -325,6 +343,11 @@ export function MyPage() {
       return;
     }
 
+    if (profileEditDraft.preferredSectors.length === 0) {
+      setProfileEditError('선호 섹터를 하나 이상 선택해주세요.');
+      return;
+    }
+
     setProfileEditError('');
     setIsSavingProfile(true);
 
@@ -334,6 +357,7 @@ export function MyPage() {
         birthDate: profileEditDraft.birthDate || null,
         birthTime: profileEditDraft.birthTime || null,
         gender: profileEditDraft.gender || null,
+        preferredSectors: profileEditDraft.preferredSectors,
       });
 
       updateSessionUser(updatedUser);
@@ -346,6 +370,15 @@ export function MyPage() {
     } finally {
       setIsSavingProfile(false);
     }
+  };
+
+  const togglePreferredSector = (sector: string) => {
+    setProfileEditDraft((prev) => ({
+      ...prev,
+      preferredSectors: prev.preferredSectors.includes(sector)
+        ? prev.preferredSectors.filter((item) => item !== sector)
+        : [...prev.preferredSectors, sector],
+    }));
   };
 
   const handleNotificationToggle = async () => {
@@ -608,6 +641,41 @@ export function MyPage() {
                     <option value="M">남성</option>
                     <option value="F">여성</option>
                   </select>
+                </ProfileField>
+
+                <ProfileField label="선호 섹터">
+                  <div className="flex flex-wrap gap-2">
+                    {sectorOptions.map((sector) => {
+                      const selected = profileEditDraft.preferredSectors.includes(sector.value);
+                      return (
+                        <button
+                          key={sector.value}
+                          type="button"
+                          onClick={() => togglePreferredSector(sector.value)}
+                          className="rounded-full border px-4 py-2 text-xs transition-all"
+                          style={
+                            selected
+                              ? {
+                                  background: 'var(--app-accent-surface)',
+                                  borderColor: 'var(--app-accent-border-strong)',
+                                  color: 'var(--app-accent-text-soft)',
+                                  backdropFilter: 'var(--card-blur)',
+                                  WebkitBackdropFilter: 'var(--card-blur)',
+                                }
+                              : {
+                                  background: 'var(--card-surface)',
+                                  borderColor: 'var(--card-border)',
+                                  color: 'var(--app-text-muted)',
+                                  backdropFilter: 'var(--card-blur)',
+                                  WebkitBackdropFilter: 'var(--card-blur)',
+                                }
+                          }
+                        >
+                          {sector.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </ProfileField>
 
                 {profileEditError ? (
@@ -988,7 +1056,7 @@ export function MyPage() {
               <Shield className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
               <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>선호 섹터</span>
               <span className="max-w-[180px] text-right text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>
-                {userData.preferredSectors.join(', ') || '-'}
+                {userData.preferredSectorLabels.join(', ') || '-'}
               </span>
             </div>
             <div className="flex items-center gap-3 py-3">
