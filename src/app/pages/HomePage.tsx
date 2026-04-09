@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { getHomeSummary, type HomeSummaryResponse } from '@/lib/api';
 import { InvestmentGauge } from '../components/InvestmentGauge';
 import { StockAnalysisCard } from '../components/StockAnalysisCard';
-import { AIStrategyButton } from '../components/AIStrategyButton';
+import { TodayInvestmentTarotSection } from '../components/TodayInvestmentTarotSection';
 import { BottomNavigation } from '../components/BottomNavigation';
 
 export function HomePage() {
@@ -81,9 +81,9 @@ export function HomePage() {
           />
         </div>
 
-        {/* AI Strategy Button */}
+        {/* Today Investment Tarot */}
         <div className="mb-8">
-          <AIStrategyButton />
+          <TodayInvestmentTarotSection />
         </div>
       </div>
 

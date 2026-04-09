@@ -1,4 +1,4 @@
-import { Home, Sparkles, TrendingUp, MessageCircle, User } from 'lucide-react';
+import { Home, Sparkles, MessageCircle, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -29,7 +29,6 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   const tabs = [
     { id: 'home', label: '홈', icon: Home, path: '/home' },
     { id: 'oracle', label: '운세', icon: Sparkles, path: '/consultation' },
-    { id: 'stocks', label: '주식', icon: TrendingUp, path: '/home' },
     { id: 'consult', label: '상담', icon: MessageCircle, path: '/consultation-history' },
     { id: 'my', label: '마이', icon: User, path: '/my' },
   ];

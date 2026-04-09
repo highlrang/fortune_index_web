@@ -127,14 +127,13 @@ export function MyPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<SessionUser | null>(() => getCurrentUser());
   const [profileDetails, setProfileDetails] = useState<UserProfileDetailsResponse | null>(null);
-  const [session] = useState(() => getSession());
+  const session = getSession();
   const [showBirthTarot, setShowBirthTarot] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => resolveInitialThemePreference() === 'dark');
   const [showInquiry, setShowInquiry] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
-  const [virtualInvestmentEnabled, setVirtualInvestmentEnabled] = useState(false);
   const [selectedTarotDeckId, setSelectedTarotDeck] = useState(() => getSelectedTarotDeckId());
   const [tarotDeckVersions, setTarotDeckVersions] = useState(() => getCachedTarotDeckVersions());
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -240,11 +239,10 @@ export function MyPage() {
       age,
       preferredSectors: user.preferredSectors,
       preferredSectorLabels: user.preferredSectors.map((sector) => sectorLabelMap.get(sector) ?? sector),
-      tokenExpiresAt: session ? new Date(session.tokens.accessTokenExpiresAt).toLocaleString() : '-',
       birthTarot: normalizedBirthTarot,
       saju: normalizedSaju,
     };
-  }, [profileDetails, session, user]);
+  }, [profileDetails, user]);
 
   useEffect(() => {
     if (typeof user?.notificationEnabled === 'boolean') {
@@ -252,9 +250,6 @@ export function MyPage() {
     }
     if (typeof user?.darkModeEnabled === 'boolean' && !hasStoredThemePreference()) {
       setIsDarkMode(user.darkModeEnabled);
-    }
-    if (typeof user?.virtualInvestmentEnabled === 'boolean') {
-      setVirtualInvestmentEnabled(user.virtualInvestmentEnabled);
     }
   }, [user]);
 
@@ -462,35 +457,6 @@ export function MyPage() {
       updateSessionUser(previousUser);
       setSettingsSaveError(
         error instanceof Error ? error.message : '투자 성향 저장 중 오류가 발생했습니다.',
-      );
-    } finally {
-      setIsSavingSettings(false);
-    }
-  };
-
-  const handleVirtualInvestmentToggle = async () => {
-    if (!user || isSavingSettings) return;
-
-    const nextValue = !virtualInvestmentEnabled;
-    const previousUser = user;
-    const optimisticUser = { ...user, virtualInvestmentEnabled: nextValue };
-
-    setSettingsSaveError('');
-    setVirtualInvestmentEnabled(nextValue);
-    setUser(optimisticUser);
-    updateSessionUser(optimisticUser);
-    setIsSavingSettings(true);
-
-    try {
-      const updatedUser = await updateMyProfile({ virtualInvestmentEnabled: nextValue });
-      updateSessionUser(updatedUser);
-      setUser(updatedUser);
-    } catch (error) {
-      setVirtualInvestmentEnabled(previousUser.virtualInvestmentEnabled ?? false);
-      setUser(previousUser);
-      updateSessionUser(previousUser);
-      setSettingsSaveError(
-        error instanceof Error ? error.message : '가상 투자 수익률 설정 저장 중 오류가 발생했습니다.',
       );
     } finally {
       setIsSavingSettings(false);
@@ -1059,11 +1025,6 @@ export function MyPage() {
                 {userData.preferredSectorLabels.join(', ') || '-'}
               </span>
             </div>
-            <div className="flex items-center gap-3 py-3">
-              <Info className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
-              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>토큰 만료</span>
-              <span className="max-w-[180px] text-right text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>{userData.tokenExpiresAt}</span>
-            </div>
           </div>
         </motion.div>
 
@@ -1202,14 +1163,6 @@ export function MyPage() {
               label="화면 모드"
               enabled={isDarkMode}
               onToggle={handleThemeToggle}
-              disabled={isSavingSettings}
-            />
-
-            <SettingToggle
-              icon={TrendingUp}
-              label="가상 투자 수익률"
-              enabled={virtualInvestmentEnabled}
-              onToggle={handleVirtualInvestmentToggle}
               disabled={isSavingSettings}
             />
 
