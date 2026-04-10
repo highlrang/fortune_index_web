@@ -79,10 +79,10 @@ const iconByKey = {
 } as const;
 
 const titleByMode = {
-  ONLY_STOCK: '투자 운세 결과',
-  STOCK_SAJU: '투자 사주 결과',
-  STOCK_TAROT: '투자 타로 결과',
-  STOCK_ALL: '투자 종합 결과',
+  ONLY_STOCK: '오늘의 해석',
+  STOCK_SAJU: '사주 해석',
+  STOCK_TAROT: '타로 해석',
+  STOCK_ALL: '종합 해석',
 } as const;
 
 export function InvestmentResultPage() {
@@ -98,6 +98,7 @@ export function InvestmentResultPage() {
     if (!consultResult) return [];
 
     return Object.entries(consultResult.ai.analysisResults)
+      .filter(([key]) => key !== 'market_analysis')
       .filter(([, value]) => value?.content)
       .map(([key, value]) => ({
         key,
@@ -117,9 +118,9 @@ export function InvestmentResultPage() {
     if (!consultResult?.evidence) return [];
 
     return [
-      { label: '시세 기준', value: consultResult.evidence.market?.asOf, status: consultResult.evidence.market?.status },
-      { label: '평단 기준', value: consultResult.evidence.position?.asOf, status: consultResult.evidence.position?.status },
-      { label: '뉴스 기준', value: consultResult.evidence.news?.asOf, status: consultResult.evidence.news?.status },
+      { label: '지금 흐름', value: consultResult.evidence.market?.asOf, status: consultResult.evidence.market?.status },
+      { label: '내 기록', value: consultResult.evidence.position?.asOf, status: consultResult.evidence.position?.status },
+      { label: '최근 이야기', value: consultResult.evidence.news?.asOf, status: consultResult.evidence.news?.status },
     ].filter((item) => item.value || item.status);
   }, [consultResult]);
   const sourceCount = consultResult?.evidence?.news?.sourceCount ?? consultResult?.evidence?.market?.sourceCount;
@@ -197,7 +198,7 @@ export function InvestmentResultPage() {
                     <ShieldAlert className="h-4 w-4" style={{ color: 'var(--app-danger-text)' }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold" style={{ color: 'var(--app-danger-text)' }}>최신 근거가 충분하지 않아 답변이 제한되었습니다.</p>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--app-danger-text)' }}>지금은 또렷한 흐름이 적어 간단히만 전해드려요.</p>
                     <p className="mt-2 text-xs leading-6" style={{ color: 'var(--app-text-soft)' }}>
                       {consultResult.limitations?.[0]?.message ?? deriveLimitedMessage(consultResult)}
                     </p>
@@ -214,7 +215,7 @@ export function InvestmentResultPage() {
                         className="rounded-full border px-4 py-2 text-xs"
                         style={subtleButtonStyle}
                       >
-                        일반 조언 다시 보기
+                        다시 보기
                       </button>
                     </div>
                   </div>
@@ -229,7 +230,7 @@ export function InvestmentResultPage() {
                 <div className="mb-4 flex items-center justify-center gap-2">
                   <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-point-color)' }} />
                   <h2 className="text-center text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--app-accent-text-soft)' }}>
-                    투자 확신 점수
+                    오늘의 자신감
                   </h2>
                 </div>
 
@@ -250,7 +251,7 @@ export function InvestmentResultPage() {
                 </div>
 
                 <p className="text-center text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
-                  {confidenceScore >= 80 ? '매우 긍정적인 흐름' : confidenceScore >= 60 ? '긍정적인 흐름' : '신중한 접근 필요'}
+                  {confidenceScore >= 80 ? '마음 편히 가도 좋은 흐름' : confidenceScore >= 60 ? '차분하게 가면 괜찮은 흐름' : '조금 천천히 보는 편이 좋아요'}
                 </p>
               </div>
             </div>
@@ -282,7 +283,7 @@ export function InvestmentResultPage() {
                       <p className="text-sm font-medium">이 상담 이어서 질문하기</p>
                     </div>
                     <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-soft)' }}>
-                      이전 흐름은 이어지지만 시세, 뉴스, 평균단가는 다음 요청에서 다시 확인합니다.
+                      지난 이야기는 이어지고, 필요한 내용은 다음 질문에서 다시 살펴봐요.
                     </p>
                     <button
                       onClick={() =>
@@ -316,7 +317,7 @@ export function InvestmentResultPage() {
               <div className="rounded-2xl p-6" style={glassCardStyle}>
                 <div className="mb-4 flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" style={{ color: 'var(--app-info-text)' }} />
-                  <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>이번 답변의 근거</h3>
+                  <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>함께 참고한 내용</h3>
                 </div>
 
                 <div className="mb-4 flex flex-wrap gap-2">
@@ -367,7 +368,7 @@ export function InvestmentResultPage() {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
-                        <p className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>{section.key}</p>
+                        <p className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
                       </div>
                     </div>
 
@@ -432,7 +433,7 @@ export function InvestmentResultPage() {
 
                 <div className="relative">
                   <h3 className="mb-5 text-center text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>삭제 확인</h3>
-                  <p className="text-center text-sm" style={{ color: 'var(--app-text-soft)' }}>이 투자 운세 결과를 닫고 홈으로 이동할까요?</p>
+                  <p className="text-center text-sm" style={{ color: 'var(--app-text-soft)' }}>이 해석을 닫고 홈으로 돌아갈까요?</p>
 
                   <div className="mt-6 flex items-center justify-center space-x-4">
                     <button
@@ -472,7 +473,7 @@ function EvidenceBadge({ label, status }: { label: string; status: EvidenceFresh
 }
 
 function getEvidenceBadgeLabel(kind: 'market' | 'news' | 'position', status: EvidenceFreshnessStatus) {
-  const target = kind === 'market' ? '실시간 시세' : kind === 'news' ? '최신 뉴스' : '평단 최신 조회';
+  const target = kind === 'market' ? '지금 흐름' : kind === 'news' ? '최근 이야기' : '내 기록';
   if (status === 'FRESH') return `${target} 반영`;
   if (status === 'PARTIAL') return `${target} 일부 반영`;
   if (status === 'STALE') return `${target} 지연`;
@@ -497,13 +498,13 @@ function formatEvidenceDate(value?: string, status?: EvidenceFreshnessStatus) {
 
 function deriveLimitedMessage(consultResult: ConsultResponse) {
   if (consultResult.evidence?.market?.status === 'UNAVAILABLE' || consultResult.evidence?.market?.status === 'STALE') {
-    return '최신 시세를 확인하지 못해 지금 매수/매도 판단을 단정할 수 없습니다.';
+    return '지금 흐름이 또렷하지 않아 확실한 방향을 바로 전하기 어려웠어요.';
   }
   if (consultResult.evidence?.news?.status === 'UNAVAILABLE' || consultResult.evidence?.news?.status === 'STALE') {
-    return '최신 뉴스 근거를 확보하지 못해 이슈 기반 해석은 보류했습니다.';
+    return '최근 이야기가 충분하지 않아 그 부분 해석은 조금 줄였어요.';
   }
   if (consultResult.evidence?.position?.status === 'UNAVAILABLE' || consultResult.evidence?.position?.status === 'STALE') {
-    return '평균단가 최신값을 읽지 못해 평단 기준 조언은 제공하지 않습니다.';
+    return '내 기록을 바로 확인하지 못해 그 부분은 넓게 봐드렸어요.';
   }
-  return '최신 근거가 충분하지 않아 투자 판단을 제한했습니다.';
+  return '지금 참고할 정보가 충분하지 않아 해석을 조금 가볍게 전해드렸어요.';
 }

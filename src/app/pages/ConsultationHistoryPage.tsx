@@ -422,7 +422,6 @@ function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse
       model: '-',
       mode: detail.mode,
       analysisResults: {
-        market_analysis: { title: '시장 분석', content: detail.marketAnalysisText },
         tarot_analysis: { title: '타로 분석', content: detail.tarotAnalysisText ?? '' },
         saju_analysis: { title: '사주 분석', content: detail.sajuAnalysisText ?? '' },
       },

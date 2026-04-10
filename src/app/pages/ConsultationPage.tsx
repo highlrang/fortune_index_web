@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, TrendingUp, Star, Sparkles, Layers } from 'lucide-react';
+import { ArrowLeft, Star, Sparkles, Layers } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import {
@@ -25,34 +25,33 @@ type ConsultationFlowState = {
 };
 
 const consultationTypes = [
-  { id: 'market', label: '시장 흐름', icon: TrendingUp, color: 'from-cyan-500/20 to-blue-500/20' },
-  { id: 'saju', label: '사주 궁합', icon: Star, color: 'from-amber-500/20 to-yellow-500/20' },
-  { id: 'tarot', label: '타로 리딩', icon: Sparkles, color: 'from-purple-500/20 to-violet-500/20' },
-  { id: 'comprehensive', label: '종합 해석', icon: Layers, color: 'from-rose-500/20 to-pink-500/20' },
+  { id: 'saju', label: '사주', icon: Star, color: 'from-amber-500/20 to-yellow-500/20' },
+  { id: 'tarot', label: '타로', icon: Sparkles, color: 'from-purple-500/20 to-violet-500/20' },
+  { id: 'comprehensive', label: '종합', icon: Layers, color: 'from-rose-500/20 to-pink-500/20' },
 ];
 
 const fallbackScenarios: ScenarioOptionResponse[] = [
-  { code: 'TIMING_ENTRY', title: '타이밍', description: '지금 진입해도 되는지 흐름을 확인합니다.' },
-  { code: 'TIMING_EXIT', title: '타이밍', description: '익절 또는 손절 시점을 살핍니다.' },
-  { code: 'SAJU_MATCH', title: '궁합', description: '내 사주와 종목 또는 섹터의 궁합을 확인합니다.' },
-  { code: 'RESCUE_PLAN', title: '전략', description: '물린 종목과 하락 구간의 대응 전략을 정리합니다.' },
-  { code: 'MENTAL_GUIDE', title: '심리', description: '불안한 투자 심리를 다잡고 흐름을 정리합니다.' },
+  { code: 'TIMING_ENTRY', title: '시작', description: '지금 시작해도 괜찮은지 살펴봐요.' },
+  { code: 'TIMING_EXIT', title: '정리', description: '지금 멈추거나 정리해도 괜찮은지 봐요.' },
+  { code: 'SAJU_MATCH', title: '궁합', description: '내 사주와 잘 맞는 흐름인지 확인해요.' },
+  { code: 'RESCUE_PLAN', title: '회복', description: '답답한 상황을 어떻게 풀면 좋을지 정리해요.' },
+  { code: 'MENTAL_GUIDE', title: '마음', description: '불안한 마음을 가라앉히고 방향을 정리해요.' },
 ];
 
 const scenarioLabelByCode: Record<string, string> = {
-  TIMING_ENTRY: '타이밍',
-  TIMING_EXIT: '타이밍',
+  TIMING_ENTRY: '시작',
+  TIMING_EXIT: '정리',
   SAJU_MATCH: '궁합',
-  RESCUE_PLAN: '전략',
-  MENTAL_GUIDE: '심리',
+  RESCUE_PLAN: '회복',
+  MENTAL_GUIDE: '마음',
 };
 
 const questionPlaceholderByScenario: Record<string, string> = {
-  TIMING_ENTRY: '예: 삼성전자 지금 들어가도 될까요?',
-  TIMING_EXIT: '예: 이 종목 지금 익절하는 게 좋을까요?',
-  SAJU_MATCH: '예: 제 사주에 2차전지주는 잘 맞을까요?',
-  RESCUE_PLAN: '예: -18% 손실 중인데 지금은 어떤 전략으로 대응하면 좋을까요?',
-  MENTAL_GUIDE: '예: 하락장이 길어져 불안한데 지금 제 투자 심리를 어떻게 다잡으면 좋을까요?',
+  TIMING_ENTRY: '예: 지금 시작해도 괜찮을까요?',
+  TIMING_EXIT: '예: 지금은 잠시 멈추는 게 좋을까요?',
+  SAJU_MATCH: '예: 제 사주에 지금 이 흐름이 잘 맞을까요?',
+  RESCUE_PLAN: '예: 요즘 계속 꼬이는데 어떻게 풀어가면 좋을까요?',
+  MENTAL_GUIDE: '예: 마음이 불안한데 지금은 어떤 태도로 보면 좋을까요?',
 };
 
 const modeByType = {
@@ -63,7 +62,7 @@ const modeByType = {
 } as const;
 
 const DEFAULT_STOCK_CODE = '000000';
-const DEFAULT_STOCK_NAME = '시장 전체';
+const DEFAULT_STOCK_NAME = '오늘의 흐름';
 
 export function ConsultationPage() {
   const navigate = useNavigate();
@@ -89,8 +88,8 @@ export function ConsultationPage() {
   );
 
   const questionPlaceholder = selectedScenario
-    ? `편하게 질문해주세요\n${questionPlaceholderByScenario[selectedScenario] ?? '예: 지금 제 투자 흐름은 어떤가요?'}`
-    : '편하게 질문해주세요\n예: 삼성전자 지금 들어가도 될까요?';
+    ? `편하게 질문해주세요\n${questionPlaceholderByScenario[selectedScenario] ?? '예: 지금 제 흐름은 어떤가요?'}`
+    : '편하게 질문해주세요\n예: 지금 제 흐름은 어떤가요?';
   const visibleScenarios = scenarios.filter((scenario, index, list) => {
     const label = scenarioLabelByCode[scenario.code] ?? scenario.title;
     return list.findIndex((item) => (scenarioLabelByCode[item.code] ?? item.title) === label) === index;
@@ -192,13 +191,13 @@ export function ConsultationPage() {
           </button>
           <div>
             <h1 className="text-xl font-medium fi-text-main">해석</h1>
-            <p className="text-xs fi-text-muted">궁금한 투자 흐름을 가볍게 물어보세요</p>
+            <p className="text-xs fi-text-muted">지금 마음에 걸리는 걸 편하게 물어보세요</p>
           </div>
         </div>
 
         <div className="mb-8">
-          <h2 className="mb-4 text-sm font-medium fi-text-muted">상담 유형 선택</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="mb-4 text-sm font-medium fi-text-muted">어떤 방식으로 볼까요?</h2>
+          <div className="grid grid-cols-3 gap-2.5">
             {consultationTypes.map((type) => {
               const Icon = type.icon;
               const isSelected = selectedType === type.id;
@@ -207,7 +206,7 @@ export function ConsultationPage() {
                 <motion.button
                   key={type.id}
                   onClick={() => setSelectedType(type.id as ConsultationType)}
-                  className="relative overflow-hidden rounded-2xl border p-5 transition-all"
+                  className="relative overflow-hidden rounded-2xl border px-3 py-4 transition-all"
                   style={
                     isSelected
                       ? {
@@ -228,9 +227,9 @@ export function ConsultationPage() {
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
 
-                  <div className="relative flex flex-col items-center gap-3">
-                    <div className={`rounded-xl bg-gradient-to-br p-3 ${type.color}`}>
-                      <Icon className="h-6 w-6" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-icon-muted)' }} />
+                  <div className="relative flex flex-col items-center gap-2">
+                    <div className={`rounded-xl bg-gradient-to-br p-2.5 ${type.color}`}>
+                      <Icon className="h-5 w-5" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-icon-muted)' }} />
                     </div>
                     <span className="text-sm font-medium" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-text-soft)' }}>
                       {type.label}
@@ -243,7 +242,7 @@ export function ConsultationPage() {
         </div>
 
         <div className="mb-6">
-          <h2 className="mb-4 text-sm font-medium fi-text-muted">보고 싶은 흐름</h2>
+          <h2 className="mb-4 text-sm font-medium fi-text-muted">무엇이 가장 궁금한가요?</h2>
           <div className="flex flex-wrap gap-2.5">
             {visibleScenarios.map((scenario) => {
               const isSelected = selectedScenario === scenario.code;
@@ -386,11 +385,11 @@ export function ConsultationPage() {
             >
               {isSubmitting
                 ? selectedResumeThreadId
-                  ? '질문 분석과 최신 근거 확인 중...'
+                  ? '이전 이야기와 함께 다시 보고 있어요...'
                   : '해석 중...'
                 : selectedType === 'tarot' || selectedType === 'comprehensive'
-                  ? '질문을 들고 타로 카드 뽑기'
-                  : '해석 받기'}
+                  ? '질문 들고 카드 뽑기'
+                  : '해석 보기'}
             </span>
           </div>
 
@@ -411,7 +410,7 @@ function mapHistoryItemToThreadCard(item: ConsultingHistoryListItemResponse): Re
   return {
     id,
     title,
-    summary: item.lastQuestionSummary ?? item.aiSummary ?? '이전 상담 흐름을 다시 확인하세요.',
+    summary: item.lastQuestionSummary ?? item.aiSummary ?? '이전 이야기를 다시 확인해보세요.',
     consultedAt: item.consultedAt,
     status,
     lastEvidenceUpdatedAt: item.lastEvidenceUpdatedAt,

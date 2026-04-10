@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getHomeSummary, type HomeSummaryResponse } from '@/lib/api';
 import { InvestmentGauge } from '../components/InvestmentGauge';
-import { StockAnalysisCard } from '../components/StockAnalysisCard';
-import { TodayInvestmentTarotSection } from '../components/TodayInvestmentTarotSection';
+import { HomeFortuneJourneySection } from '../components/HomeFortuneJourneySection';
 import { BottomNavigation } from '../components/BottomNavigation';
 
 export function HomePage() {
@@ -12,7 +11,6 @@ export function HomePage() {
   const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const preferredMarket = summary?.investmentIndex.market.code === 'NASDAQ' ? 'foreign' : 'domestic';
 
   useEffect(() => {
     let active = true;
@@ -71,19 +69,8 @@ export function HomePage() {
           />
         </div>
 
-        {/* Stock Analysis Cards */}
         <div className="mb-8">
-          <StockAnalysisCard
-            data={summary?.stocks}
-            isLoading={isLoading}
-            error={error}
-            preferredMarket={preferredMarket}
-          />
-        </div>
-
-        {/* Today Investment Tarot */}
-        <div className="mb-8">
-          <TodayInvestmentTarotSection />
+          <HomeFortuneJourneySection />
         </div>
       </div>
 
