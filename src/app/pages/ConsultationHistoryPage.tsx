@@ -383,15 +383,18 @@ function getTypeColor(type: ConsultationType) {
 }
 
 function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse): ConsultResponse {
+  const stock = detail.stock;
+  const stockName = stock?.companyName?.trim() || '종목 정보 없음';
+
   return {
     mode: detail.mode,
     stock: {
-      code: detail.stock.ticker,
-      name: detail.stock.companyName,
-      currentPrice: detail.stock.marketPrice,
-      changeRate: detail.stock.changeRate,
+      code: stock?.ticker ?? '',
+      name: stockName,
+      currentPrice: stock?.marketPrice ?? 0,
+      changeRate: stock?.changeRate ?? 0,
       sector: '-',
-      fallback: false,
+      fallback: !stock,
     },
     saju: detail.saju
       ? {
@@ -422,6 +425,7 @@ function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse
       model: '-',
       mode: detail.mode,
       analysisResults: {
+        market_analysis: { title: '시장 분석', content: detail.marketAnalysisText ?? '' },
         tarot_analysis: { title: '타로 분석', content: detail.tarotAnalysisText ?? '' },
         saju_analysis: { title: '사주 분석', content: detail.sajuAnalysisText ?? '' },
       },
@@ -441,7 +445,7 @@ function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse
     },
     thread: {
       id: detail.threadId,
-      title: detail.stock.companyName,
+      title: stockName,
       lastQuestionSummary: detail.question,
       lastAnsweredAt: detail.consultedAt,
       status: detail.threadStatus,

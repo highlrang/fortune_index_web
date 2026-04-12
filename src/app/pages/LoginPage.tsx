@@ -53,7 +53,7 @@ export function LoginPage() {
         {/* Footer */}
         <div className="mt-16 text-center">
           <p className="text-xs fi-text-subtle">
-            © 2024 Stock Oracle. All rights reserved.
+            © 2026 Stock Oracle. All rights reserved.
           </p>
         </div>
       </div>

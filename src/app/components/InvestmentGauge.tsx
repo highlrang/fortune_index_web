@@ -1,6 +1,7 @@
-import { Flame, Sparkles, Activity, CheckCircle2, CircleSlash, CloudDrizzle } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Flame, Sparkles, Activity, CheckCircle2, CircleSlash, CloudDrizzle, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { HomeInvestmentIndexResponse } from '@/lib/api';
 import { Skeleton } from './ui/skeleton';
 
@@ -42,6 +43,7 @@ export function InvestmentGauge({
   error = '',
 }: InvestmentGaugeProps) {
   const [selectedSituation, setSelectedSituation] = useState<SituationOption>(null);
+  const [isSituationDrawerOpen, setIsSituationDrawerOpen] = useState(false);
   const selectedSituationMeta =
     situationOptions.find((option) => option.id === selectedSituation) ?? null;
   const sourceScores = [
@@ -108,13 +110,6 @@ export function InvestmentGauge({
             </motion.div>
           )}
 
-          {!isLoading && data ? (
-            <p className="mt-3 text-center text-[11px] leading-5 fi-text-muted">
-              사주 {data.fortune.score}점 · 타로 {data.tarot.score}점
-              {selectedSituationMeta ? ` · 내 상태 ${selectedSituationMeta.score}점` : ' · 내 상태를 더하면 3가지로 함께 봐드려요'}
-            </p>
-          ) : null}
-
           {error ? <p className="mt-3 text-center text-xs fi-text-accent">{error}</p> : null}
         </div>
 
@@ -160,63 +155,183 @@ export function InvestmentGauge({
               </>
             ) : (
               <>
-                <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--glow-purple)' }}>오늘의 타로</p>
+                <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--app-info-text)' }}>오늘의 타로</p>
                 <div className="flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>
                   <Sparkles className="h-4 w-4" />
                   {data.tarot.cardName}
                 </div>
                 <div className="mt-1 flex items-center gap-1">
-                  <div className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+                  <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--app-info-border)' }} />
                   <span className="text-[10px] fi-status-text-info">{data.tarot.score}점</span>
                 </div>
               </>
             )}
           </div>
 
+          <button
+            type="button"
+            onClick={() => setIsSituationDrawerOpen(true)}
+            className="fi-glass flex flex-col items-center gap-2 rounded-xl p-3 text-center transition-all hover:bg-white/[0.04]"
+          >
+            <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--app-info-text)' }}>
+              투자 컨디션
+            </p>
+            <div className="flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>
+              <Activity className="h-4 w-4" />
+              {selectedSituationMeta ? selectedSituationMeta.shortLabel : '선택하기'}
+            </div>
+            <div className="mt-1 flex items-center gap-1">
+              <div
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: selectedSituationMeta ? 'var(--app-info-border)' : 'var(--app-text-subtle)' }}
+              />
+              <span className="text-[10px]" style={{ color: selectedSituationMeta ? 'var(--app-info-text)' : 'var(--app-text-subtle)' }}>
+                {selectedSituationMeta ? `${selectedSituationMeta.score}점` : '점수 반영'}
+              </span>
+            </div>
+          </button>
         </div>
 
-        <div className="mt-4 rounded-2xl border p-4" style={{ borderWidth: 'var(--app-hairline-border)', borderStyle: 'solid', borderColor: 'var(--card-border)', background: 'color-mix(in srgb, var(--bg-main) 88%, transparent)' }}>
-          <div className="mb-3 flex items-center gap-2">
-            <Activity className="h-4 w-4 fi-text-muted" />
-            <p className="text-sm font-medium fi-text-main">지금 내 상태</p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {situationOptions.map((option) => {
-              const Icon = option.icon;
-              const isSelected = selectedSituation === option.id;
-
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setSelectedSituation((current) => (current === option.id ? null : option.id))}
-                  className="rounded-2xl border px-3 py-3 text-center transition-all"
-                  style={{
-                    borderWidth: 'var(--app-hairline-border)',
-                    borderStyle: 'solid',
-                    borderColor: isSelected ? 'var(--app-accent-border-strong)' : 'var(--card-border)',
-                    background: isSelected
-                      ? 'linear-gradient(135deg, var(--app-accent-surface) 0%, transparent 100%)'
-                      : 'var(--card-surface)',
-                    color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-text-soft)',
-                  }}
-                >
-                  <div className="mb-2 flex justify-center">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="text-xs font-medium">{option.shortLabel}</div>
-                  <div className="mt-1 text-[10px] fi-text-subtle">{option.score}점</div>
-                </button>
-              );
-            })}
-          </div>
-
-          <p className="mt-3 text-xs leading-5 fi-text-muted">
-            내 상태를 고르면 사주, 타로와 함께 3가지로 보고, 고르지 않으면 사주와 타로 2가지로만 점수를 보여드려요.
-          </p>
-        </div>
       </div>
+
+      {typeof document !== 'undefined'
+        ? createPortal(
+            <AnimatePresence>
+              {isSituationDrawerOpen ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-end justify-center px-4 pt-8 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] backdrop-blur-sm"
+                  style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
+                  onClick={() => setIsSituationDrawerOpen(false)}
+                >
+                  <motion.div
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '100%' }}
+                    transition={{ type: 'spring', damping: 30 }}
+                    className="relative flex max-h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-3xl border backdrop-blur-xl"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, color-mix(in srgb, var(--app-modal-bg) 82%, transparent) 0%, color-mix(in srgb, var(--app-surface-bg-strong) 92%, transparent) 100%)',
+                      borderColor: 'var(--app-surface-border)',
+                      boxShadow: '0 -24px 80px rgba(5, 7, 16, 0.4)',
+                    }}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div
+                      className="absolute inset-x-0 top-0 h-24 opacity-80"
+                      style={{
+                        background:
+                          'radial-gradient(circle at top, var(--app-accent-glow) 0%, transparent 72%)',
+                      }}
+                    />
+
+                    <div className="relative flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.24em]" style={{ color: 'var(--app-accent-text-soft)' }}>
+                          Investment Flow
+                        </p>
+                        <h3 className="mt-1 text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>
+                          투자 컨디션 선택
+                        </h3>
+                        <p className="mt-1 text-xs" style={{ color: 'var(--app-text-muted)' }}>
+                          지금 내 흐름에 가까운 상태를 골라 점수에 반영하세요.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsSituationDrawerOpen(false)}
+                        className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+                        style={{ backgroundColor: 'var(--app-surface-bg)' }}
+                        aria-label="투자 컨디션 선택 닫기"
+                      >
+                        <X className="h-4 w-4" style={{ color: 'var(--app-icon-muted)' }} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-3 overflow-y-auto px-6 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+                      {situationOptions.map((option) => {
+                        const Icon = option.icon;
+                        const isSelected = selectedSituation === option.id;
+
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSituation((current) => (current === option.id ? null : option.id));
+                              setIsSituationDrawerOpen(false);
+                            }}
+                            className="relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left transition-all"
+                            style={{
+                              borderWidth: isSelected ? '1px' : 'var(--app-hairline-border)',
+                              borderStyle: 'solid',
+                              borderColor: isSelected ? 'var(--app-accent-border-strong)' : 'var(--app-surface-border)',
+                              background: isSelected
+                                ? 'linear-gradient(135deg, var(--app-accent-surface) 0%, color-mix(in srgb, var(--app-surface-bg) 88%, transparent) 100%)'
+                                : 'color-mix(in srgb, var(--app-surface-bg) 92%, transparent)',
+                              boxShadow: isSelected
+                                ? '0 18px 36px rgba(5, 7, 16, 0.22)'
+                                : '0 12px 28px rgba(5, 7, 16, 0.12)',
+                            }}
+                          >
+                            <div
+                              className="absolute right-0 top-0 h-20 w-20 rounded-full blur-2xl"
+                              style={{
+                                background: isSelected ? 'var(--app-accent-glow)' : 'transparent',
+                                opacity: 0.9,
+                              }}
+                            />
+                            <div className="relative flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                                  style={{
+                                    borderWidth: 'var(--app-hairline-border)',
+                                    borderStyle: 'solid',
+                                    borderColor: isSelected ? 'var(--app-accent-border)' : 'var(--app-surface-divider)',
+                                    background: isSelected ? 'var(--app-accent-surface)' : 'var(--app-surface-bg)',
+                                    color: isSelected ? 'var(--app-accent-text-strong)' : 'var(--app-icon-muted)',
+                                  }}
+                                >
+                                  <Icon className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <div
+                                    className="text-sm font-medium"
+                                    style={{ color: isSelected ? 'var(--app-accent-text-strong)' : 'var(--app-text-soft)' }}
+                                  >
+                                    {option.label}
+                                  </div>
+                                  <div className="mt-1 text-xs" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-text-subtle)' }}>
+                                    {option.score}점 반영
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                className="h-3 w-3 rounded-full border"
+                                style={{
+                                  borderWidth: 'var(--app-hairline-border)',
+                                  borderStyle: 'solid',
+                                  borderColor: isSelected ? 'var(--app-accent-border-strong)' : 'var(--app-surface-divider)',
+                                  background: isSelected ? 'var(--app-accent-text-soft)' : 'transparent',
+                                  boxShadow: isSelected ? '0 0 0 4px var(--app-accent-surface)' : 'none',
+                                }}
+                              />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

@@ -131,9 +131,6 @@ export function HomeFortuneJourneySection() {
                 지금 분위기, 놓치기 쉬운 부분, 마지막 한마디까지 세 장으로 가볍게 볼 수 있어요.
               </p>
             </div>
-            <div className="rounded-full border px-3 py-1 text-[11px] font-medium fi-text-subtle" style={{ borderColor: 'var(--card-border)' }}>
-              1분 내외
-            </div>
           </div>
 
           <div className="mb-5 flex items-end justify-center gap-3 py-3">

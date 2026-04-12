@@ -2,6 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
+import { toast } from 'sonner';
+import {
+  getTarotDeckCards,
+  resolveApiAssetUrl,
+  type TarotDeckCardResponse,
+} from '@/lib/api';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
 type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
@@ -78,7 +84,12 @@ export function TarotSpreadPage() {
   const tarotDeckVersionId =
     (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
-  const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const [selectedCards, setSelectedCards] = useState<Array<number | null>>(
+    Array.from({ length: MAX_SELECTIONS }, () => null),
+  );
+  const [cardPreviewMap, setCardPreviewMap] = useState<
+    Record<number, { imageSrc?: string; label: string }>
+  >({});
   const [isDragging, setIsDragging] = useState(false);
   const scrollX = useMotionValue(0);
   const constraintsRef = useRef<HTMLDivElement>(null);
@@ -93,6 +104,8 @@ export function TarotSpreadPage() {
 
   const [currentCenterIndex, setCurrentCenterIndex] = useState(0);
 
+  const selectedCardIds = selectedCards.filter((cardId): cardId is number => cardId !== null);
+
   useEffect(() => {
     const unsubscribe = centerCardIndex.on('change', (latest) => {
       setCurrentCenterIndex(latest);
@@ -100,25 +113,74 @@ export function TarotSpreadPage() {
     return () => unsubscribe();
   }, [centerCardIndex]);
 
+  useEffect(() => {
+    let active = true;
+
+    getTarotDeckCards(tarotDeckVersionId)
+      .then((response) => {
+        if (!active || response.length === 0) return;
+
+        const nextPreviewMap: Record<number, { imageSrc?: string; label: string }> = {};
+
+        response.forEach((card: TarotDeckCardResponse) => {
+          const preview = {
+            imageSrc: resolveApiAssetUrl(card.imageUrl) ?? undefined,
+            label: card.koreanName ?? card.name,
+          };
+
+          const candidateIndexes = [card.selectedIndex, card.sortOrder, card.sortOrder - 1]
+            .filter((value, index, array) => array.indexOf(value) === index)
+            .filter((value) => value >= 0 && value < TOTAL_CARDS);
+
+          candidateIndexes.forEach((candidateIndex) => {
+            const existing = nextPreviewMap[candidateIndex];
+            if (!existing || (!existing.imageSrc && preview.imageSrc)) {
+              nextPreviewMap[candidateIndex] = preview;
+            }
+          });
+        });
+
+        setCardPreviewMap(nextPreviewMap);
+      })
+      .catch(() => {
+        if (active) {
+          setCardPreviewMap({});
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [tarotDeckVersionId]);
+
   // Select/deselect card
   const toggleCardSelection = (cardId: number) => {
-    if (selectedCards.includes(cardId)) {
-      setSelectedCards(selectedCards.filter((value) => value !== cardId));
-    } else if (selectedCards.length < MAX_SELECTIONS) {
-      setSelectedCards([...selectedCards, cardId]);
+    const existingSlotIndex = selectedCards.findIndex((value) => value === cardId);
+
+    if (existingSlotIndex !== -1) {
+      setSelectedCards(selectedCards.map((value, index) => (index === existingSlotIndex ? null : value)));
+      return;
+    }
+
+    const emptySlotIndex = selectedCards.findIndex((value) => value === null);
+
+    if (emptySlotIndex !== -1) {
+      setSelectedCards(selectedCards.map((value, index) => (index === emptySlotIndex ? cardId : value)));
+    } else {
+      toast.info('카드는 이미 3장 모두 선택했어요.');
     }
   };
 
   // Remove card from slot
   const removeFromSlot = (cardId: number) => {
-    setSelectedCards(selectedCards.filter((value) => value !== cardId));
+    setSelectedCards(selectedCards.map((value) => (value === cardId ? null : value)));
   };
 
   const handleConfirm = () => {
     navigate('/tarot-result', {
       state: {
         ...flowState,
-        selectedCards,
+        selectedCards: selectedCardIds,
         deckOrder,
         tarotDeckVersionId,
       },
@@ -191,7 +253,7 @@ export function TarotSpreadPage() {
             <div>
               <h1 className="text-base font-medium" style={{ color: 'var(--tarot-text-main)' }}>타로 카드 선택</h1>
               <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>
-                {selectedDeck.name} · {selectedCards.length} / {MAX_SELECTIONS} 선택
+                {selectedDeck.name} · {selectedCardIds.length} / {MAX_SELECTIONS} 선택
               </p>
             </div>
           </div>
@@ -199,11 +261,11 @@ export function TarotSpreadPage() {
           {/* Selection counter */}
           <div className="flex gap-2">
             {Array.from({ length: MAX_SELECTIONS }).map((_, i) => (
-              <motion.div
+              <div
                 key={i}
                 className="h-2.5 w-2.5 rounded-full border"
                 style={
-                  i < selectedCards.length
+                  i < selectedCardIds.length
                     ? {
                         borderColor: 'var(--tarot-point-color)',
                         backgroundColor: 'var(--tarot-point-color)',
@@ -214,12 +276,6 @@ export function TarotSpreadPage() {
                         backgroundColor: 'transparent',
                       }
                 }
-                animate={{
-                  scale: i < selectedCards.length ? [1, 1.4, 1] : 1,
-                }}
-                transition={{
-                  duration: 0.3,
-                }}
               />
             ))}
           </div>
@@ -232,114 +288,90 @@ export function TarotSpreadPage() {
         </div>
       </div>
 
-      <div className="absolute left-0 right-0 top-0 z-40 h-[33%] pt-16" style={{ borderBottom: '1px solid var(--app-surface-divider)' }}>
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 0%, var(--tarot-card-cover-glow) 50%, transparent 100%)', opacity: 0.35 }} />
-        <div className="absolute left-1/2 top-1/2 h-40 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-card-cover-glow)' }} />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20" style={{ top: '7.75rem' }}>
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--tarot-card-cover-glow) 14%, transparent) 0%, transparent 24%, transparent 72%, color-mix(in srgb, var(--tarot-card-cover-glow) 10%, transparent) 100%)',
+          }}
+        />
+        <div
+          className="absolute left-1/2 top-[5.5rem] h-40 w-[24rem] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--tarot-card-cover-glow) 82%, transparent)', opacity: 0.34 }}
+        />
+        <div
+          className="absolute left-1/2 top-[12rem] h-64 w-[44rem] -translate-x-1/2 rounded-full blur-[84px]"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--tarot-ambient-blob-a) 78%, transparent)', opacity: 0.24 }}
+        />
+      </div>
 
+      <div
+        className="absolute left-0 right-0 z-40"
+        style={{
+          top: '7.75rem',
+          height: '10rem',
+        }}
+      >
         {/* Card Slots */}
-        <div className="flex h-full items-center justify-center gap-3 px-4">
+        <div className="flex h-full items-center justify-center gap-3 px-4 pt-3">
           {Array.from({ length: MAX_SELECTIONS }).map((_, slotIndex) => {
             const cardIndex = selectedCards[slotIndex];
-            const hasCard = cardIndex !== undefined;
+            const hasSelectedCard = cardIndex !== null && cardIndex !== undefined;
+            const preview = hasSelectedCard ? cardPreviewMap[cardIndex] : undefined;
 
             return (
-              <motion.div
+              <div
                 key={slotIndex}
                 className="relative"
-                initial={{ opacity: 0, y: -30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: slotIndex * 0.1 }}
               >
                 {/* Empty Slot */}
-                <motion.div
+                <div
                   className="overflow-hidden rounded-xl border border-dashed transition-all"
                   style={{
                     width: `${CARD_WIDTH}px`,
                     height: `${CARD_HEIGHT}px`,
-                    ...glassCardStyle,
-                    borderColor: hasCard ? 'var(--tarot-card-cover-border)' : 'var(--tarot-card-line-soft)',
-                    backgroundColor: 'color-mix(in srgb, var(--app-surface-bg) 70%, transparent)',
-                  }}
-                  animate={{
-                    boxShadow: hasCard
-                      ? '0 0 15px var(--tarot-card-cover-glow)'
-                      : [
-                          '0 0 8px color-mix(in srgb, var(--tarot-card-line) 35%, transparent)',
-                          '0 0 12px color-mix(in srgb, var(--tarot-card-line) 55%, transparent)',
-                          '0 0 8px color-mix(in srgb, var(--tarot-card-line) 35%, transparent)',
-                        ],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: hasCard ? 0 : Infinity,
+                    borderColor: hasSelectedCard ? 'transparent' : 'var(--tarot-card-line-soft)',
+                    backgroundColor: 'transparent',
+                    boxShadow: 'none',
+                    backdropFilter: 'none',
+                    WebkitBackdropFilter: 'none',
                   }}
                 >
-                  {!hasCard && (
+                  {!hasSelectedCard && (
                     <div className="flex h-full items-center justify-center">
                       <span className="text-2xl" style={{ color: 'var(--app-text-subtle)' }}>{slotIndex + 1}</span>
                     </div>
                   )}
-                </motion.div>
+                </div>
 
                 {/* Selected Card in Slot */}
-                <AnimatePresence>
-                  {hasCard && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.5, y: 150 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.5, y: 150 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 200,
-                        damping: 20,
+                {hasSelectedCard && (
+                  <div
+                    className="absolute inset-0 cursor-pointer"
+                    onClick={() => removeFromSlot(cardIndex)}
+                  >
+                    <div
+                      className="relative h-full w-full overflow-hidden rounded-xl border"
+                      style={{
+                        ...cardBackStyle,
+                        boxShadow: '0 8px 18px rgba(0, 0, 0, 0.24)',
                       }}
-                      className="absolute inset-0 cursor-pointer"
-                      onClick={() => removeFromSlot(cardIndex)}
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      whileTap={{ scale: 0.95 }}
                     >
-                      <div
-                        className="h-full w-full overflow-hidden rounded-xl border"
-                        style={{
-                          ...cardBackStyle,
-                          boxShadow: '0 0 20px var(--tarot-card-cover-glow), inset 0 0 18px rgba(255, 255, 255, 0.12)',
-                        }}
-                      >
-                        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
-                        
-                        <motion.div
-                          className="absolute inset-0"
-                          animate={{
-                            boxShadow: [
-                              'inset 0 0 15px rgba(255,255,255,0.08)',
-                              'inset 0 0 25px var(--tarot-card-cover-glow)',
-                              'inset 0 0 15px rgba(255,255,255,0.08)',
-                            ],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                          }}
-                        />
-
-                        <div className="absolute inset-0 flex items-center justify-center p-3">
-                          <TarotCardBackPattern />
-                        </div>
-
-                        {/* Remove number badge */}
+                      <div className="absolute inset-0 flex items-center justify-center p-3">
+                        <TarotCardBackPattern />
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
       </div>
 
       {/* BOTTOM SECTION - Ultra-Dense Horizontal Carousel (2/3 of screen) */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 h-[67%]">
-        <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, var(--tarot-card-cover-glow) 0%, transparent 35%)', opacity: 0.4 }} />
+      <div className="absolute bottom-0 left-0 right-0 z-30" style={{ top: '16.75rem' }}>
         <div className="pointer-events-none absolute left-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(90deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
         <div className="pointer-events-none absolute right-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(270deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
 
@@ -362,8 +394,9 @@ export function TarotSpreadPage() {
             className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
           >
             {deckOrder.map((cardId, index) => {
-              const isSelected = selectedCards.includes(cardId);
+              const isSelected = selectedCardIds.includes(cardId);
               const isCentered = index === currentCenterIndex;
+              const preview = cardPreviewMap[cardId];
 
               // Calculate fan spread effect
               const centerIndex = TOTAL_CARDS / 2;
@@ -380,10 +413,11 @@ export function TarotSpreadPage() {
                   className="relative flex-shrink-0"
                   style={{
                     marginLeft: index === 0 ? '0px' : `-${CARD_WIDTH - CARD_OVERLAP}px`,
-                    zIndex: isCentered ? 1000 : index,
+                    // Keep the natural stack order so the lifted card stays partially covered.
+                    zIndex: index,
                   }}
                   animate={{
-                    y: (isCentered && !isSelected ? -8 : 0) + verticalOffset,
+                    y: (isCentered && !isSelected ? -12 : 0) + verticalOffset,
                     opacity: isSelected ? 0 : 1,
                     rotate: rotationAngle,
                   }}
@@ -412,60 +446,18 @@ export function TarotSpreadPage() {
                       ...cardBackStyle,
                       borderColor: isCentered && !isSelected ? 'var(--tarot-card-cover-border)' : 'color-mix(in srgb, var(--tarot-card-cover-border) 45%, transparent)',
                       boxShadow: isCentered && !isSelected
-                        ? '0 0 25px var(--tarot-card-cover-glow), inset 0 0 20px rgba(255,255,255,0.12)'
+                        ? '0 8px 18px rgba(0, 0, 0, 0.24)'
                         : '0 4px 12px rgba(0, 0, 0, 0.4)',
                     }}
                     whileHover={!isDragging && !isSelected ? { scale: 1.03 } : {}}
                     whileTap={!isDragging && !isSelected ? { scale: 0.97 } : {}}
                   >
-                    {/* Glass effect */}
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
-                    
-                    {/* Center card glow */}
-                    {isCentered && (
-                      <motion.div
-                        className="absolute inset-0 rounded-lg"
-                        animate={{
-                          boxShadow: [
-                            'inset 0 0 15px rgba(255,255,255,0.08)',
-                            'inset 0 0 25px var(--tarot-card-cover-glow)',
-                            'inset 0 0 15px rgba(255,255,255,0.08)',
-                          ],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                        }}
-                      />
-                    )}
-                    
                     {/* Card back pattern */}
                     <div className="absolute inset-0 flex items-center justify-center p-3">
                       <TarotCardBackPattern />
                     </div>
 
                     <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
-
-                    {/* Center indicator */}
-                    {isCentered && (
-                      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2">
-                        <motion.div
-                          className="h-1.5 w-1.5 rounded-full"
-                          style={{ backgroundColor: 'var(--tarot-point-color)' }}
-                          animate={{
-                            boxShadow: [
-                              '0 0 4px var(--tarot-card-cover-glow)',
-                              '0 0 8px var(--tarot-card-cover-glow)',
-                              '0 0 4px var(--tarot-card-cover-glow)',
-                            ],
-                          }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                          }}
-                        />
-                      </div>
-                    )}
                   </motion.div>
                 </motion.div>
               );

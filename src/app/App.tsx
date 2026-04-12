@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { RouterProvider } from 'react-router';
+import { Toaster } from 'sonner';
 import { router } from './routes';
 import { applyThemePreference, resolveInitialThemePreference } from '@/lib/theme';
 import { getCurrentUser } from '@/lib/session';
@@ -17,5 +18,20 @@ export default function App() {
     applyThemePreference(resolveInitialThemePreference(defaultTheme));
   }, []);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster
+        position="top-center"
+        richColors
+        toastOptions={{
+          style: {
+            background: 'var(--app-surface-bg)',
+            color: 'var(--text-main)',
+            border: '1px solid var(--app-surface-border)',
+          },
+        }}
+      />
+    </>
+  );
 }

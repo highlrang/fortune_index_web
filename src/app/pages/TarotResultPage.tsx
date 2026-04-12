@@ -395,16 +395,12 @@ export function TarotResultPage() {
                           className="h-full w-full overflow-hidden rounded-2xl border-2"
                           style={{
                             ...cardBackStyle,
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.32), inset 0 0 24px rgba(255,255,255,0.1)',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.32)',
                           }}
                         >
-                          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
-                          
                           <div className="absolute inset-0 flex items-center justify-center p-8">
                             <TarotCardBackPattern />
                           </div>
-
-                          <div className="pointer-events-none absolute inset-3 rounded-xl border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 36%, transparent)' }} />
                         </div>
                       </div>
                     )}
@@ -490,16 +486,12 @@ export function TarotResultPage() {
                           className="h-full w-full overflow-hidden rounded-2xl border-2"
                           style={{
                             ...cardBackStyle,
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.32), inset 0 0 24px rgba(255,255,255,0.1)',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.32)',
                           }}
                         >
-                          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
-                          
                           <div className="absolute inset-0 flex items-center justify-center p-8">
                             <TarotCardBackPattern />
                           </div>
-
-                          <div className="pointer-events-none absolute inset-3 rounded-xl border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 36%, transparent)' }} />
                         </div>
                       </motion.div>
                     )}

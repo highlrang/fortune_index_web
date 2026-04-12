@@ -52,7 +52,7 @@ export function SignupStageLayout({
         </div>
 
         <div className="mt-16 text-center">
-          <p className="text-xs fi-text-subtle">© 2024 Stock Oracle. All rights reserved.</p>
+          <p className="text-xs fi-text-subtle">© 2026 Stock Oracle. All rights reserved.</p>
         </div>
       </div>
     </div>

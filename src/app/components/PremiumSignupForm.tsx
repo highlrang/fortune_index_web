@@ -7,6 +7,12 @@ import { saveSession } from '@/lib/session';
 
 type Gender = 'male' | 'female' | null;
 type RiskProfile = 'STABLE' | 'AGGRESSIVE';
+const currentYear = new Date().getFullYear();
+const yearOptions = Array.from({ length: currentYear - 1929 }, (_, index) => String(currentYear - index));
+const monthOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'));
+const dayOptions = Array.from({ length: 31 }, (_, index) => String(index + 1).padStart(2, '0'));
+const hourOptions = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
+const minuteOptions = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0'));
 
 const sectorOptions = [
   { label: '기술', value: 'TECHNOLOGY' },
@@ -224,42 +230,48 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
           생년월일
         </label>
         <div className="grid grid-cols-3 gap-3">
-          <input
+          <select
             id="birthYear"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={4}
             value={birthYear}
-            onChange={(e) => setBirthYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
-            placeholder="생년"
+            onChange={(e) => setBirthYear(e.target.value)}
             required
             className="fi-input w-full rounded-xl px-4 py-4 transition-all"
-          />
-          <input
+          >
+            <option value="">생년</option>
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}년
+              </option>
+            ))}
+          </select>
+          <select
             id="birthMonth"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={2}
             value={birthMonth}
-            onChange={(e) => setBirthMonth(e.target.value.replace(/\D/g, '').slice(0, 2))}
-            placeholder="월"
+            onChange={(e) => setBirthMonth(e.target.value)}
             required
             className="fi-input w-full rounded-xl px-4 py-4 transition-all"
-          />
-          <input
+          >
+            <option value="">월</option>
+            {monthOptions.map((month) => (
+              <option key={month} value={month}>
+                {month}월
+              </option>
+            ))}
+          </select>
+          <select
             id="birthDay"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={2}
             value={birthDay}
-            onChange={(e) => setBirthDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
-            placeholder="일"
+            onChange={(e) => setBirthDay(e.target.value)}
             required
             className="fi-input w-full rounded-xl px-4 py-4 transition-all"
-          />
+          >
+            <option value="">일</option>
+            {dayOptions.map((day) => (
+              <option key={day} value={day}>
+                {day}일
+              </option>
+            ))}
+          </select>
         </div>
         {birthYear.length === 4 && birthMonth.length > 0 && birthDay.length > 0 && !birthDate ? <p className="text-xs" style={{ color: 'var(--app-danger-text)' }}>유효한 생년월일을 입력해주세요.</p> : null}
       </div>
@@ -269,30 +281,34 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
           태어난 시간
         </label>
         <div className="grid grid-cols-2 gap-3">
-          <input
+          <select
             id="birthHour"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={2}
             value={birthHour}
-            onChange={(e) => setBirthHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            onChange={(e) => setBirthHour(e.target.value)}
             disabled={birthTimeUnknown}
-            placeholder="시(00-23)"
             className="fi-input w-full rounded-xl px-4 py-4 transition-all disabled:cursor-not-allowed disabled:opacity-40"
-          />
-          <input
+          >
+            <option value="">시</option>
+            {hourOptions.map((hour) => (
+              <option key={hour} value={hour}>
+                {hour}시
+              </option>
+            ))}
+          </select>
+          <select
             id="birthMinute"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={2}
             value={birthMinute}
-            onChange={(e) => setBirthMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            onChange={(e) => setBirthMinute(e.target.value)}
             disabled={birthTimeUnknown}
-            placeholder="분(00-59)"
             className="fi-input w-full rounded-xl px-4 py-4 transition-all disabled:cursor-not-allowed disabled:opacity-40"
-          />
+          >
+            <option value="">분</option>
+            {minuteOptions.map((minute) => (
+              <option key={minute} value={minute}>
+                {minute}분
+              </option>
+            ))}
+          </select>
         </div>
         {!birthTimeUnknown && (birthHour.length > 0 || birthMinute.length > 0) && !birthTime ? <p className="text-xs" style={{ color: 'var(--app-danger-text)' }}>시간은 00-23, 분은 00-59 형식으로 입력해주세요.</p> : null}
 

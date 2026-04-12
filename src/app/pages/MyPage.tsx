@@ -122,12 +122,31 @@ const sectorOptions = [
 ];
 
 const sectorLabelMap = new Map(sectorOptions.map((sector) => [sector.value, sector.label]));
+const currentYear = new Date().getFullYear();
+const yearOptions = Array.from({ length: currentYear - 1929 }, (_, index) => String(currentYear - index));
+const monthOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'));
+const dayOptions = Array.from({ length: 31 }, (_, index) => String(index + 1).padStart(2, '0'));
+const hourOptions = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
+const minuteOptions = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0'));
+
+type ProfileEditDraft = {
+  name: string;
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
+  birthHour: string;
+  birthMinute: string;
+  birthTimeUnknown: boolean;
+  gender: '' | 'M' | 'F';
+  investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
+  preferredSectors: string[];
+};
 
 export function MyPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<SessionUser | null>(() => getCurrentUser());
   const [profileDetails, setProfileDetails] = useState<UserProfileDetailsResponse | null>(null);
-  const session = getSession();
+  const [session] = useState(() => getSession());
   const [showBirthTarot, setShowBirthTarot] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => resolveInitialThemePreference() === 'dark');
@@ -142,11 +161,16 @@ export function MyPage() {
   const [tarotDeckSaveError, setTarotDeckSaveError] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsSaveError, setSettingsSaveError] = useState('');
-  const [profileEditDraft, setProfileEditDraft] = useState({
+  const [profileEditDraft, setProfileEditDraft] = useState<ProfileEditDraft>({
     name: '',
-    birthDate: '',
-    birthTime: '',
+    birthYear: '',
+    birthMonth: '',
+    birthDay: '',
+    birthHour: '',
+    birthMinute: '',
+    birthTimeUnknown: false,
     gender: '',
+    investmentRiskProfile: 'STABLE',
     preferredSectors: [] as string[],
   });
 
@@ -187,7 +211,7 @@ export function MyPage() {
     return () => {
       active = false;
     };
-  }, [session, user?.preferredTarotDeckId, user?.birthDate, user?.birthTime, user?.gender]);
+  }, [session]);
 
   useEffect(() => {
     let active = true;
@@ -269,16 +293,33 @@ export function MyPage() {
   useEffect(() => {
     if (!user) return;
 
+    const { year, month, day } = splitDateParts(user.birthDate);
+    const { hour, minute } = splitTimeParts(user.birthTime);
+
     setProfileEditDraft({
       name: user.name ?? '',
-      birthDate: normalizeDateInputValue(user.birthDate),
-      birthTime: normalizeTimeInputValue(user.birthTime),
+      birthYear: year,
+      birthMonth: month,
+      birthDay: day,
+      birthHour: hour,
+      birthMinute: minute,
+      birthTimeUnknown: !hour && !minute,
       gender: normalizeGenderInputValue(user.gender),
+      investmentRiskProfile: user.investmentRiskProfile === 'AGGRESSIVE' ? 'AGGRESSIVE' : 'STABLE',
       preferredSectors: user.preferredSectors ?? [],
     });
   }, [user]);
 
   const isAnyModalOpen = showBirthTarot || showSaju || showInquiry || showProfileEdit;
+  const profileEditBirthDate = buildBirthDate(
+    profileEditDraft.birthYear,
+    profileEditDraft.birthMonth,
+    profileEditDraft.birthDay,
+  );
+  const profileEditBirthTime = buildBirthTime(
+    profileEditDraft.birthHour,
+    profileEditDraft.birthMinute,
+  );
 
   useEffect(() => {
     if (!isAnyModalOpen) return;
@@ -338,6 +379,16 @@ export function MyPage() {
       return;
     }
 
+    if (!profileEditBirthDate) {
+      setProfileEditError('생년월일을 올바르게 입력해주세요.');
+      return;
+    }
+
+    if (!profileEditDraft.birthTimeUnknown && !profileEditBirthTime) {
+      setProfileEditError('태어난 시간을 올바르게 입력해주세요.');
+      return;
+    }
+
     if (profileEditDraft.preferredSectors.length === 0) {
       setProfileEditError('선호 섹터를 하나 이상 선택해주세요.');
       return;
@@ -349,9 +400,10 @@ export function MyPage() {
     try {
       const updatedUser = await updateMyProfile({
         name: trimmedName,
-        birthDate: profileEditDraft.birthDate || null,
-        birthTime: profileEditDraft.birthTime || null,
+        birthDate: profileEditBirthDate,
+        birthTime: profileEditDraft.birthTimeUnknown ? null : profileEditBirthTime,
         gender: profileEditDraft.gender || null,
+        investmentRiskProfile: profileEditDraft.investmentRiskProfile,
         preferredSectors: profileEditDraft.preferredSectors,
       });
 
@@ -434,35 +486,6 @@ export function MyPage() {
     }
   };
 
-  const handleInvestmentStyleChange = async (nextStyle: 'stable' | 'aggressive') => {
-    if (!user || isSavingSettings) return;
-
-    const nextValue = nextStyle === 'aggressive' ? 'AGGRESSIVE' : 'STABLE';
-    if (user.investmentRiskProfile === nextValue) return;
-
-    const previousUser = user;
-    const optimisticUser = { ...user, investmentRiskProfile: nextValue };
-
-    setSettingsSaveError('');
-    setUser(optimisticUser);
-    updateSessionUser(optimisticUser);
-    setIsSavingSettings(true);
-
-    try {
-      const updatedUser = await updateMyProfile({ investmentRiskProfile: nextValue });
-      updateSessionUser(updatedUser);
-      setUser(updatedUser);
-    } catch (error) {
-      setUser(previousUser);
-      updateSessionUser(previousUser);
-      setSettingsSaveError(
-        error instanceof Error ? error.message : '투자 성향 저장 중 오류가 발생했습니다.',
-      );
-    } finally {
-      setIsSavingSettings(false);
-    }
-  };
-
   const handleTarotDeckSelect = async (deckId: string) => {
     if (deckId === selectedTarotDeckId || isSavingTarotDeck) return;
 
@@ -520,7 +543,7 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center pt-8 backdrop-blur-sm"
             style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
@@ -528,7 +551,7 @@ export function MyPage() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30 }}
-              className="w-full max-w-md overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
+              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
               style={accentButtonStyle}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
@@ -548,7 +571,7 @@ export function MyPage() {
                 </button>
               </div>
 
-              <div className="space-y-4 px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+              <div className="space-y-4 overflow-y-auto px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                 <ProfileField label="이름">
                   <input
                     value={profileEditDraft.name}
@@ -571,42 +594,235 @@ export function MyPage() {
                 </ProfileField>
 
                 <ProfileField label="생년월일">
-                  <input
-                    type="date"
-                    value={profileEditDraft.birthDate}
-                    onChange={(event) =>
-                      setProfileEditDraft((prev) => ({ ...prev, birthDate: event.target.value }))
-                    }
-                    className="w-full rounded-xl border px-4 py-3 focus:outline-none"
-                    style={inputStyle}
-                  />
+                  <div className="grid grid-cols-3 gap-3">
+                    <select
+                      value={profileEditDraft.birthYear}
+                      onChange={(event) =>
+                        setProfileEditDraft((prev) => ({
+                          ...prev,
+                          birthYear: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-xl border px-4 py-3 focus:outline-none"
+                      style={inputStyle}
+                    >
+                      <option value="">생년</option>
+                      {yearOptions.map((year) => (
+                        <option key={year} value={year}>
+                          {year}년
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={profileEditDraft.birthMonth}
+                      onChange={(event) =>
+                        setProfileEditDraft((prev) => ({
+                          ...prev,
+                          birthMonth: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-xl border px-4 py-3 focus:outline-none"
+                      style={inputStyle}
+                    >
+                      <option value="">월</option>
+                      {monthOptions.map((month) => (
+                        <option key={month} value={month}>
+                          {month}월
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={profileEditDraft.birthDay}
+                      onChange={(event) =>
+                        setProfileEditDraft((prev) => ({
+                          ...prev,
+                          birthDay: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-xl border px-4 py-3 focus:outline-none"
+                      style={inputStyle}
+                    >
+                      <option value="">일</option>
+                      {dayOptions.map((day) => (
+                        <option key={day} value={day}>
+                          {day}일
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {profileEditDraft.birthYear.length === 4 &&
+                  profileEditDraft.birthMonth.length > 0 &&
+                  profileEditDraft.birthDay.length > 0 &&
+                  !profileEditBirthDate ? (
+                    <p className="mt-2 text-xs" style={{ color: 'var(--app-danger-text)' }}>
+                      유효한 생년월일을 입력해주세요.
+                    </p>
+                  ) : null}
                 </ProfileField>
 
                 <ProfileField label="태어난 시간">
-                  <input
-                    type="time"
-                    value={profileEditDraft.birthTime}
-                    onChange={(event) =>
-                      setProfileEditDraft((prev) => ({ ...prev, birthTime: event.target.value }))
-                    }
-                    className="w-full rounded-xl border px-4 py-3 focus:outline-none"
-                    style={inputStyle}
-                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <select
+                      value={profileEditDraft.birthHour}
+                      onChange={(event) =>
+                        setProfileEditDraft((prev) => ({
+                          ...prev,
+                          birthHour: event.target.value,
+                        }))
+                      }
+                      disabled={profileEditDraft.birthTimeUnknown}
+                      className="w-full rounded-xl border px-4 py-3 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+                      style={inputStyle}
+                    >
+                      <option value="">시</option>
+                      {hourOptions.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}시
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={profileEditDraft.birthMinute}
+                      onChange={(event) =>
+                        setProfileEditDraft((prev) => ({
+                          ...prev,
+                          birthMinute: event.target.value,
+                        }))
+                      }
+                      disabled={profileEditDraft.birthTimeUnknown}
+                      className="w-full rounded-xl border px-4 py-3 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+                      style={inputStyle}
+                    >
+                      <option value="">분</option>
+                      {minuteOptions.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}분
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {!profileEditDraft.birthTimeUnknown &&
+                  (profileEditDraft.birthHour.length > 0 || profileEditDraft.birthMinute.length > 0) &&
+                  !profileEditBirthTime ? (
+                    <p className="mt-2 text-xs" style={{ color: 'var(--app-danger-text)' }}>
+                      시간은 00-23, 분은 00-59 형식으로 입력해주세요.
+                    </p>
+                  ) : null}
+                  <label className="mt-3 flex cursor-pointer items-center gap-3">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={profileEditDraft.birthTimeUnknown}
+                        onChange={(event) =>
+                          setProfileEditDraft((prev) => ({
+                            ...prev,
+                            birthTimeUnknown: event.target.checked,
+                            birthHour: event.target.checked ? '' : prev.birthHour,
+                            birthMinute: event.target.checked ? '' : prev.birthMinute,
+                          }))
+                        }
+                        className="peer h-5 w-5 cursor-pointer appearance-none rounded transition-all"
+                        style={{
+                          borderWidth: 'var(--app-hairline-border)',
+                          borderStyle: 'solid',
+                          borderColor: profileEditDraft.birthTimeUnknown ? 'var(--app-accent-border-strong)' : 'var(--card-border)',
+                          background: profileEditDraft.birthTimeUnknown ? 'var(--app-accent-surface)' : 'var(--card-surface)',
+                          backdropFilter: 'var(--card-blur)',
+                          WebkitBackdropFilter: 'var(--card-blur)',
+                        }}
+                      />
+                      <svg
+                        className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity peer-checked:opacity-100"
+                        style={{ color: 'var(--point-gold)' }}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-sm" style={{ color: 'var(--app-text-muted)' }}>
+                      태어난 시간을 모름
+                    </span>
+                  </label>
                 </ProfileField>
 
                 <ProfileField label="성별">
-                  <select
-                    value={profileEditDraft.gender}
-                    onChange={(event) =>
-                      setProfileEditDraft((prev) => ({ ...prev, gender: event.target.value }))
-                    }
-                    className="w-full rounded-xl border px-4 py-3 focus:outline-none"
-                    style={inputStyle}
-                  >
-                    <option value="">미등록</option>
-                    <option value="M">남성</option>
-                    <option value="F">여성</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: '남성', value: 'M' as const },
+                      { label: '여성', value: 'F' as const },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setProfileEditDraft((prev) => ({ ...prev, gender: option.value }))
+                        }
+                        className="rounded-xl border px-4 py-4 text-sm transition-all"
+                        style={
+                          profileEditDraft.gender === option.value
+                            ? {
+                                background: 'var(--app-accent-surface)',
+                                borderColor: 'var(--app-accent-border-strong)',
+                                color: 'var(--app-accent-text-soft)',
+                                backdropFilter: 'var(--card-blur)',
+                                WebkitBackdropFilter: 'var(--card-blur)',
+                              }
+                            : {
+                                background: 'var(--card-surface)',
+                                borderColor: 'var(--card-border)',
+                                color: 'var(--app-text-muted)',
+                                backdropFilter: 'var(--card-blur)',
+                                WebkitBackdropFilter: 'var(--card-blur)',
+                              }
+                        }
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </ProfileField>
+
+                <ProfileField label="투자 성향">
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: '안정형', value: 'STABLE' as const },
+                      { label: '공격형', value: 'AGGRESSIVE' as const },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setProfileEditDraft((prev) => ({
+                            ...prev,
+                            investmentRiskProfile: option.value,
+                          }))
+                        }
+                        className="rounded-xl border px-4 py-4 text-sm transition-all"
+                        style={
+                          profileEditDraft.investmentRiskProfile === option.value
+                            ? {
+                                background: 'var(--app-accent-surface)',
+                                borderColor: 'var(--app-accent-border-strong)',
+                                color: 'var(--app-accent-text-soft)',
+                                backdropFilter: 'var(--card-blur)',
+                                WebkitBackdropFilter: 'var(--card-blur)',
+                              }
+                            : {
+                                background: 'var(--card-surface)',
+                                borderColor: 'var(--card-border)',
+                                color: 'var(--app-text-muted)',
+                                backdropFilter: 'var(--card-blur)',
+                                WebkitBackdropFilter: 'var(--card-blur)',
+                              }
+                        }
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </ProfileField>
 
                 <ProfileField label="선호 섹터">
@@ -785,7 +1001,7 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center pt-8 backdrop-blur-sm"
             style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
@@ -793,7 +1009,7 @@ export function MyPage() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30 }}
-              className="w-full max-w-md overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
+              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
               style={accentButtonStyle}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
@@ -1111,45 +1327,6 @@ export function MyPage() {
           </div>
 
           <div className="space-y-0 divide-y p-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
-            <div className="py-4">
-              <div className="mb-3 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
-                <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>투자 성향</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleInvestmentStyleChange('stable')}
-                  disabled={isSavingSettings}
-                  aria-pressed={investmentStyle === 'stable'}
-                  className="rounded-xl border px-4 py-2.5 text-center text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
-                  style={
-                    investmentStyle === 'stable'
-                      ? { ...accentIconStyle, boxShadow: '0 12px 24px -20px var(--app-accent-glow)' }
-                      : { ...glassCardStyle, color: 'var(--app-text-muted)' }
-                  }
-                >
-                  <Shield className="mx-auto mb-1 h-5 w-5" />
-                  안정형
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleInvestmentStyleChange('aggressive')}
-                  disabled={isSavingSettings}
-                  aria-pressed={investmentStyle === 'aggressive'}
-                  className="rounded-xl border px-4 py-2.5 text-center text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
-                  style={
-                    investmentStyle === 'aggressive'
-                      ? { ...accentIconStyle, boxShadow: '0 12px 24px -20px var(--app-accent-glow)' }
-                      : { ...glassCardStyle, color: 'var(--app-text-muted)' }
-                  }
-                >
-                  <TrendingUp className="mx-auto mb-1 h-5 w-5" />
-                  공격형
-                </button>
-              </div>
-            </div>
-
             <SettingToggle
               icon={Bell}
               label="알림 설정"
@@ -1362,34 +1539,81 @@ function formatBirthTime(
   return `${hour}:${minute}`;
 }
 
-function normalizeDateInputValue(value?: string | null) {
-  if (!value) return '';
-
-  const trimmed = value.trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-
-  const date = new Date(trimmed);
-  if (Number.isNaN(date.getTime())) return '';
-
-  const year = String(date.getFullYear());
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function normalizeTimeInputValue(value?: string | null) {
-  if (!value) return '';
-
-  const trimmed = value.trim();
-  const match = trimmed.match(/^(\d{2}):(\d{2})/);
-  return match ? `${match[1]}:${match[2]}` : '';
-}
-
 function normalizeGenderInputValue(value?: string | null) {
   if (!value) return '';
   if (value === 'M' || value === 'MALE') return 'M';
   if (value === 'F' || value === 'FEMALE') return 'F';
   return '';
+}
+
+function splitDateParts(value?: string | null) {
+  if (!value) return { year: '', month: '', day: '' };
+
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const [year, month, day] = trimmed.split('-');
+    return { year, month, day };
+  }
+
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return { year: '', month: '', day: '' };
+
+  return {
+    year: String(date.getFullYear()),
+    month: String(date.getMonth() + 1).padStart(2, '0'),
+    day: String(date.getDate()).padStart(2, '0'),
+  };
+}
+
+function splitTimeParts(value?: string | null) {
+  if (!value) return { hour: '', minute: '' };
+
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{2}):(\d{2})/);
+  if (!match) return { hour: '', minute: '' };
+
+  return { hour: match[1], minute: match[2] };
+}
+
+function buildBirthDate(year: string, month: string, day: string) {
+  if (year.length !== 4 || month.length === 0 || day.length === 0) return '';
+
+  const normalizedMonth = month.padStart(2, '0');
+  const normalizedDay = day.padStart(2, '0');
+  const formatted = `${year}-${normalizedMonth}-${normalizedDay}`;
+  const date = new Date(`${formatted}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) return '';
+  if (
+    date.getFullYear() !== Number(year) ||
+    date.getMonth() + 1 !== Number(normalizedMonth) ||
+    date.getDate() !== Number(normalizedDay)
+  ) {
+    return '';
+  }
+
+  return formatted;
+}
+
+function buildBirthTime(hour: string, minute: string) {
+  if (hour.length === 0 && minute.length === 0) return '';
+  if (hour.length === 0 || minute.length === 0) return '';
+
+  const hourNumber = Number(hour);
+  const minuteNumber = Number(minute);
+
+  if (
+    Number.isNaN(hourNumber) ||
+    Number.isNaN(minuteNumber) ||
+    hourNumber < 0 ||
+    hourNumber > 23 ||
+    minuteNumber < 0 ||
+    minuteNumber > 59
+  ) {
+    return '';
+  }
+
+  return `${String(hourNumber).padStart(2, '0')}:${String(minuteNumber).padStart(2, '0')}`;
 }
 
 function formatGender(gender?: string | null) {
