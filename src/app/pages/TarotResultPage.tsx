@@ -138,6 +138,7 @@ export function TarotResultPage() {
   const selectedType = flowState?.selectedType;
   const selectedScenario = flowState?.selectedScenario;
   const question = flowState?.question;
+  const trimmedQuestion = question?.trim() ?? '';
   
   const [cards, setCards] = useState<CardData[]>(() =>
     selectedCards.map((selectedIndex, slotIndex) => ({
@@ -247,7 +248,7 @@ export function TarotResultPage() {
       return;
     }
 
-    if (!selectedType || !selectedScenario || !(selectedType in modeByType)) {
+    if (!selectedType || !trimmedQuestion || !(selectedType in modeByType)) {
       navigate('/consultation', {
         state: {
           selectedCards,
@@ -264,10 +265,12 @@ export function TarotResultPage() {
       const response = await consult({
         userId: currentUser.id,
         mode: modeByType[selectedType],
-        scenario: selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE',
+        scenario: selectedScenario
+          ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
+          : undefined,
         stockCode: DEFAULT_STOCK_CODE,
         stockName: DEFAULT_STOCK_NAME,
-        question: question?.trim() || undefined,
+        question: trimmedQuestion,
         tarotIndices: selectedCards,
         tarotDeckVersionId,
         tarotInterpretationMode: 'MAIN_TRADITIONAL',

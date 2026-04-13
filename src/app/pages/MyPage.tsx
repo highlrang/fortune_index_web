@@ -142,6 +142,16 @@ type ProfileEditDraft = {
   preferredSectors: string[];
 };
 
+type FiveElementKey = 'wood' | 'fire' | 'earth' | 'metal' | 'water';
+
+const fiveElementLabelMap: Record<FiveElementKey, string> = {
+  wood: '木 (목)',
+  fire: '火 (화)',
+  earth: '土 (토)',
+  metal: '金 (금)',
+  water: '水 (수)',
+};
+
 export function MyPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<SessionUser | null>(() => getCurrentUser());
@@ -1050,17 +1060,9 @@ export function MyPage() {
                       <div key={element} className="space-y-1">
                         <div className="flex justify-between text-xs">
                           <span style={{ color: 'var(--app-text-muted)' }}>
-                            {element === 'wood'
-                              ? '木 (목)'
-                              : element === 'fire'
-                                ? '火 (화)'
-                                : element === 'earth'
-                                  ? '土 (토)'
-                                  : element === 'metal'
-                                    ? '金 (금)'
-                                    : '水 (수)'}
+                            {fiveElementLabelMap[element as FiveElementKey] ?? '水 (수)'}
                           </span>
-                          <span style={{ color: 'var(--tarot-point-color)' }}>{value}%</span>
+                          <span style={{ color: 'var(--tarot-point-color)' }}>{formatPercentage(value)}%</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
                           <motion.div
@@ -1693,13 +1695,13 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
 
   return {
     palza,
-    ohang: {
+    ohang: normalizeFiveElementDistribution({
       wood: saju?.ohang?.wood ?? 40,
       fire: saju?.ohang?.fire ?? 25,
       earth: saju?.ohang?.earth ?? 15,
       metal: saju?.ohang?.metal ?? 10,
       water: saju?.ohang?.water ?? 10,
-    },
+    }),
     sections: descriptionSections.map((section) => ({
       ...section,
       title: section.data.name,
@@ -1721,4 +1723,30 @@ function normalizeSajuDescription(
     name: value?.name?.trim() || fallbackName,
     summary: value?.summary?.trim() || fallbackSummary,
   };
+}
+
+function normalizeFiveElementDistribution(values: Record<FiveElementKey, number>) {
+  const total = Object.values(values).reduce((sum, value) => sum + Math.max(value, 0), 0);
+
+  if (total <= 0) {
+    return {
+      wood: 20,
+      fire: 20,
+      earth: 20,
+      metal: 20,
+      water: 20,
+    };
+  }
+
+  return Object.fromEntries(
+    Object.entries(values).map(([element, value]) => [
+      element,
+      (Math.max(value, 0) / total) * 100,
+    ]),
+  ) as Record<FiveElementKey, number>;
+}
+
+function formatPercentage(value: number) {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }

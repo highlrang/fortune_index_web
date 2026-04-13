@@ -118,6 +118,8 @@ export function ConsultationPage() {
   }, []);
 
   const handleSubmit = async () => {
+    const trimmedQuestion = question.trim();
+
     if (!currentUser) {
       setError('먼저 로그인해주세요.');
       navigate('/login');
@@ -129,8 +131,8 @@ export function ConsultationPage() {
       return;
     }
 
-    if (!selectedScenario) {
-      setError('질문 시나리오를 선택해주세요.');
+    if (!trimmedQuestion) {
+      setError('질문을 입력해주세요.');
       return;
     }
 
@@ -140,7 +142,7 @@ export function ConsultationPage() {
         state: {
           selectedType,
           selectedScenario,
-          question,
+          question: trimmedQuestion,
           tarotDeckVersionId,
         } satisfies ConsultationFlowState,
       });
@@ -154,11 +156,13 @@ export function ConsultationPage() {
       const response = await consult({
         userId: currentUser.id,
         mode: modeByType[selectedType],
-        scenario: selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE',
+        scenario: selectedScenario
+          ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
+          : undefined,
         stockCode: DEFAULT_STOCK_CODE,
         stockName: DEFAULT_STOCK_NAME,
         threadId: selectedResumeThreadId ?? undefined,
-        question: question.trim() || undefined,
+        question: trimmedQuestion,
         tarotIndices: selectedCards.length > 0 ? selectedCards : undefined,
         tarotDeckVersionId: selectedCards.length > 0 ? tarotDeckVersionId : undefined,
         tarotInterpretationMode: selectedCards.length > 0 ? 'MAIN_TRADITIONAL' : undefined,
@@ -250,7 +254,7 @@ export function ConsultationPage() {
               return (
                 <button
                   key={scenario.code}
-                  onClick={() => setSelectedScenario(scenario.code)}
+                  onClick={() => setSelectedScenario((current) => (current === scenario.code ? '' : scenario.code))}
                   className="rounded-full border px-4 py-2 text-sm transition-all"
                   style={
                     isSelected
@@ -280,7 +284,7 @@ export function ConsultationPage() {
 
         <div className="mb-6 space-y-4">
           <div>
-            <h2 className="mb-4 text-sm font-medium fi-text-muted">무엇이 궁금한가요?</h2>
+            <h2 className="mb-4 text-sm font-medium fi-text-muted">무엇이 궁금한가요? <span className="fi-text-subtle">*</span></h2>
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}

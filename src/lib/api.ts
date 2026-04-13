@@ -843,14 +843,14 @@ export interface SignUpPayload {
 export interface ConsultPayload {
   userId: number;
   mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
-  scenario: 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE';
+  scenario?: 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE';
   stockCode: string;
   stockName?: string;
   threadId?: string;
   tarotIndices?: number[];
   tarotDeckVersionId?: string;
   tarotInterpretationMode?: 'MAIN_TRADITIONAL';
-  question?: string;
+  question: string;
   referenceDateTime?: string;
 }
 
