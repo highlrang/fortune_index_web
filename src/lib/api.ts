@@ -424,6 +424,11 @@ export interface MessageResponse {
   message: string;
 }
 
+export interface CreateInquiryPayload {
+  category: 'SERVICE' | 'BILLING' | 'TECHNICAL' | 'OTHER';
+  content: string;
+}
+
 export interface EmailVerificationResponse {
   email: string;
   purpose: string;
@@ -969,6 +974,16 @@ export async function updateMyProfile(payload: UpdateMyProfilePayload) {
     method: 'PATCH',
     body: payload,
   });
+}
+
+export async function createInquiry(payload: CreateInquiryPayload) {
+  return requestWithFallbackPaths<MessageResponse>(
+    ['/api/support/inquiries', '/api/inquiries', '/api/users/me/inquiries'],
+    {
+      method: 'POST',
+      body: payload,
+    },
+  );
 }
 
 export async function withdraw(payload: WithdrawPayload) {

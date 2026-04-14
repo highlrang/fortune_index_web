@@ -24,6 +24,7 @@ import {
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import {
+  createInquiry,
   getMe,
   getMyProfileDetails,
   getTarotDeckVersions,
@@ -45,6 +46,7 @@ import {
   hasStoredThemePreference,
   persistThemePreference,
   resolveInitialThemePreference,
+  type ThemePreference,
 } from '@/lib/theme';
 
 const pageGradientStyle = {
@@ -142,6 +144,8 @@ type ProfileEditDraft = {
   preferredSectors: string[];
 };
 
+type InquiryCategory = 'SERVICE' | 'BILLING' | 'TECHNICAL' | 'OTHER';
+
 type FiveElementKey = 'wood' | 'fire' | 'earth' | 'metal' | 'water';
 
 const fiveElementLabelMap: Record<FiveElementKey, string> = {
@@ -152,6 +156,13 @@ const fiveElementLabelMap: Record<FiveElementKey, string> = {
   water: '水 (수)',
 };
 
+const inquiryTypeOptions: Array<{ label: string; value: InquiryCategory }> = [
+  { label: '서비스 이용 문의', value: 'SERVICE' },
+  { label: '결제 및 환불', value: 'BILLING' },
+  { label: '기술적 문제', value: 'TECHNICAL' },
+  { label: '기타', value: 'OTHER' },
+];
+
 export function MyPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<SessionUser | null>(() => getCurrentUser());
@@ -161,6 +172,11 @@ export function MyPage() {
   const [showSaju, setShowSaju] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => resolveInitialThemePreference() === 'dark');
   const [showInquiry, setShowInquiry] = useState(false);
+  const [inquiryCategory, setInquiryCategory] = useState<InquiryCategory>('SERVICE');
+  const [inquiryContent, setInquiryContent] = useState('');
+  const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
+  const [inquiryError, setInquiryError] = useState('');
+  const [inquirySuccessMessage, setInquirySuccessMessage] = useState('');
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [selectedTarotDeckId, setSelectedTarotDeck] = useState(() => getSelectedTarotDeckId());
@@ -467,10 +483,12 @@ export function MyPage() {
     }
   };
 
-  const handleThemeToggle = async () => {
+  const handleThemeChange = async (theme: ThemePreference) => {
     if (!user || isSavingSettings) return;
 
-    const nextValue = !isDarkMode;
+    const nextValue = theme === 'dark';
+    if (isDarkMode === nextValue) return;
+
     const previousUser = user;
     const optimisticUser = { ...user, darkModeEnabled: nextValue };
 
@@ -520,6 +538,60 @@ export function MyPage() {
       );
     } finally {
       setIsSavingTarotDeck(false);
+    }
+  };
+
+  const closeInquiryModal = () => {
+    if (isSubmittingInquiry) return;
+    setShowInquiry(false);
+    setInquiryError('');
+    setInquirySuccessMessage('');
+    setInquiryCategory('SERVICE');
+    setInquiryContent('');
+  };
+
+  const openInquiryModal = () => {
+    setInquiryError('');
+    setInquirySuccessMessage('');
+    setInquiryCategory('SERVICE');
+    setInquiryContent('');
+    setShowInquiry(true);
+  };
+
+  const handleInquirySubmit = async () => {
+    if (!user) return;
+
+    const normalizedContent = inquiryContent.trim();
+    if (!normalizedContent) {
+      setInquiryError('문의 내용을 입력해주세요.');
+      return;
+    }
+
+    setInquiryError('');
+    setInquirySuccessMessage('');
+    setIsSubmittingInquiry(true);
+
+    try {
+      const response = await createInquiry({
+        category: inquiryCategory,
+        content: normalizedContent,
+      });
+
+      setInquirySuccessMessage(
+        response.message || '문의가 접수되었습니다. 답변은 가입한 이메일로 보내드립니다.',
+      );
+      setInquiryContent('');
+      setInquiryCategory('SERVICE');
+      window.setTimeout(() => {
+        setShowInquiry(false);
+        setInquirySuccessMessage('');
+      }, 900);
+    } catch (error) {
+      setInquiryError(
+        error instanceof Error ? error.message : '문의 접수 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSubmittingInquiry(false);
     }
   };
 
@@ -1120,9 +1192,15 @@ export function MyPage() {
               style={glassCardStrongStyle}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>문의하기</h3>
+                <div>
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>문의하기</h3>
+                  <p className="mt-1 text-xs" style={{ color: 'var(--app-text-muted)' }}>
+                    문의를 남기시면 확인 후 가입하신 이메일로 답변드립니다.
+                  </p>
+                </div>
                 <button
-                  onClick={() => setShowInquiry(false)}
+                  onClick={closeInquiryModal}
+                  disabled={isSubmittingInquiry}
                   className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'var(--app-surface-bg)' }}
                 >
@@ -1133,11 +1211,18 @@ export function MyPage() {
               <div className="space-y-4 p-6">
                 <div>
                   <label className="mb-2 block text-sm font-medium" style={{ color: 'var(--app-text-muted)' }}>문의 유형</label>
-                  <select className="w-full rounded-xl border px-4 py-3 backdrop-blur-xl transition-colors focus:outline-none" style={inputStyle}>
-                    <option>서비스 이용 문의</option>
-                    <option>결제 및 환불</option>
-                    <option>기술적 문제</option>
-                    <option>기타</option>
+                  <select
+                    value={inquiryCategory}
+                    onChange={(event) => setInquiryCategory(event.target.value as InquiryCategory)}
+                    disabled={isSubmittingInquiry}
+                    className="w-full rounded-xl border px-4 py-3 backdrop-blur-xl transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    style={inputStyle}
+                  >
+                    {inquiryTypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1145,26 +1230,61 @@ export function MyPage() {
                   <label className="mb-2 block text-sm font-medium" style={{ color: 'var(--app-text-muted)' }}>문의 내용</label>
                   <textarea
                     rows={5}
+                    value={inquiryContent}
+                    onChange={(event) => setInquiryContent(event.target.value)}
                     placeholder="문의하실 내용을 입력해주세요"
-                    className="w-full resize-none rounded-xl border px-4 py-3 placeholder:text-[var(--app-input-placeholder)] backdrop-blur-xl transition-colors focus:outline-none"
+                    disabled={isSubmittingInquiry}
+                    maxLength={1000}
+                    className="w-full resize-none rounded-xl border px-4 py-3 placeholder:text-[var(--app-input-placeholder)] backdrop-blur-xl transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     style={inputStyle}
                   />
+                  <div className="mt-2 text-right text-xs" style={{ color: 'var(--app-text-subtle)' }}>
+                    {inquiryContent.length} / 1000
+                  </div>
                 </div>
+
+                {inquiryError ? (
+                  <div
+                    className="rounded-xl border px-3 py-2 text-xs"
+                    style={{
+                      borderColor: 'var(--app-danger-border)',
+                      backgroundColor: 'var(--app-danger-bg)',
+                      color: 'var(--app-danger-text)',
+                    }}
+                  >
+                    {inquiryError}
+                  </div>
+                ) : null}
+
+                {inquirySuccessMessage ? (
+                  <div
+                    className="rounded-xl border px-3 py-2 text-xs"
+                    style={{
+                      borderColor: 'var(--app-accent-border)',
+                      backgroundColor: 'var(--app-accent-surface)',
+                      color: 'var(--tarot-text-main)',
+                    }}
+                  >
+                    {inquirySuccessMessage}
+                  </div>
+                ) : null}
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setShowInquiry(false)}
-                    className="flex-1 rounded-xl border py-3 text-sm font-medium transition-colors hover:bg-white/10"
+                    onClick={closeInquiryModal}
+                    disabled={isSubmittingInquiry}
+                    className="flex-1 rounded-xl border py-3 text-sm font-medium transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                     style={glassButtonStyle}
                   >
                     취소
                   </button>
                   <button
-                    onClick={() => setShowInquiry(false)}
-                    className="flex-1 rounded-xl border py-3 text-sm font-semibold backdrop-blur-xl transition-all"
+                    onClick={handleInquirySubmit}
+                    disabled={isSubmittingInquiry || inquiryContent.trim().length === 0}
+                    className="flex-1 rounded-xl border py-3 text-sm font-semibold backdrop-blur-xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     style={accentButtonStyle}
                   >
-                    전송
+                    {isSubmittingInquiry ? '전송 중...' : '전송'}
                   </button>
                 </div>
               </div>
@@ -1337,11 +1457,9 @@ export function MyPage() {
               disabled={isSavingSettings}
             />
 
-            <SettingToggle
-              icon={isDarkMode ? Moon : Sun}
-              label="화면 모드"
-              enabled={isDarkMode}
-              onToggle={handleThemeToggle}
+            <ThemeModeSetting
+              currentTheme={isDarkMode ? 'dark' : 'light'}
+              onChange={handleThemeChange}
               disabled={isSavingSettings}
             />
 
@@ -1403,7 +1521,7 @@ export function MyPage() {
           className="mb-6 space-y-2"
         >
           <button
-            onClick={() => setShowInquiry(true)}
+            onClick={openInquiryModal}
             className="group flex w-full items-center justify-between rounded-2xl border p-4 backdrop-blur-xl transition-all hover:bg-white/10"
             style={glassCardStyle}
           >
@@ -1491,6 +1609,74 @@ function SettingToggle({
           className="absolute top-1 h-5 w-5 rounded-full bg-white shadow-lg"
         />
       </button>
+    </div>
+  );
+}
+
+function ThemeModeSetting({
+  currentTheme,
+  onChange,
+  disabled = false,
+}: {
+  currentTheme: ThemePreference;
+  onChange: (theme: ThemePreference) => void;
+  disabled?: boolean;
+}) {
+  const CurrentThemeIcon = currentTheme === 'dark' ? Moon : Sun;
+  const options: Array<{
+    value: ThemePreference;
+    label: string;
+    icon: typeof Sun;
+  }> = [
+    { value: 'light', label: '라이트', icon: Sun },
+    { value: 'dark', label: '다크', icon: Moon },
+  ];
+
+  return (
+    <div className="py-4">
+      <div className="mb-3 flex items-center gap-3">
+        <CurrentThemeIcon className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>화면 모드</span>
+      </div>
+      <div
+        className="grid grid-cols-2 gap-2 rounded-2xl border p-1.5"
+        style={{
+          ...glassCardStrongStyle,
+          borderColor: 'var(--app-surface-divider)',
+        }}
+      >
+        {options.map(({ value, label, icon: Icon }) => {
+          const isSelected = value === currentTheme;
+
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onChange(value)}
+              disabled={disabled}
+              className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              style={
+                isSelected
+                  ? {
+                      background:
+                        'linear-gradient(135deg, var(--app-accent-gradient-start) 0%, var(--app-accent-gradient-end) 100%)',
+                      border: 'var(--app-hairline-border) solid var(--app-accent-border-strong)',
+                      color: 'var(--tarot-text-main)',
+                      boxShadow: '0 14px 28px -20px var(--app-accent-glow)',
+                    }
+                  : {
+                      backgroundColor: 'transparent',
+                      border: 'var(--app-hairline-border) solid transparent',
+                      color: 'var(--app-text-muted)',
+                    }
+              }
+            >
+              <Icon className="h-4 w-4" />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

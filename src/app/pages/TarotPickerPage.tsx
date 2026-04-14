@@ -74,6 +74,46 @@ function getCutShuffledOrder(order: number[], cutIndex: number) {
   return [...order.slice(cutIndex), ...order.slice(0, cutIndex)];
 }
 
+function getSinglePassInterleavedOrder(order: number[], cutIndex: number) {
+  const upperHalf = order.slice(0, cutIndex);
+  const lowerHalf = order.slice(cutIndex);
+  const merged: number[] = [];
+
+  let upperIndex = 0;
+  let lowerIndex = 0;
+  let takeLowerNext = lowerHalf.length >= upperHalf.length;
+
+  while (upperIndex < upperHalf.length || lowerIndex < lowerHalf.length) {
+    const currentHalf = takeLowerNext ? lowerHalf : upperHalf;
+    const currentIndex = takeLowerNext ? lowerIndex : upperIndex;
+    const remaining = currentHalf.length - currentIndex;
+
+    if (remaining <= 0) {
+      takeLowerNext = !takeLowerNext;
+      continue;
+    }
+
+    const packetSize = Math.min(
+      remaining,
+      1 + Math.floor(Math.random() * (remaining > 2 ? 3 : 2)),
+    );
+
+    for (let offset = 0; offset < packetSize; offset += 1) {
+      merged.push(currentHalf[currentIndex + offset]);
+    }
+
+    if (takeLowerNext) {
+      lowerIndex += packetSize;
+    } else {
+      upperIndex += packetSize;
+    }
+
+    takeLowerNext = !takeLowerNext;
+  }
+
+  return merged;
+}
+
 function getRandomShuffledOrder(order: number[]) {
   const next = [...order];
 
@@ -350,11 +390,13 @@ export function TarotPickerPage() {
     setSwappedOrder(true);
 
     shuffleCommitTimeoutRef.current = window.setTimeout(() => {
-      const nextDeckOrder = getCutShuffledOrder(visualDeckOrder, splitIndex);
+      const nextDeckOrder = getSinglePassInterleavedOrder(visualDeckOrder, splitIndex);
       setDeckOrder(nextDeckOrder);
+      setVisualDeckOrder(nextDeckOrder);
       setSwappedOrder(false);
       setIsShuffling(false);
-      setIsMergedStack(true);
+      setIsMergedStack(false);
+      setIsSplit(false);
 
       shuffledUiTimeoutRef.current = window.setTimeout(() => {
         setHasShuffled(true);
