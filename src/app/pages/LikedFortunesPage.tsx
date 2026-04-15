@@ -1,44 +1,66 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Heart, TrendingUp, Sparkles, Eye, Calendar, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
+import {
+  getHistoryDetail,
+  getLikedConsultingHistories,
+  unlikeConsultingHistory,
+  type ConsultResponse,
+  type ConsultingHistorySummaryResponse,
+  type SharedConsultingHistoryResponse,
+} from '@/lib/api';
+import { getCurrentUser } from '@/lib/session';
 
-interface Fortune {
-  id: string;
-  type: '투자 운세' | '투자 타로 운세' | '투자 사주 운세' | '투자 종합 운세';
-  score: number;
-  date: string;
-  summary: string;
-}
+type FortuneType = '투자 운세' | '투자 타로 운세' | '투자 사주 운세' | '투자 종합 운세';
 
 export function LikedFortunesPage() {
   const navigate = useNavigate();
-  const [fortunes, setFortunes] = useState<Fortune[]>([
-    {
-      id: '1',
-      type: '투자 종합 운세',
-      score: 78,
-      date: '2024.03.15',
-      summary: 'AI 기술주와 바이오 섹터가 강세를 보일 전망. 오전 시간대 투자 결정이 길함.',
-    },
-    {
-      id: '2',
-      type: '투자 타로 운세',
-      score: 85,
-      date: '2024.03.10',
-      summary: '별, 태양 카드가 나타나 매우 긍정적인 흐름. 새로운 투자 기회에 주목.',
-    },
-    {
-      id: '3',
-      type: '투자 사주 운세',
-      score: 72,
-      date: '2024.03.05',
-      summary: '금(金) 기운이 강하여 재물운 상승. 분산 투자로 리스크 관리 필요.',
-    },
-  ]);
+  const currentUserId = getCurrentUser()?.id ?? null;
+  const [fortunes, setFortunes] = useState<ConsultingHistorySummaryResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [openingHistoryId, setOpeningHistoryId] = useState<number | null>(null);
+  const [deletingHistoryId, setDeletingHistoryId] = useState<number | null>(null);
 
-  const getTypeIcon = (type: Fortune['type']) => {
+  useEffect(() => {
+    let active = true;
+
+    if (!currentUserId) {
+      setError('로그인 후 좋아요한 운세를 확인할 수 있습니다.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    getLikedConsultingHistories(currentUserId, { page: 0, size: 20 })
+      .then((response) => {
+        if (!active) return;
+        setFortunes(response.content ?? []);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : '좋아요한 운세를 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentUserId]);
+
+  const visibleFortunes = useMemo(
+    () => fortunes.filter((fortune) => fortune.feedback === 'HELPFUL'),
+    [fortunes],
+  );
+
+  const getTypeIcon = (type: FortuneType) => {
     switch (type) {
       case '투자 타로 운세':
         return <Eye className="h-5 w-5" />;
@@ -49,7 +71,7 @@ export function LikedFortunesPage() {
     }
   };
 
-  const getTypeColor = (type: Fortune['type']) => {
+  const getTypeColor = (type: FortuneType) => {
     switch (type) {
       case '투자 타로 운세':
         return 'from-purple-500/20 to-violet-600/20 border-purple-500/30 fi-status-text-info';
@@ -60,25 +82,51 @@ export function LikedFortunesPage() {
     }
   };
 
-  const handleDelete = (id: string) => {
-    setFortunes(fortunes.filter(f => f.id !== id));
+  const handleDelete = async (historyId: number) => {
+    if (!currentUserId || deletingHistoryId !== null) return;
+
+    setDeletingHistoryId(historyId);
+    setError('');
+
+    try {
+      await unlikeConsultingHistory(currentUserId, historyId);
+      setFortunes((current) => current.filter((item) => item.id !== historyId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '좋아요를 취소하지 못했습니다.');
+    } finally {
+      setDeletingHistoryId(null);
+    }
   };
 
-  const handleFortuneClick = (fortune: Fortune) => {
-    navigate(`/investment-result?type=${encodeURIComponent(fortune.type)}`);
+  const handleFortuneClick = async (fortune: ConsultingHistorySummaryResponse) => {
+    if (!currentUserId || openingHistoryId !== null) return;
+
+    setOpeningHistoryId(fortune.id);
+    setError('');
+
+    try {
+      const detail = await getHistoryDetail(fortune.id, currentUserId);
+      navigate('/investment-result', {
+        state: {
+          consultResult: mapHistoryDetailToConsultResult(detail),
+          initialLiked: true,
+        },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '운세 상세를 불러오지 못했습니다.');
+    } finally {
+      setOpeningHistoryId(null);
+    }
   };
 
   return (
     <div className="fi-page min-h-screen pb-24">
-      {/* Ambient background effects */}
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
-      {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
         <div className="sticky top-0 z-50 px-6 py-4 backdrop-blur-xl" style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 94%, transparent) 0%, transparent 100%)' }}>
           <div className="flex items-center gap-4">
             <button
@@ -87,7 +135,7 @@ export function LikedFortunesPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-            
+
             <div className="flex-1 text-center">
               <h1 className="text-lg font-semibold fi-text-main">좋아요한 운세</h1>
               <p className="text-xs fi-text-accent">Liked Fortunes</p>
@@ -97,9 +145,16 @@ export function LikedFortunesPage() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="px-6 pb-6 pt-4">
-          {fortunes.length === 0 ? (
+          {loading ? <p className="text-center text-sm fi-text-muted">좋아요한 운세를 불러오는 중...</p> : null}
+
+          {error ? (
+            <div className="fi-danger mb-4 rounded-2xl px-4 py-3 text-sm">
+              {error}
+            </div>
+          ) : null}
+
+          {!loading && visibleFortunes.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -118,72 +173,183 @@ export function LikedFortunesPage() {
             </motion.div>
           ) : (
             <div className="space-y-4">
-              {fortunes.map((fortune, index) => (
-                <motion.div
-                  key={fortune.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="fi-glass group relative overflow-hidden rounded-2xl p-5 transition-all hover:opacity-95"
-                  style={{
-                    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
-                  
-                  <div className="relative">
-                    {/* Header */}
-                    <div className="mb-4 flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl border bg-gradient-to-br backdrop-blur-xl ${getTypeColor(fortune.type)}`}>
-                          {getTypeIcon(fortune.type)}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold fi-text-main">{fortune.type}</h3>
-                          <div className="mt-1 flex items-center gap-2 text-xs fi-text-muted">
-                            <Calendar className="h-3 w-3" />
-                            {fortune.date}
+              {visibleFortunes.map((fortune, index) => {
+                const fortuneType = mapScenarioToFortuneType(fortune.scenario);
+                return (
+                  <motion.div
+                    key={fortune.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="fi-glass group relative overflow-hidden rounded-2xl p-5 transition-all hover:opacity-95"
+                    style={{
+                      boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)',
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
+
+                    <div className="relative">
+                      <div className="mb-4 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-xl border bg-gradient-to-br backdrop-blur-xl ${getTypeColor(fortuneType)}`}>
+                            {getTypeIcon(fortuneType)}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold fi-text-main">{fortuneType}</h3>
+                            <div className="mt-1 flex items-center gap-2 text-xs fi-text-muted">
+                              <Calendar className="h-3 w-3" />
+                              {formatDateTime(fortune.consultedAt)}
+                            </div>
                           </div>
                         </div>
+
+                        {typeof fortune.currentValue === 'number' ? (
+                          <div className="fi-badge flex items-center gap-2 rounded-full px-3 py-1">
+                            <span className="text-sm font-bold fi-text-accent">{formatCurrentValue(fortune.currentValue)}</span>
+                          </div>
+                        ) : null}
                       </div>
 
-                      {/* Score Badge */}
-                      <div className="fi-badge flex items-center gap-2 rounded-full px-3 py-1">
-                        <span className="text-lg font-bold fi-text-accent">{fortune.score}</span>
-                        <span className="text-xs fi-text-muted">점</span>
+                      <p className="mb-4 text-sm leading-relaxed fi-text-muted">
+                        {buildSummary(fortune)}
+                      </p>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => void handleFortuneClick(fortune)}
+                          disabled={openingHistoryId === fortune.id}
+                          className="fi-cta flex-1 rounded-xl py-2.5 text-sm font-medium transition-all hover:opacity-90 disabled:opacity-60"
+                        >
+                          {openingHistoryId === fortune.id ? '불러오는 중...' : '자세히 보기'}
+                        </button>
+                        <button
+                          onClick={() => void handleDelete(fortune.id)}
+                          disabled={deletingHistoryId === fortune.id}
+                          className="fi-glass flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-red-500/10 disabled:opacity-60"
+                        >
+                          <Trash2 className="h-4 w-4 fi-text-muted group-hover:text-red-400" />
+                        </button>
                       </div>
                     </div>
-
-                    {/* Summary */}
-                    <p className="mb-4 text-sm leading-relaxed fi-text-muted">
-                      {fortune.summary}
-                    </p>
-
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleFortuneClick(fortune)}
-                        className="fi-cta flex-1 rounded-xl py-2.5 text-sm font-medium transition-all hover:opacity-90"
-                      >
-                        자세히 보기
-                      </button>
-                      <button
-                        onClick={() => handleDelete(fortune.id)}
-                        className="fi-glass flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-red-500/10"
-                      >
-                        <Trash2 className="h-4 w-4 fi-text-muted group-hover:text-red-400" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </div>
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNavigation />
     </div>
   );
+}
+
+function mapScenarioToFortuneType(scenario?: string): FortuneType {
+  if (scenario === 'SAJU_MATCH') return '투자 사주 운세';
+  if (scenario === 'DAILY' || scenario === 'TAROT' || scenario === 'THREE_CARD') return '투자 타로 운세';
+  if (scenario === 'STOCK_ALL') return '투자 종합 운세';
+  return '투자 운세';
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+}
+
+function formatCurrentValue(value: number) {
+  return new Intl.NumberFormat('ko-KR', {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatChangeRate(value?: number | null) {
+  if (typeof value !== 'number') return null;
+  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+}
+
+function buildSummary(fortune: ConsultingHistorySummaryResponse) {
+  const parts = [
+    fortune.selectedFocusLabel ? `대상: ${fortune.selectedFocusLabel}` : null,
+    formatChangeRate(fortune.changeRate) ? `변동률: ${formatChangeRate(fortune.changeRate)}` : null,
+    fortune.tarotCardNames.length ? `카드: ${fortune.tarotCardNames.join(', ')}` : null,
+  ].filter(Boolean);
+
+  return parts.join(' · ') || '저장된 운세입니다.';
+}
+
+function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse): ConsultResponse {
+  const stock = detail.stock;
+  const stockName = stock?.companyName?.trim() || '종목 정보 없음';
+
+  return {
+    mode: detail.mode,
+    stock: {
+      code: stock?.ticker ?? '',
+      name: stockName,
+      currentPrice: stock?.marketPrice ?? 0,
+      changeRate: stock?.changeRate ?? 0,
+      sector: '-',
+      fallback: !stock,
+    },
+    saju: detail.saju
+      ? {
+          dayMaster: { symbol: '-', fiveElement: '-', yinYang: '-' },
+          dayBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
+          monthBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
+        }
+      : undefined,
+    tarot: detail.tarot
+      ? {
+          interpretationMode: detail.tarot.interpretationMode ?? 'MAIN_TRADITIONAL',
+          cards: detail.tarot.cards.map((card) => ({
+            selectedIndex: card.selectedIndex,
+            code: card.code,
+            deckType: card.deckType as 'TAROT' | 'ORACLE',
+            name: card.name,
+            sortOrder: card.sortOrder,
+            arcanaType: card.arcanaType,
+            suit: card.suit,
+            meaning: card.meaning,
+            imageUrl: card.imageUrl ?? '',
+            videoUrl: card.videoUrl,
+          })),
+        }
+      : undefined,
+    ai: {
+      provider: '-',
+      model: '-',
+      mode: detail.mode,
+      analysisResults: {
+        market_analysis: { title: '시장 분석', content: detail.marketAnalysisText ?? '' },
+        tarot_analysis: { title: '타로 분석', content: detail.tarotAnalysisText ?? '' },
+        saju_analysis: { title: '사주 분석', content: detail.sajuAnalysisText ?? '' },
+      },
+      finalAdvice: detail.aiAnswerText,
+      riskScore: 0,
+      rawJson: detail.aiResponseJson,
+    },
+    history: {
+      id: detail.id,
+      userId: detail.userId,
+      shareKey: detail.shareKey,
+      consultedAt: detail.consultedAt,
+      aiAnswerText: detail.aiAnswerText,
+      marketAnalysisText: detail.marketAnalysisText,
+      tarotAnalysisText: detail.tarotAnalysisText,
+      sajuAnalysisText: detail.sajuAnalysisText,
+    },
+    thread: {
+      id: detail.threadId,
+      title: stockName,
+      lastQuestionSummary: detail.question,
+      lastAnsweredAt: detail.consultedAt,
+      status: detail.threadStatus,
+      lastEvidenceUpdatedAt: detail.lastEvidenceUpdatedAt,
+      expiresAt: detail.expiresAt,
+      canResume: Boolean(detail.threadId) && (detail.threadStatus === 'OPEN' || detail.threadStatus === 'EXPIRING_SOON'),
+    },
+    evidence: detail.evidence,
+    limitations: detail.limitations,
+  };
 }

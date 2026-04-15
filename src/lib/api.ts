@@ -581,7 +581,7 @@ export interface ConsultLimitation {
 
 export interface ConsultResponse {
   mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
-  stock: {
+  stock?: {
     code: string;
     name: string;
     currentPrice: number;
@@ -684,6 +684,22 @@ export interface PageableQuery {
   sort?: string[];
 }
 
+export interface PageResponse<T> {
+  totalPages?: number;
+  totalElements?: number;
+  last?: boolean;
+  first?: boolean;
+  numberOfElements?: number;
+  size?: number;
+  number?: number;
+  empty?: boolean;
+  content?: T[];
+  pageable?: {
+    pageNumber?: number;
+    pageSize?: number;
+  };
+}
+
 export interface ConsultingHistoryDateLabelResponse {
   code: string;
   title: string;
@@ -722,6 +738,28 @@ export interface ConsultingHistoryReviewResponse {
   reviewNote?: string;
   reviewedAt?: string;
   reviewed: boolean;
+}
+
+export interface ConsultingHistorySummaryResponse {
+  id: number;
+  scenario?: string;
+  consultedAt: string;
+  selectedFocusLabel?: string;
+  currentValue?: number | null;
+  changeRate?: number | null;
+  tarotInterpretationMode?: string | null;
+  tarotCardCodes: string[];
+  tarotCardNames: string[];
+  feedback?: 'HELPFUL' | 'NOT_HELPFUL' | string | null;
+  realizedProfitRate?: number | null;
+  retrospectedAt?: string | null;
+}
+
+export interface ConsultingHistoryLikeResponse {
+  historyId: number;
+  liked: boolean;
+  satisfaction?: 'HELPFUL' | 'NOT_HELPFUL' | string | null;
+  reviewedAt?: string | null;
 }
 
 export interface ConsultingHistoryDateItemResponse {
@@ -1085,6 +1123,17 @@ export async function getConsultingHistories(userId: number, pageable: PageableQ
   );
 }
 
+export async function getLikedConsultingHistories(userId: number, pageable: PageableQuery = {}) {
+  const query = buildQuery({
+    page: pageable.page,
+    size: pageable.size,
+    sort: pageable.sort,
+  });
+  return request<PageResponse<ConsultingHistorySummaryResponse>>(
+    `/api/users/${userId}/consulting-histories/liked${query}`,
+  );
+}
+
 export async function getHistoryDetailsByDate(userId: number, date: string) {
   return request<ConsultingHistoryDateDetailResponse>(
     `/api/users/${userId}/consulting-histories/by-date${buildQuery({ date })}`,
@@ -1101,6 +1150,24 @@ export async function updateConsultingReview(
     {
       method: 'PATCH',
       body: payload,
+    },
+  );
+}
+
+export async function likeConsultingHistory(userId: number, historyId: number) {
+  return request<ConsultingHistoryLikeResponse>(
+    `/api/users/${userId}/consulting-histories/${historyId}/liked`,
+    {
+      method: 'POST',
+    },
+  );
+}
+
+export async function unlikeConsultingHistory(userId: number, historyId: number) {
+  return request<ConsultingHistoryLikeResponse>(
+    `/api/users/${userId}/consulting-histories/${historyId}/liked`,
+    {
+      method: 'DELETE',
     },
   );
 }

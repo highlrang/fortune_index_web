@@ -395,8 +395,7 @@ export function TarotPickerPage() {
       setVisualDeckOrder(nextDeckOrder);
       setSwappedOrder(false);
       setIsShuffling(false);
-      setIsMergedStack(false);
-      setIsSplit(false);
+      setIsMergedStack(true);
 
       shuffledUiTimeoutRef.current = window.setTimeout(() => {
         setHasShuffled(true);
@@ -785,7 +784,7 @@ export function TarotPickerPage() {
                   const zOffset = i * CARD_THICKNESS - splitPointZ;
                   const isVisible = i % 2 === 0 || i < 5 || i > upperDeckCards.length - 6;
                   const isTopCard = i === 0;
-                  const isBottomCard = i === upperDeckCards.length - 1;
+                  const isBottomCard = !isMergedStack && i === upperDeckCards.length - 1;
 
                   return (
                     <motion.div
@@ -843,7 +842,7 @@ export function TarotPickerPage() {
                   const zOffset = i * CARD_THICKNESS;
                   const deckSize = lowerDeckCards.length;
                   const isVisible = i % 2 === 0 || i < 5 || i > deckSize - 6;
-                  const isTopCard = i === 0;
+                  const isTopCard = !isMergedStack && i === 0;
                   const isBottomCard = i === deckSize - 1;
 
                   return (

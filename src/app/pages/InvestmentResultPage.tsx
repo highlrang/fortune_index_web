@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowLeft,
@@ -15,7 +15,12 @@ import {
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import type { ConsultResponse, EvidenceFreshnessStatus } from '@/lib/api';
+import {
+  likeConsultingHistory,
+  unlikeConsultingHistory,
+  type ConsultResponse,
+  type EvidenceFreshnessStatus,
+} from '@/lib/api';
 import { getCurrentUser, getLastConsultResult, hasPremiumConsultingAccess } from '@/lib/session';
 
 const pageGradientStyle = {
@@ -90,14 +95,15 @@ export function InvestmentResultPage() {
   const location = useLocation();
   const currentUser = getCurrentUser();
   const hasPremiumAccess = hasPremiumConsultingAccess(currentUser);
+  const navigationState = location.state as { consultResult?: ConsultResponse; initialLiked?: boolean } | null;
   const consultResult =
-    ((location.state as { consultResult?: ConsultResponse } | null)?.consultResult as ConsultResponse | undefined) ??
+    (navigationState?.consultResult as ConsultResponse | undefined) ??
     getLastConsultResult<ConsultResponse>();
 
   const sections = useMemo(() => {
     if (!consultResult) return [];
 
-    return Object.entries(consultResult.ai.analysisResults)
+    return Object.entries(consultResult.ai?.analysisResults ?? {})
       .filter(([key]) => key !== 'market_analysis')
       .filter(([, value]) => value?.content)
       .map(([key, value]) => ({
@@ -110,9 +116,11 @@ export function InvestmentResultPage() {
 
   const confidenceScore = useMemo(() => {
     if (!consultResult) return 78;
-    return Math.max(0, 100 - consultResult.ai.riskScore);
+    return Math.max(0, 100 - (consultResult.ai?.riskScore ?? 22));
   }, [consultResult]);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(Boolean(navigationState?.initialLiked));
+  const [likePending, setLikePending] = useState(false);
+  const [likeError, setLikeError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const evidenceItems = useMemo(() => {
     if (!consultResult?.evidence) return [];
@@ -130,6 +138,28 @@ export function InvestmentResultPage() {
     consultResult?.evidence?.overallStatus === 'UNAVAILABLE' ||
     consultResult?.limitations?.length;
 
+  useEffect(() => {
+    setIsLiked(Boolean(navigationState?.initialLiked));
+  }, [navigationState?.initialLiked, consultResult?.history?.id]);
+
+  const handleLikeToggle = async () => {
+    if (!currentUser?.id || !consultResult?.history?.id || likePending) return;
+
+    setLikePending(true);
+    setLikeError('');
+
+    try {
+      const response = isLiked
+        ? await unlikeConsultingHistory(currentUser.id, consultResult.history.id)
+        : await likeConsultingHistory(currentUser.id, consultResult.history.id);
+      setIsLiked(response.liked);
+    } catch (error) {
+      setLikeError(error instanceof Error ? error.message : '좋아요 상태를 변경하지 못했습니다.');
+    } finally {
+      setLikePending(false);
+    }
+  };
+
   if (!consultResult) {
     return (
       <div className="min-h-screen" style={pageGradientStyle}>
@@ -146,6 +176,11 @@ export function InvestmentResultPage() {
       </div>
     );
   }
+
+  const resultTitle = titleByMode[consultResult.mode] ?? '오늘의 해석';
+  const stockName = consultResult.stock?.name ?? consultResult.thread?.title ?? '종목 정보 없음';
+  const finalAdvice = consultResult.ai?.finalAdvice ?? consultResult.history?.aiAnswerText ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
+  const historyId = consultResult.history?.id;
 
   return (
     <div className="min-h-screen overflow-auto" style={pageGradientStyle}>
@@ -174,8 +209,8 @@ export function InvestmentResultPage() {
             </button>
 
             <div className="text-center">
-              <h1 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{titleByMode[consultResult.mode]}</h1>
-              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{consultResult.stock.name}</p>
+              <h1 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{resultTitle}</h1>
+              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{stockName}</p>
             </div>
 
             <button className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90" style={iconButtonStyle}>
@@ -273,7 +308,7 @@ export function InvestmentResultPage() {
                   <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
                     <Clock className="h-4 w-4" />
                   </div>
-                  <p className="flex-1 text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{consultResult.ai.finalAdvice}</p>
+                  <p className="flex-1 text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
                 </div>
 
                 {hasPremiumAccess && consultResult.thread?.id ? (
@@ -290,7 +325,7 @@ export function InvestmentResultPage() {
                         navigate('/consultation', {
                           state: {
                             resumeThreadId: consultResult.thread?.id,
-                            resumeThreadTitle: consultResult.thread?.title ?? consultResult.stock.name,
+                            resumeThreadTitle: consultResult.thread?.title ?? stockName,
                             resumeThreadStatus: consultResult.thread?.status ?? 'OPEN',
                           },
                         })
@@ -398,11 +433,21 @@ export function InvestmentResultPage() {
             </div>
           ) : null}
 
+          {likeError ? (
+            <div className="mt-8 rounded-2xl px-4 py-3 text-sm" style={dangerCardStyle}>
+              <span style={{ color: 'var(--app-danger-text)' }}>{likeError}</span>
+            </div>
+          ) : null}
+
           <div className="mt-8 flex items-center justify-between">
             <button
-              onClick={() => setIsLiked((prev) => !prev)}
+              onClick={handleLikeToggle}
+              disabled={!currentUser?.id || !historyId || likePending}
               className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90"
-              style={iconButtonStyle}
+              style={{
+                ...iconButtonStyle,
+                opacity: !currentUser?.id || !historyId || likePending ? 0.6 : 1,
+              }}
             >
               <Heart className="h-4 w-4" style={{ color: isLiked ? 'var(--tarot-point-color)' : 'var(--app-icon-muted)' }} />
             </button>
