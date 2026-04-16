@@ -6,7 +6,7 @@ import { BottomNavigation } from '../components/BottomNavigation';
 
 interface Notification {
   id: string;
-  type: 'fortune' | 'market' | 'system';
+  type: 'fortune' | 'investment' | 'system';
   title: string;
   message: string;
   date: string;
@@ -26,7 +26,7 @@ export function NotificationsPage() {
     },
     {
       id: '2',
-      type: 'market',
+      type: 'investment',
       title: '추천 종목 급등 알림',
       message: '운세에서 추천한 AI 기술주 ETF가 전일 대비 +5.2% 상승했습니다.',
       date: '2024.03.17 14:30',
@@ -50,7 +50,7 @@ export function NotificationsPage() {
     },
     {
       id: '5',
-      type: 'market',
+      type: 'investment',
       title: '시장 변동성 주의 알림',
       message: '오늘 코스피 지수 변동성이 높습니다. 신중한 투자 결정을 권장합니다.',
       date: '2024.03.13 09:30',
@@ -62,7 +62,7 @@ export function NotificationsPage() {
     switch (type) {
       case 'fortune':
         return <Sparkles className="h-5 w-5" />;
-      case 'market':
+      case 'investment':
         return <TrendingUp className="h-5 w-5" />;
       case 'system':
         return <Star className="h-5 w-5" />;
@@ -75,7 +75,7 @@ export function NotificationsPage() {
     switch (type) {
       case 'fortune':
         return 'from-purple-500/20 to-violet-600/20 border-purple-500/30 fi-status-text-info';
-      case 'market':
+      case 'investment':
         return 'from-emerald-500/20 to-green-600/20 border-emerald-500/30 fi-status-text-success';
       case 'system':
         return 'from-amber-500/20 to-orange-600/20 border-amber-500/30 fi-status-text-warning';

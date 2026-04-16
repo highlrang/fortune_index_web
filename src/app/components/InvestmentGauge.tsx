@@ -231,7 +231,7 @@ export function InvestmentGauge({
                     <div className="relative flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.24em]" style={{ color: 'var(--app-accent-text-soft)' }}>
-                          Investment Flow
+                          Investment Mood
                         </p>
                         <h3 className="mt-1 text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>
                           투자 컨디션 선택

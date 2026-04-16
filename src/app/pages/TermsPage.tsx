@@ -23,7 +23,7 @@ export function TermsPage() {
           </button>
           <div>
             <h1 className="text-2xl font-semibold fi-text-main">이용약관</h1>
-            <p className="text-sm fi-text-muted">Stock Oracle 서비스 이용에 대한 기본 안내</p>
+            <p className="text-sm fi-text-muted">Fortune Index 서비스 이용에 대한 기본 안내</p>
           </div>
         </div>
 
@@ -38,7 +38,7 @@ export function TermsPage() {
               <h2 className="text-base font-semibold fi-text-main">서비스 목적</h2>
             </div>
             <p className="text-sm leading-7 fi-text-muted">
-              Stock Oracle은 타로, 사주, AI 해석을 결합해 투자 인사이트와 엔터테인먼트성 콘텐츠를 제공하는 서비스입니다.
+              Fortune Index는 타로, 사주, AI 해석을 결합해 투자 인사이트와 엔터테인먼트성 콘텐츠를 제공하는 서비스입니다.
               본 서비스의 모든 정보는 참고용이며, 특정 금융상품의 매수, 매도 또는 보유를 권유하는 투자 자문으로 간주되지 않습니다.
             </p>
           </section>
@@ -59,7 +59,7 @@ export function TermsPage() {
             </div>
             <p className="text-sm leading-7 fi-text-soft">
               주식, ETF, 코인, 파생상품을 포함한 모든 투자 판단과 그 결과에 따른 수익 및 손실은 전적으로 이용자 본인의 책임입니다.
-              Stock Oracle은 서비스에서 제공한 정보, 해석, 예측 또는 알림을 근거로 이루어진 투자 의사결정에 대해 책임지지 않습니다.
+              Fortune Index는 서비스에서 제공한 정보, 해석, 예측 또는 알림을 근거로 이루어진 투자 의사결정에 대해 책임지지 않습니다.
             </p>
           </section>
 

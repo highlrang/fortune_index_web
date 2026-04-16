@@ -1,7 +1,7 @@
 import { getCurrentUser } from './session';
 
-const TAROT_DECK_KEY = 'stock-oracle-tarot-deck';
-const TAROT_DECK_VERSIONS_KEY = 'stock-oracle-tarot-deck-versions';
+const TAROT_DECK_KEY = 'fortune-index-tarot-deck';
+const TAROT_DECK_VERSIONS_KEY = 'fortune-index-tarot-deck-versions';
 
 export interface TarotDeckVersion {
   id: string;

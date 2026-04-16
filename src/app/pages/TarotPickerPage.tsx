@@ -4,7 +4,7 @@ import { ArrowLeft, Shuffle, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
-type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
+type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
 type ConsultationFlowState = {
   selectedType?: ConsultationType;
   selectedScenario?: string;

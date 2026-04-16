@@ -10,8 +10,6 @@ import {
   Clock,
   Trash2,
   RefreshCw,
-  ShieldAlert,
-  Layers,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
@@ -19,9 +17,8 @@ import {
   likeConsultingHistory,
   unlikeConsultingHistory,
   type ConsultResponse,
-  type EvidenceFreshnessStatus,
 } from '@/lib/api';
-import { getCurrentUser, getLastConsultResult, hasPremiumConsultingAccess } from '@/lib/session';
+import { getCurrentUser, getLastConsultResult } from '@/lib/session';
 
 const pageGradientStyle = {
   background:
@@ -71,30 +68,22 @@ const dangerCardStyle = {
   backgroundColor: 'var(--app-danger-bg)',
 };
 
-const infoCardStyle = {
-  ...glassLayerStyle,
-  borderColor: 'var(--app-info-border)',
-  backgroundColor: 'var(--app-info-bg)',
-};
-
 const iconByKey = {
-  market_analysis: TrendingUp,
+  investment_analysis: TrendingUp,
   saju_analysis: Sparkles,
   tarot_analysis: Eye,
 } as const;
 
 const titleByMode = {
-  ONLY_STOCK: '오늘의 해석',
-  STOCK_SAJU: '사주 해석',
-  STOCK_TAROT: '타로 해석',
-  STOCK_ALL: '종합 해석',
+  INVESTMENT_SAJU: '사주 해석',
+  INVESTMENT_TAROT: '타로 해석',
+  INVESTMENT_ALL: '종합 해석',
 } as const;
 
 export function InvestmentResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getCurrentUser();
-  const hasPremiumAccess = hasPremiumConsultingAccess(currentUser);
   const navigationState = location.state as { consultResult?: ConsultResponse; initialLiked?: boolean } | null;
   const consultResult =
     (navigationState?.consultResult as ConsultResponse | undefined) ??
@@ -103,8 +92,7 @@ export function InvestmentResultPage() {
   const sections = useMemo(() => {
     if (!consultResult) return [];
 
-    return Object.entries(consultResult.ai?.analysisResults ?? {})
-      .filter(([key]) => key !== 'market_analysis')
+    return Object.entries(consultResult.ai.analysisResults)
       .filter(([, value]) => value?.content)
       .map(([key, value]) => ({
         key,
@@ -118,25 +106,27 @@ export function InvestmentResultPage() {
     if (!consultResult) return 78;
     return Math.max(0, 100 - (consultResult.ai?.riskScore ?? 22));
   }, [consultResult]);
+
+  const evidenceSummary = useMemo(() => {
+    if (!consultResult) return [];
+
+    return [
+      consultResult.investmentEvidence.investmentAsOf
+        ? { label: '투자 데이터 시각', value: formatDateTime(consultResult.investmentEvidence.investmentAsOf) }
+        : null,
+      consultResult.investmentEvidence.positionAsOf
+        ? { label: '내 정보 반영 시각', value: formatDateTime(consultResult.investmentEvidence.positionAsOf) }
+        : null,
+      consultResult.investmentEvidence.newsAsOf
+        ? { label: '뉴스 반영 시각', value: formatDateTime(consultResult.investmentEvidence.newsAsOf) }
+        : null,
+    ].filter(Boolean) as Array<{ label: string; value: string }>;
+  }, [consultResult]);
+
   const [isLiked, setIsLiked] = useState(Boolean(navigationState?.initialLiked));
   const [likePending, setLikePending] = useState(false);
   const [likeError, setLikeError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const evidenceItems = useMemo(() => {
-    if (!consultResult?.evidence) return [];
-
-    return [
-      { label: '지금 흐름', value: consultResult.evidence.market?.asOf, status: consultResult.evidence.market?.status },
-      { label: '내 기록', value: consultResult.evidence.position?.asOf, status: consultResult.evidence.position?.status },
-      { label: '최근 이야기', value: consultResult.evidence.news?.asOf, status: consultResult.evidence.news?.status },
-    ].filter((item) => item.value || item.status);
-  }, [consultResult]);
-  const sourceCount = consultResult?.evidence?.news?.sourceCount ?? consultResult?.evidence?.market?.sourceCount;
-  const hasLimitedEvidence =
-    consultResult?.progress?.includes('LIMITED_BY_STALE_DATA') ||
-    consultResult?.evidence?.overallStatus === 'STALE' ||
-    consultResult?.evidence?.overallStatus === 'UNAVAILABLE' ||
-    consultResult?.limitations?.length;
 
   useEffect(() => {
     setIsLiked(Boolean(navigationState?.initialLiked));
@@ -178,8 +168,11 @@ export function InvestmentResultPage() {
   }
 
   const resultTitle = titleByMode[consultResult.mode] ?? '오늘의 해석';
-  const stockName = consultResult.stock?.name ?? consultResult.thread?.title ?? '종목 정보 없음';
-  const finalAdvice = consultResult.ai?.finalAdvice ?? consultResult.history?.aiAnswerText ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
+  const focusLabel = consultResult.focus?.label ?? '오늘의 흐름';
+  const focusValue = formatCurrentValue(consultResult.focus?.currentValue);
+  const changeRate = formatChangeRate(consultResult.focus?.changeRate);
+  const finalAdvice =
+    consultResult.ai?.finalAdvice ?? consultResult.history?.aiAnswerText ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
   const historyId = consultResult.history?.id;
 
   return (
@@ -210,7 +203,7 @@ export function InvestmentResultPage() {
 
             <div className="text-center">
               <h1 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{resultTitle}</h1>
-              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{stockName}</p>
+              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{focusLabel}</p>
             </div>
 
             <button className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90" style={iconButtonStyle}>
@@ -226,38 +219,6 @@ export function InvestmentResultPage() {
             transition={{ duration: 0.6 }}
             className="mb-8"
           >
-            {hasLimitedEvidence ? (
-              <div className="mb-4 rounded-2xl p-5" style={dangerCardStyle}>
-                <div className="flex items-start gap-3">
-                  <div className="rounded-full border p-2" style={dangerCardStyle}>
-                    <ShieldAlert className="h-4 w-4" style={{ color: 'var(--app-danger-text)' }} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: 'var(--app-danger-text)' }}>지금은 또렷한 흐름이 적어 간단히만 전해드려요.</p>
-                    <p className="mt-2 text-xs leading-6" style={{ color: 'var(--app-text-soft)' }}>
-                      {consultResult.limitations?.[0]?.message ?? deriveLimitedMessage(consultResult)}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <button
-                        onClick={() => navigate('/consultation', { state: { selectedType: 'market' } })}
-                        className="rounded-full border px-4 py-2 text-xs"
-                        style={dangerCardStyle}
-                      >
-                        다시 시도
-                      </button>
-                      <button
-                        onClick={() => navigate('/consultation')}
-                        className="rounded-full border px-4 py-2 text-xs"
-                        style={subtleButtonStyle}
-                      >
-                        다시 보기
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
             <div className="relative overflow-hidden rounded-3xl p-8" style={accentCardStyle}>
               <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
@@ -285,9 +246,15 @@ export function InvestmentResultPage() {
                   </div>
                 </div>
 
-                <p className="text-center text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
-                  {confidenceScore >= 80 ? '마음 편히 가도 좋은 흐름' : confidenceScore >= 60 ? '차분하게 가면 괜찮은 흐름' : '조금 천천히 보는 편이 좋아요'}
-                </p>
+                <div className="text-center">
+                  <p className="text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
+                    {confidenceScore >= 80 ? '마음 편히 가도 좋은 흐름' : confidenceScore >= 60 ? '차분하게 가면 괜찮은 흐름' : '조금 천천히 보는 편이 좋아요'}
+                  </p>
+                  <p className="mt-2 text-sm" style={{ color: 'var(--app-accent-text-soft)' }}>
+                    {focusValue ? `${focusLabel} ${focusValue}` : focusLabel}
+                    {changeRate ? ` · ${changeRate}` : ''}
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -310,80 +277,47 @@ export function InvestmentResultPage() {
                   </div>
                   <p className="flex-1 text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
                 </div>
-
-                {hasPremiumAccess && consultResult.thread?.id ? (
-                  <div className="rounded-2xl p-4" style={infoCardStyle}>
-                    <div className="flex items-center gap-2" style={{ color: 'var(--app-info-text)' }}>
-                      <Layers className="h-4 w-4" />
-                      <p className="text-sm font-medium">이 상담 이어서 질문하기</p>
-                    </div>
-                    <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-soft)' }}>
-                      지난 이야기는 이어지고, 필요한 내용은 다음 질문에서 다시 살펴봐요.
-                    </p>
-                    <button
-                      onClick={() =>
-                        navigate('/consultation', {
-                          state: {
-                            resumeThreadId: consultResult.thread?.id,
-                            resumeThreadTitle: consultResult.thread?.title ?? stockName,
-                            resumeThreadStatus: consultResult.thread?.status ?? 'OPEN',
-                          },
-                        })
-                      }
-                      className="mt-4 rounded-full border px-4 py-2 text-xs"
-                      style={infoCardStyle}
-                    >
-                      이어서 질문하기
-                    </button>
-                  </div>
-                ) : null}
-
               </div>
             </div>
           </motion.div>
 
-          {consultResult.evidence ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.6 }}
-              className="mb-6"
-            >
-              <div className="rounded-2xl p-6" style={glassCardStyle}>
-                <div className="mb-4 flex items-center gap-2">
-                  <RefreshCw className="h-4 w-4" style={{ color: 'var(--app-info-text)' }} />
-                  <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>함께 참고한 내용</h3>
-                </div>
-
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {consultResult.evidence.market?.status ? (
-                    <EvidenceBadge label={getEvidenceBadgeLabel('market', consultResult.evidence.market.status)} status={consultResult.evidence.market.status} />
-                  ) : null}
-                  {consultResult.evidence.news?.status ? (
-                    <EvidenceBadge label={getEvidenceBadgeLabel('news', consultResult.evidence.news.status)} status={consultResult.evidence.news.status} />
-                  ) : null}
-                  {consultResult.evidence.position?.status ? (
-                    <EvidenceBadge label={getEvidenceBadgeLabel('position', consultResult.evidence.position.status)} status={consultResult.evidence.position.status} />
-                  ) : null}
-                </div>
-
-                <div className="space-y-3 text-sm" style={{ color: 'var(--app-text-soft)' }}>
-                  {evidenceItems.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
-                      <span style={{ color: 'var(--app-text-muted)' }}>{item.label}</span>
-                      <span className="text-right" style={{ color: 'var(--tarot-text-main)' }}>{formatEvidenceDate(item.value, item.status)}</span>
-                    </div>
-                  ))}
-                  {sourceCount ? (
-                    <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
-                      <span style={{ color: 'var(--app-text-muted)' }}>출처</span>
-                      <span style={{ color: 'var(--tarot-text-main)' }}>{sourceCount}건</span>
-                    </div>
-                  ) : null}
-                </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.6 }}
+            className="mb-6"
+          >
+            <div className="rounded-2xl p-6" style={glassCardStyle}>
+              <div className="mb-4 flex items-center gap-2">
+                <RefreshCw className="h-4 w-4" style={{ color: 'var(--app-info-text)' }} />
+                <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>참고 근거</h3>
               </div>
-            </motion.div>
-          ) : null}
+
+              <div className="mb-4 flex flex-wrap gap-2">
+                <EvidenceBadge label={consultResult.investmentEvidence.priceFresh ? '가격 최신' : '가격 지연'} />
+                <EvidenceBadge label={consultResult.investmentEvidence.newsFresh ? '뉴스 최신' : '뉴스 지연'} />
+                <EvidenceBadge label={consultResult.investmentEvidence.positionFresh ? '내 정보 최신' : '내 정보 지연'} />
+              </div>
+
+              <div className="space-y-3 text-sm" style={{ color: 'var(--app-text-soft)' }}>
+                {evidenceSummary.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
+                    <span style={{ color: 'var(--app-text-muted)' }}>{item.label}</span>
+                    <span className="text-right" style={{ color: 'var(--tarot-text-main)' }}>{item.value}</span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
+                  <span style={{ color: 'var(--app-text-muted)' }}>출처 수</span>
+                  <span style={{ color: 'var(--tarot-text-main)' }}>{consultResult.investmentEvidence.citations.length}건</span>
+                </div>
+                {consultResult.investmentEvidence.staleReasons.length > 0 ? (
+                  <div className="rounded-xl px-4 py-3 text-sm" style={dangerCardStyle}>
+                    {consultResult.investmentEvidence.staleReasons.join(' · ')}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </motion.div>
 
           <div className="space-y-6">
             {sections.map((section, index) => (
@@ -477,7 +411,7 @@ export function InvestmentResultPage() {
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
                 <div className="relative">
-                  <h3 className="mb-5 text-center text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>삭제 확인</h3>
+                  <h3 className="mb-5 text-center text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>닫기 확인</h3>
                   <p className="text-center text-sm" style={{ color: 'var(--app-text-soft)' }}>이 해석을 닫고 홈으로 돌아갈까요?</p>
 
                   <div className="mt-6 flex items-center justify-center space-x-4">
@@ -509,47 +443,24 @@ export function InvestmentResultPage() {
   );
 }
 
-function EvidenceBadge({ label, status }: { label: string; status: EvidenceFreshnessStatus }) {
-  return (
-    <span className={`rounded-full border px-3 py-1.5 text-xs ${getEvidenceBadgeClass(status)}`}>
-      {label}
-    </span>
-  );
+function EvidenceBadge({ label }: { label: string }) {
+  return <span className="fi-status-badge-success rounded-full border px-3 py-1.5 text-xs">{label}</span>;
 }
 
-function getEvidenceBadgeLabel(kind: 'market' | 'news' | 'position', status: EvidenceFreshnessStatus) {
-  const target = kind === 'market' ? '지금 흐름' : kind === 'news' ? '최근 이야기' : '내 기록';
-  if (status === 'FRESH') return `${target} 반영`;
-  if (status === 'PARTIAL') return `${target} 일부 반영`;
-  if (status === 'STALE') return `${target} 지연`;
-  return `${target} 미확인`;
-}
-
-function getEvidenceBadgeClass(status: EvidenceFreshnessStatus) {
-  if (status === 'FRESH') return 'fi-status-badge-success';
-  if (status === 'PARTIAL' || status === 'STALE') return 'fi-status-badge-warning';
-  return 'fi-status-badge-danger';
-}
-
-function formatEvidenceDate(value?: string, status?: EvidenceFreshnessStatus) {
-  if (!value) {
-    return status === 'UNAVAILABLE' ? '조회 실패' : '-';
-  }
-
+function formatDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleString();
 }
 
-function deriveLimitedMessage(consultResult: ConsultResponse) {
-  if (consultResult.evidence?.market?.status === 'UNAVAILABLE' || consultResult.evidence?.market?.status === 'STALE') {
-    return '지금 흐름이 또렷하지 않아 확실한 방향을 바로 전하기 어려웠어요.';
-  }
-  if (consultResult.evidence?.news?.status === 'UNAVAILABLE' || consultResult.evidence?.news?.status === 'STALE') {
-    return '최근 이야기가 충분하지 않아 그 부분 해석은 조금 줄였어요.';
-  }
-  if (consultResult.evidence?.position?.status === 'UNAVAILABLE' || consultResult.evidence?.position?.status === 'STALE') {
-    return '내 기록을 바로 확인하지 못해 그 부분은 넓게 봐드렸어요.';
-  }
-  return '지금 참고할 정보가 충분하지 않아 해석을 조금 가볍게 전해드렸어요.';
+function formatCurrentValue(value?: number | null) {
+  if (typeof value !== 'number') return null;
+  return new Intl.NumberFormat('ko-KR', {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatChangeRate(value?: number | null) {
+  if (typeof value !== 'number') return null;
+  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
 }

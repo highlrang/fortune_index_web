@@ -1,27 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Star, Sparkles, Layers } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import {
-  consult,
-  getScenarios,
-  type ConsultingThreadStatus,
-  type ScenarioOptionResponse,
-} from '@/lib/api';
+import { consult, getScenarios, type ScenarioOptionResponse } from '@/lib/api';
+import { pickConsultationQuestion } from '@/lib/consultPrompts';
 import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
-type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
+type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
 type ConsultationFlowState = {
   selectedType?: ConsultationType;
   selectedScenario?: string;
   question?: string;
   selectedCards?: number[];
   tarotDeckVersionId?: string;
-  resumeThreadId?: string;
-  resumeThreadTitle?: string;
-  resumeThreadStatus?: ConsultingThreadStatus;
 };
 
 const consultationTypes = [
@@ -46,23 +39,11 @@ const scenarioLabelByCode: Record<string, string> = {
   MENTAL_GUIDE: '마음',
 };
 
-const questionPlaceholderByScenario: Record<string, string> = {
-  TIMING_ENTRY: '예: 지금 시작해도 괜찮을까요?',
-  TIMING_EXIT: '예: 지금은 잠시 멈추는 게 좋을까요?',
-  SAJU_MATCH: '예: 제 사주에 지금 이 흐름이 잘 맞을까요?',
-  RESCUE_PLAN: '예: 요즘 계속 꼬이는데 어떻게 풀어가면 좋을까요?',
-  MENTAL_GUIDE: '예: 마음이 불안한데 지금은 어떤 태도로 보면 좋을까요?',
-};
-
 const modeByType = {
-  market: 'ONLY_STOCK',
-  saju: 'STOCK_SAJU',
-  tarot: 'STOCK_TAROT',
-  comprehensive: 'STOCK_ALL',
+  saju: 'INVESTMENT_SAJU',
+  tarot: 'INVESTMENT_TAROT',
+  comprehensive: 'INVESTMENT_ALL',
 } as const;
-
-const DEFAULT_STOCK_CODE = '000000';
-const DEFAULT_STOCK_NAME = '오늘의 흐름';
 
 export function ConsultationPage() {
   const navigate = useNavigate();
@@ -81,15 +62,17 @@ export function ConsultationPage() {
   const [loadingScenarios, setLoadingScenarios] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [selectedResumeThreadId] = useState<string | null>(
-    flowState?.resumeThreadStatus && flowState.resumeThreadStatus !== 'EXPIRED' && flowState.resumeThreadStatus !== 'CLOSED'
-      ? flowState.resumeThreadId ?? null
-      : null,
-  );
 
-  const questionPlaceholder = selectedScenario
-    ? `편하게 질문해주세요\n${questionPlaceholderByScenario[selectedScenario] ?? '예: 지금 제 흐름은 어떤가요?'}`
-    : '편하게 질문해주세요\n예: 지금 제 흐름은 어떤가요?';
+  const questionPlaceholder = useMemo(() => {
+    if (!selectedScenario) {
+      return `편하게 질문해주세요\n예: ${pickConsultationQuestion('MENTAL_GUIDE', selectedType)}`;
+    }
+
+    return `편하게 질문해주세요\n예: ${pickConsultationQuestion(
+      selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE',
+      selectedType,
+    )}`;
+  }, [selectedScenario, selectedType]);
   const visibleScenarios = scenarios.filter((scenario, index, list) => {
     const label = scenarioLabelByCode[scenario.code] ?? scenario.title;
     return list.findIndex((item) => (scenarioLabelByCode[item.code] ?? item.title) === label) === index;
@@ -159,9 +142,7 @@ export function ConsultationPage() {
         scenario: selectedScenario
           ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
           : undefined,
-        stockCode: DEFAULT_STOCK_CODE,
-        stockName: DEFAULT_STOCK_NAME,
-        threadId: selectedResumeThreadId ?? undefined,
+        focusLabel: selectedScenario ? scenarioLabelByCode[selectedScenario] ?? selectedScenario : undefined,
         question: trimmedQuestion,
         tarotIndices: selectedCards.length > 0 ? selectedCards : undefined,
         tarotDeckVersionId: selectedCards.length > 0 ? tarotDeckVersionId : undefined,
@@ -388,9 +369,7 @@ export function ConsultationPage() {
               }}
             >
               {isSubmitting
-                ? selectedResumeThreadId
-                  ? '이전 이야기와 함께 다시 보고 있어요...'
-                  : '해석 중...'
+                ? '해석 중...'
                 : selectedType === 'tarot' || selectedType === 'comprehensive'
                   ? '질문 들고 카드 뽑기'
                   : '해석 보기'}
@@ -404,50 +383,4 @@ export function ConsultationPage() {
       <BottomNavigation />
     </div>
   );
-}
-
-function mapHistoryItemToThreadCard(item: ConsultingHistoryListItemResponse): ResumeCandidate {
-  const status = item.threadStatus ?? 'OPEN';
-  const title = item.stockName || '이전 상담';
-  const id = item.threadId ?? `history-${item.id}`;
-
-  return {
-    id,
-    title,
-    summary: item.lastQuestionSummary ?? item.aiSummary ?? '이전 이야기를 다시 확인해보세요.',
-    consultedAt: item.consultedAt,
-    status,
-    lastEvidenceUpdatedAt: item.lastEvidenceUpdatedAt,
-    canResume: Boolean(item.threadId) && (status === 'OPEN' || status === 'EXPIRING_SOON'),
-  };
-}
-
-function getThreadStatusLabel(status: ConsultingThreadStatus) {
-  if (status === 'EXPIRING_SOON') return '곧 만료';
-  if (status === 'EXPIRED') return '만료';
-  if (status === 'CLOSED') return '종료';
-  return '진행중';
-}
-
-function getThreadBadgeClass(status: ConsultingThreadStatus) {
-  if (status === 'EXPIRING_SOON') return 'fi-status-badge-warning';
-  if (status === 'EXPIRED' || status === 'CLOSED') return 'fi-status-badge-danger';
-  return 'fi-status-badge-success';
-}
-
-function formatRelativeTime(value?: string) {
-  if (!value) return '-';
-
-  const targetTime = new Date(value).getTime();
-  if (Number.isNaN(targetTime)) return '-';
-
-  const diffMinutes = Math.max(0, Math.floor((Date.now() - targetTime) / 60000));
-  if (diffMinutes < 1) return '방금 전';
-  if (diffMinutes < 60) return `${diffMinutes}분 전`;
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}시간 전`;
-
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}일 전`;
 }

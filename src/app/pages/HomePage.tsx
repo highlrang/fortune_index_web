@@ -47,7 +47,7 @@ export function HomePage() {
         {/* Top Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-medium fi-text-main">Stock Oracle</h1>
+            <h1 className="text-xl font-medium fi-text-main">Fortune Index</h1>
             <p className="text-xs fi-text-muted">당신의 재운을 밝힙니다</p>
           </div>
           <button 

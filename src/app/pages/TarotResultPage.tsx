@@ -8,7 +8,7 @@ import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 
 type CardRevealState = 'back' | 'expanding' | 'revealing' | 'shrinking' | 'front';
-type ConsultationType = 'market' | 'saju' | 'tarot' | 'comprehensive' | null;
+type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
 type TarotResultLocationState = {
   selectedCards?: number[];
   selectedType?: ConsultationType;
@@ -29,13 +29,10 @@ interface CardData {
 
 const CARD_WIDTH = 100;
 const CARD_HEIGHT = 150;
-const DEFAULT_STOCK_CODE = '000000';
-const DEFAULT_STOCK_NAME = '시장 전체';
 const modeByType = {
-  market: 'ONLY_STOCK',
-  saju: 'STOCK_SAJU',
-  tarot: 'STOCK_TAROT',
-  comprehensive: 'STOCK_ALL',
+  saju: 'INVESTMENT_SAJU',
+  tarot: 'INVESTMENT_TAROT',
+  comprehensive: 'INVESTMENT_ALL',
 } as const;
 
 const pageGradientStyle = {
@@ -268,8 +265,7 @@ export function TarotResultPage() {
         scenario: selectedScenario
           ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
           : undefined,
-        stockCode: DEFAULT_STOCK_CODE,
-        stockName: DEFAULT_STOCK_NAME,
+        focusLabel: selectedScenario ?? undefined,
         question: trimmedQuestion,
         tarotIndices: selectedCards,
         tarotDeckVersionId,

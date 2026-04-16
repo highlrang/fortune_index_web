@@ -25,7 +25,7 @@ export function SignupStageLayout({
           <div className="mb-6 flex items-center justify-center gap-2">
             <Sparkles className="h-6 w-6 fi-text-accent" />
             <h1 className="text-2xl font-medium fi-text-main">
-              Stock Oracle
+              Fortune Index
             </h1>
             <Sparkles className="h-6 w-6 fi-text-accent" />
           </div>
@@ -52,7 +52,7 @@ export function SignupStageLayout({
         </div>
 
         <div className="mt-16 text-center">
-          <p className="text-xs fi-text-subtle">© 2026 Stock Oracle. All rights reserved.</p>
+          <p className="text-xs fi-text-subtle">© 2026 Fortune Index. All rights reserved.</p>
         </div>
       </div>
     </div>

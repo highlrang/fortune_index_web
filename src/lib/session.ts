@@ -1,5 +1,5 @@
-const SESSION_KEY = 'stock-oracle-session';
-const LAST_CONSULT_KEY = 'stock-oracle-last-consult';
+const SESSION_KEY = 'fortune-index-session';
+const LAST_CONSULT_KEY = 'fortune-index-last-consult';
 
 export type InvestmentRiskProfile = 'STABLE' | 'AGGRESSIVE';
 
@@ -10,17 +10,13 @@ export interface SessionUser {
   emailVerified: boolean;
   investmentRiskProfile: InvestmentRiskProfile;
   preferredSectors: string[];
-  subscriptionPlan?: string | null;
-  subscriptionStatus?: string | null;
-  membershipLevel?: string | null;
-  premiumConsultingEnabled?: boolean | null;
+  subscriptionTier?: 'FREE' | 'PREMIUM' | null;
   preferredTarotDeckId?: string | null;
   birthDate?: string | null;
-  birthTime?: string | null;
+  birthTime?: string | { hour?: number; minute?: number; second?: number; nano?: number } | null;
   gender?: string | null;
   profileImageUrl?: string | null;
   notificationEnabled?: boolean;
-  virtualInvestmentEnabled?: boolean;
   darkModeEnabled?: boolean;
   createdAt?: string;
   lastLoginAt?: string;
@@ -79,15 +75,7 @@ export function getCurrentUser() {
 
 export function hasPremiumConsultingAccess(user = getCurrentUser()) {
   if (!user) return false;
-
-  const derivedPremiumAccess =
-    user.subscriptionPlan === 'PREMIUM' ||
-    user.subscriptionStatus === 'ACTIVE' ||
-    user.membershipLevel === 'PREMIUM';
-
-  return Boolean(
-    user.premiumConsultingEnabled ?? derivedPremiumAccess,
-  );
+  return user.subscriptionTier === 'PREMIUM';
 }
 
 export function saveLastConsultResult<T>(result: T) {

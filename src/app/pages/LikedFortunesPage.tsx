@@ -174,7 +174,7 @@ export function LikedFortunesPage() {
           ) : (
             <div className="space-y-4">
               {visibleFortunes.map((fortune, index) => {
-                const fortuneType = mapScenarioToFortuneType(fortune.scenario);
+                const fortuneType = mapModeToFortuneType(fortune);
                 return (
                   <motion.div
                     key={fortune.id}
@@ -244,10 +244,12 @@ export function LikedFortunesPage() {
   );
 }
 
-function mapScenarioToFortuneType(scenario?: string): FortuneType {
-  if (scenario === 'SAJU_MATCH') return '투자 사주 운세';
-  if (scenario === 'DAILY' || scenario === 'TAROT' || scenario === 'THREE_CARD') return '투자 타로 운세';
-  if (scenario === 'STOCK_ALL') return '투자 종합 운세';
+function mapModeToFortuneType(fortune: ConsultingHistorySummaryResponse): FortuneType {
+  if (fortune.tarotCardNames.length > 0 && fortune.scenario === 'SAJU_MATCH') {
+    return '투자 종합 운세';
+  }
+  if (fortune.scenario === 'SAJU_MATCH') return '투자 사주 운세';
+  if (fortune.tarotCardNames.length > 0) return '투자 타로 운세';
   return '투자 운세';
 }
 
@@ -279,24 +281,37 @@ function buildSummary(fortune: ConsultingHistorySummaryResponse) {
 }
 
 function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse): ConsultResponse {
-  const stock = detail.stock;
-  const stockName = stock?.companyName?.trim() || '종목 정보 없음';
-
   return {
     mode: detail.mode,
-    stock: {
-      code: stock?.ticker ?? '',
-      name: stockName,
-      currentPrice: stock?.marketPrice ?? 0,
-      changeRate: stock?.changeRate ?? 0,
-      sector: '-',
-      fallback: !stock,
+    focus: {
+      label: detail.focus.label,
+      currentValue: detail.focus.currentValue,
+      changeRate: detail.focus.changeRate,
+      interestArea: detail.focus.label,
+      fallback: false,
     },
     saju: detail.saju
       ? {
+          analysis: {
+            natalChart: {},
+            keyPalaces: {},
+            characters: [],
+            tenGods: [],
+            fiveElementBalance: {
+              wood: detail.saju.wood,
+              fire: detail.saju.fire,
+              earth: detail.saju.earth,
+              metal: detail.saju.metal,
+              water: detail.saju.water,
+            },
+            yinYangBalance: { yinCount: 0, yangCount: 0, totalCount: 0 },
+            annualFortune: {},
+            majorFortune: {},
+          },
           dayMaster: { symbol: '-', fiveElement: '-', yinYang: '-' },
           dayBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
           monthBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
+          currentFortune: {},
         }
       : undefined,
     tarot: detail.tarot
@@ -321,35 +336,42 @@ function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse
       model: '-',
       mode: detail.mode,
       analysisResults: {
-        market_analysis: { title: '시장 분석', content: detail.marketAnalysisText ?? '' },
+        investment_analysis: { title: '투자 분석', content: detail.investmentAnalysisText ?? '' },
         tarot_analysis: { title: '타로 분석', content: detail.tarotAnalysisText ?? '' },
         saju_analysis: { title: '사주 분석', content: detail.sajuAnalysisText ?? '' },
       },
       finalAdvice: detail.aiAnswerText,
       riskScore: 0,
       rawJson: detail.aiResponseJson,
+      evidence: {
+        grounded: false,
+        citations: [],
+      },
     },
     history: {
-      id: detail.id,
-      userId: detail.userId,
-      shareKey: detail.shareKey,
-      consultedAt: detail.consultedAt,
-      aiAnswerText: detail.aiAnswerText,
-      marketAnalysisText: detail.marketAnalysisText,
-      tarotAnalysisText: detail.tarotAnalysisText,
-      sajuAnalysisText: detail.sajuAnalysisText,
+      ...detail,
     },
-    thread: {
-      id: detail.threadId,
-      title: stockName,
-      lastQuestionSummary: detail.question,
-      lastAnsweredAt: detail.consultedAt,
-      status: detail.threadStatus,
-      lastEvidenceUpdatedAt: detail.lastEvidenceUpdatedAt,
-      expiresAt: detail.expiresAt,
-      canResume: Boolean(detail.threadId) && (detail.threadStatus === 'OPEN' || detail.threadStatus === 'EXPIRING_SOON'),
+    investmentEvidence: {
+      routing: {
+        requiresInvestmentData: false,
+        requiresFortuneFlowData: false,
+        requiresSymbolQuote: false,
+        requiresPositionData: false,
+        requiresWebSearch: false,
+        questionType: '',
+        reason: '',
+      },
+      priceFresh: false,
+      positionFresh: false,
+      newsFresh: false,
+      investmentDataUsed: false,
+      investmentFlowDataUsed: false,
+      symbolQuoteUsed: false,
+      positionDataUsed: false,
+      webSearchUsed: false,
+      grounded: false,
+      citations: [],
+      staleReasons: [],
     },
-    evidence: detail.evidence,
-    limitations: detail.limitations,
   };
 }

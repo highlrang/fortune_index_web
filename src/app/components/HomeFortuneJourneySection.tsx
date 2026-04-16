@@ -1,6 +1,9 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Layers, Sparkles, Star } from 'lucide-react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { pickScenarioQuestion } from '@/lib/consultPrompts';
+import type { ConsultScenario } from '@/lib/api';
 
 type ConsultationType = 'saju' | 'tarot' | 'comprehensive';
 
@@ -8,17 +11,15 @@ type QuickPrompt = {
   id: string;
   type: ConsultationType;
   label: string;
-  question: string;
-  scenario: 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE';
+  scenario: ConsultScenario;
   accent: string;
 };
 
-const quickPrompts: QuickPrompt[] = [
+const quickPromptTemplates: QuickPrompt[] = [
   {
     id: 'saju-match',
     type: 'saju',
     label: '사주',
-    question: '오늘 제 사주에 맞는 흐름을 알려주세요.',
     scenario: 'SAJU_MATCH',
     accent: 'from-amber-400/25 via-yellow-300/10 to-transparent',
   },
@@ -26,16 +27,14 @@ const quickPrompts: QuickPrompt[] = [
     id: 'tarot-entry',
     type: 'tarot',
     label: '타로',
-    question: '지금 가려는 방향이 맞는지 3장으로 봐주세요.',
     scenario: 'TIMING_ENTRY',
     accent: 'from-fuchsia-400/25 via-violet-300/10 to-transparent',
   },
   {
-    id: 'all-week',
+    id: 'all-rescue',
     type: 'comprehensive',
     label: '종합',
-    question: '이번 주 제 금전운을 종합으로 정리해주세요.',
-    scenario: 'MENTAL_GUIDE',
+    scenario: 'RESCUE_PLAN',
     accent: 'from-rose-400/25 via-orange-300/10 to-transparent',
   },
 ];
@@ -48,6 +47,15 @@ const tarotCardPositions = [
 
 export function HomeFortuneJourneySection() {
   const navigate = useNavigate();
+  const quickPrompts = useMemo(
+    () =>
+      quickPromptTemplates.map((prompt) => ({
+        ...prompt,
+        question: pickScenarioQuestion(prompt.scenario),
+      })),
+    [],
+  );
+  const tarotDrawQuestion = useMemo(() => pickScenarioQuestion('TIMING_ENTRY'), []);
 
   return (
     <section className="fi-glass relative overflow-hidden rounded-3xl px-5 py-6 shadow-2xl">
@@ -167,7 +175,7 @@ export function HomeFortuneJourneySection() {
                 state: {
                   selectedType: 'tarot',
                   selectedScenario: 'TIMING_ENTRY',
-                  question: '지금 가는 방향이 맞는지 타로 3장으로 봐주세요.',
+                  question: tarotDrawQuestion,
                 },
               })
             }

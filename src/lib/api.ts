@@ -11,6 +11,7 @@ const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 const API_KEY = import.meta.env.VITE_API_KEY;
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+type QueryValue = string | number | boolean | null | undefined;
 
 export class ApiError extends Error {
   status: number;
@@ -31,7 +32,6 @@ interface RequestOptions {
   skipAuthRefresh?: boolean;
 }
 
-type QueryValue = string | number | boolean | null | undefined;
 let refreshPromise: Promise<boolean> | null = null;
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -74,26 +74,6 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return payload as T;
 }
 
-async function requestWithFallbackPaths<T>(
-  paths: string[],
-  options: RequestOptions = {},
-): Promise<T> {
-  let lastError: unknown;
-
-  for (const path of paths) {
-    try {
-      return await request<T>(path, options);
-    } catch (error) {
-      lastError = error;
-      if (!(error instanceof ApiError) || error.status !== 404) {
-        throw error;
-      }
-    }
-  }
-
-  throw lastError;
-}
-
 async function performRequest(path: string, options: RequestOptions = {}) {
   const headers: Record<string, string> = {
     Accept: 'application/json',
@@ -133,9 +113,7 @@ function shouldAttemptRefresh(path: string, options: RequestOptions) {
   if (options.skipAuthRefresh) return false;
   if (!getSession()?.tokens.refreshToken) return false;
   if (path === '/api/auth/refresh') return false;
-  if (path === '/auth/refresh') return false;
-
-  return !(isPublicAuthPath(path) || path === '/api/auth/logout' || path === '/auth/logout');
+  return !(isPublicAuthPath(path) || path === '/api/auth/logout');
 }
 
 async function refreshAccessToken() {
@@ -371,11 +349,26 @@ function isPublicAuthPath(path: string) {
     path.startsWith('/api/auth/login') ||
     path.startsWith('/api/auth/signup') ||
     path.startsWith('/api/auth/password-reset') ||
-    path.startsWith('/auth/email/send') ||
-    path.startsWith('/auth/email/status') ||
-    path.startsWith('/api/auth/email/send') ||
+    path.startsWith('/api/auth/email/request') ||
     path.startsWith('/api/auth/email/status')
   );
+}
+
+export type SubscriptionTier = 'FREE' | 'PREMIUM';
+export type InvestmentRiskProfile = 'STABLE' | 'AGGRESSIVE';
+export type ConsultMode = 'INVESTMENT_SAJU' | 'INVESTMENT_TAROT' | 'INVESTMENT_ALL';
+export type ConsultScenario =
+  | 'TIMING_ENTRY'
+  | 'TIMING_EXIT'
+  | 'SAJU_MATCH'
+  | 'RESCUE_PLAN'
+  | 'MENTAL_GUIDE';
+
+export interface LocalTimeValue {
+  hour: number;
+  minute: number;
+  second?: number;
+  nano?: number;
 }
 
 export interface AuthUserResponse {
@@ -383,22 +376,21 @@ export interface AuthUserResponse {
   name: string;
   email: string;
   emailVerified: boolean;
-  investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
-  preferredSectors: string[];
-  subscriptionPlan?: string | null;
-  subscriptionStatus?: string | null;
-  membershipLevel?: string | null;
-  premiumConsultingEnabled?: boolean | null;
+  subscriptionTier: SubscriptionTier;
   preferredTarotDeckId?: string | null;
-  birthDate?: string | null;
-  birthTime?: string | null;
-  gender?: string | null;
+  investmentRiskProfile: InvestmentRiskProfile;
+  preferredSectors: string[];
+}
+
+export interface CurrentUserResponse extends AuthUserResponse {
+  birthDate: string;
+  birthTime?: LocalTimeValue | null;
+  gender: 'F' | 'M';
   profileImageUrl?: string | null;
-  notificationEnabled?: boolean;
-  virtualInvestmentEnabled?: boolean;
-  darkModeEnabled?: boolean;
-  createdAt?: string;
-  lastLoginAt?: string;
+  notificationEnabled: boolean;
+  darkModeEnabled: boolean;
+  createdAt: string;
+  lastLoginAt?: string | null;
 }
 
 export interface AuthTokenResponse {
@@ -437,42 +429,13 @@ export interface EmailVerificationResponse {
 }
 
 export interface EmailVerificationStatusResponse {
-  email: string;
-  status: 'PENDING' | 'VERIFIED' | 'EXPIRED' | 'FAILED' | string;
-  verifiedAt?: string | null;
-  message?: string;
+  status: string;
 }
 
 export interface ScenarioOptionResponse {
   code: string;
   title: string;
   description: string;
-}
-
-export interface TotalIndexResponse {
-  totalScore: number;
-  detail: {
-    selectedMarket: string;
-    marketScore: number;
-    marketRawValue: number;
-    sajuScore: number;
-    dailyGanji: string;
-    tarotScore: number;
-    tarotCardName: string;
-  };
-}
-
-export type HomeMarketStatus = 'OK' | 'MARKET_CLOSED' | 'UNAVAILABLE' | string;
-
-export interface HomeInvestmentMarketResponse {
-  code: string;
-  label: string;
-  value: number;
-  score: number;
-  change: number;
-  changeRate: number;
-  asOf: string;
-  status?: HomeMarketStatus;
 }
 
 export interface HomeFortuneResponse {
@@ -488,162 +451,220 @@ export interface HomeTarotResponse {
 export interface HomeInvestmentIndexResponse {
   totalScore: number;
   summary: string;
-  market: HomeInvestmentMarketResponse;
   fortune: HomeFortuneResponse;
   tarot: HomeTarotResponse;
 }
 
-export interface HomeStockItemResponse {
-  ticker: string;
-  name: string;
-  price: number;
-  changeRate: number;
-  currency: 'KRW' | 'USD' | string;
-}
-
-export interface HomeStocksResponse {
-  domestic: HomeStockItemResponse[];
-  foreign: HomeStockItemResponse[];
-}
-
 export interface HomeSummaryResponse {
   investmentIndex: HomeInvestmentIndexResponse;
-  stocks: HomeStocksResponse;
 }
 
-export interface HomeIndexChartPointResponse {
-  time: string;
-  value: number;
-}
-
-export interface HomeIndexChartResponse {
-  indexCode: string;
+export interface FocusConsultResponse {
   label: string;
-  asOf: string;
-  status?: HomeMarketStatus;
-  points: HomeIndexChartPointResponse[];
+  currentValue: number;
+  changeRate: number;
+  interestArea: string;
+  fallback: boolean;
+}
+
+export interface FocusSnapshotResponse {
+  label: string;
+  currentValue: number;
+  changeRate: number;
+  capturedAt: string;
+}
+
+export interface SajuCoreEnergy {
+  symbol: string;
+  fiveElement: string;
+  yinYang: string;
+}
+
+export interface SajuAnalysisResult {
+  natalChart: unknown;
+  keyPalaces: unknown;
+  characters: unknown[];
+  tenGods: unknown[];
+  fiveElementBalance: {
+    wood: number;
+    fire: number;
+    earth: number;
+    metal: number;
+    water: number;
+  };
+  yinYangBalance: {
+    yinCount: number;
+    yangCount: number;
+    totalCount: number;
+  };
+  annualFortune: unknown;
+  majorFortune: unknown;
+}
+
+export interface SajuConsultingResult {
+  analysis: SajuAnalysisResult;
+  dayMaster: SajuCoreEnergy;
+  dayBranch: SajuCoreEnergy;
+  monthBranch: SajuCoreEnergy;
+  currentFortune: unknown;
+}
+
+export interface SajuSnapshotResponse {
+  wood: number;
+  fire: number;
+  earth: number;
+  metal: number;
+  water: number;
+  summary: string;
 }
 
 export interface TarotCardConsultResponse {
   selectedIndex: number;
   code: string;
   deckType: 'TAROT' | 'ORACLE';
-  deckVersionId?: string;
+  deckRole: 'MAIN' | 'ASSISTANT';
+  deckVersionId: string;
+  cardSetId: string;
   name: string;
   sortOrder: number;
-  arcanaType: string;
+  arcanaType?: string;
   suit?: string;
   meaning: string;
-  imageUrl: string;
+  imageUrl?: string;
   videoUrl?: string;
 }
 
-export type ConsultingThreadStatus = 'OPEN' | 'EXPIRING_SOON' | 'EXPIRED' | 'CLOSED';
-export type EvidenceFreshnessStatus = 'FRESH' | 'STALE' | 'UNAVAILABLE' | 'PARTIAL';
-export type ConsultingRequestProgressStatus =
-  | 'ANALYZING_QUESTION'
-  | 'LOADING_PRICE'
-  | 'LOADING_POSITION'
-  | 'LOADING_NEWS'
-  | 'GENERATING'
-  | 'LIMITED_BY_STALE_DATA'
-  | 'COMPLETED';
-
-export interface EvidenceSnapshot {
-  status: EvidenceFreshnessStatus;
-  asOf?: string;
-  sourceCount?: number;
-  reason?: string;
+export interface TarotDeckConsultResponse {
+  deckVersionId: string;
+  deckType: 'TAROT' | 'ORACLE';
+  deckRole: 'MAIN' | 'ASSISTANT';
+  cardSetId: string;
+  cards: TarotCardConsultResponse[];
 }
 
-export interface ConsultThreadSummary {
-  id?: string;
-  title?: string;
-  lastQuestionSummary?: string;
-  lastAnsweredAt?: string;
-  status?: ConsultingThreadStatus;
-  lastEvidenceUpdatedAt?: string;
-  expiresAt?: string;
-  canResume?: boolean;
+export interface TarotConsultResponse {
+  interpretationMode: 'MAIN_TRADITIONAL';
+  cards: TarotCardConsultResponse[];
+  assistantDecks: TarotDeckConsultResponse[];
 }
 
-export interface ConsultEvidenceSummary {
-  overallStatus?: EvidenceFreshnessStatus;
-  market?: EvidenceSnapshot;
-  position?: EvidenceSnapshot;
-  news?: EvidenceSnapshot;
+export interface TarotCardHistoryResponse {
+  selectedIndex: number;
+  code: string;
+  deckType: string;
+  deckRole: string;
+  deckVersionId?: string;
+  cardSetId?: string;
+  name: string;
+  koreanName?: string;
+  cardNumber: number;
+  sortOrder: number;
+  arcanaType?: string;
+  suit?: string;
+  meaning: string;
+  imageUrl?: string;
+  videoUrl?: string;
 }
 
-export interface ConsultLimitation {
-  code?: string;
-  message?: string;
+export interface TarotDeckHistoryResponse {
+  deckVersionId?: string;
+  deckType: string;
+  deckRole: string;
+  cardSetId?: string;
+  cards: TarotCardHistoryResponse[];
+}
+
+export interface TarotSnapshotResponse {
+  interpretationMode?: string;
+  summary: string;
+  cards: TarotCardHistoryResponse[];
+  assistantDecks: TarotDeckHistoryResponse[];
+}
+
+export interface AnalysisSectionPayload {
+  title: string;
+  content: string;
+}
+
+export interface AnalysisResultsPayload {
+  investment_analysis: AnalysisSectionPayload;
+  tarot_analysis?: AnalysisSectionPayload;
+  saju_analysis?: AnalysisSectionPayload;
+}
+
+export interface HybridConsultingAiResponse {
+  provider: 'GEMINI';
+  model: string;
+  mode: string;
+  analysisResults: AnalysisResultsPayload;
+  finalAdvice: string;
+  riskScore: number;
+  rawJson: string;
+  evidence: {
+    grounded: boolean;
+    citations: Array<{
+      title: string;
+      url: string;
+    }>;
+  };
+}
+
+export interface InvestmentEvidenceResponse {
+  routing: {
+    requiresInvestmentData: boolean;
+    requiresFortuneFlowData: boolean;
+    requiresSymbolQuote: boolean;
+    requiresPositionData: boolean;
+    requiresWebSearch: boolean;
+    questionType: string;
+    reason: string;
+  };
+  investmentAsOf?: string;
+  positionAsOf?: string;
+  newsAsOf?: string;
+  priceFresh: boolean;
+  positionFresh: boolean;
+  newsFresh: boolean;
+  investmentDataUsed: boolean;
+  investmentFlowDataUsed: boolean;
+  symbolQuoteUsed: boolean;
+  positionDataUsed: boolean;
+  webSearchUsed: boolean;
+  grounded: boolean;
+  citations: Array<{
+    title: string;
+    url: string;
+  }>;
+  staleReasons: string[];
+}
+
+export interface SharedConsultingHistoryResponse {
+  id: number;
+  userId: number;
+  mode: ConsultMode;
+  scenario?: ConsultScenario;
+  shareKey: string;
+  consultedAt: string;
+  focus: FocusSnapshotResponse;
+  saju?: SajuSnapshotResponse;
+  tarot?: TarotSnapshotResponse;
+  question?: string;
+  aiAnswerText: string;
+  investmentAnalysisText: string;
+  tarotAnalysisText?: string;
+  sajuAnalysisText?: string;
+  analysisResultJson: string;
+  aiResponseJson: string;
 }
 
 export interface ConsultResponse {
-  mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
-  stock?: {
-    code: string;
-    name: string;
-    currentPrice: number;
-    changeRate: number;
-    sector: string;
-    fallback: boolean;
-  };
-  saju?: {
-    dayMaster: { symbol: string; fiveElement: string; yinYang: string };
-    dayBranch: { symbol: string; fiveElement: string; yinYang: string };
-    monthBranch: { symbol: string; fiveElement: string; yinYang: string };
-  };
-  tarot?: {
-    interpretationMode: string;
-    cards: TarotCardConsultResponse[];
-  };
-  ai: {
-    provider: string;
-    model: string;
-    mode: string;
-    analysisResults: {
-      market_analysis: { title: string; content: string };
-      tarot_analysis: { title: string; content: string };
-      saju_analysis: { title: string; content: string };
-    };
-    finalAdvice: string;
-    riskScore: number;
-    rawJson: string;
-  };
-  history: {
-    id: number;
-    userId: number;
-    shareKey: string;
-    consultedAt: string;
-    aiAnswerText: string;
-    marketAnalysisText: string;
-    tarotAnalysisText?: string;
-    sajuAnalysisText?: string;
-  };
-  thread?: ConsultThreadSummary;
-  evidence?: ConsultEvidenceSummary;
-  limitations?: ConsultLimitation[];
-  progress?: ConsultingRequestProgressStatus[];
-}
-
-export interface ConsultingHistoryListItemResponse {
-  id: number;
-  shareKey: string;
-  mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
-  scenario?: string;
-  stockCode: string;
-  stockName: string;
-  consultedAt: string;
-  aiSummary: string;
-  tarotInterpretationMode?: string;
-  tarotCardCodes: string[];
-  tarotCardNames: string[];
-  threadId?: string;
-  threadStatus?: ConsultingThreadStatus;
-  lastQuestionSummary?: string;
-  lastEvidenceUpdatedAt?: string;
-  expiresAt?: string;
+  mode: ConsultMode;
+  focus: FocusConsultResponse;
+  saju?: SajuConsultingResult;
+  tarot?: TarotConsultResponse;
+  ai: HybridConsultingAiResponse;
+  history: SharedConsultingHistoryResponse;
+  investmentEvidence: InvestmentEvidenceResponse;
 }
 
 export interface EmailCodeVerifyPayload {
@@ -670,11 +691,10 @@ export interface UpdateMyProfilePayload {
   birthDate?: string | null;
   birthTime?: string | null;
   gender?: 'F' | 'M' | string | null;
-  investmentRiskProfile?: 'STABLE' | 'AGGRESSIVE';
-  preferredSectors?: string[];
   preferredTarotDeckId?: string | null;
+  investmentRiskProfile?: InvestmentRiskProfile;
+  preferredSectors?: string[];
   notificationEnabled?: boolean;
-  virtualInvestmentEnabled?: boolean;
   darkModeEnabled?: boolean;
 }
 
@@ -724,12 +744,17 @@ export interface PageConsultingHistoryDateSummaryResponse {
   content?: ConsultingHistoryDateSummaryResponse[];
 }
 
-export interface StockSnapshotResponse {
-  ticker: string;
-  companyName: string;
-  marketPrice: number;
-  changeRate: number;
-  capturedAt: string;
+export interface ConsultingHistoryListItemResponse {
+  id: number;
+  shareKey: string;
+  mode: ConsultMode;
+  scenario?: ConsultScenario;
+  focusLabel: string;
+  consultedAt: string;
+  aiSummary: string;
+  tarotInterpretationMode?: string;
+  tarotCardCodes: string[];
+  tarotCardNames: string[];
 }
 
 export interface ConsultingHistoryReviewResponse {
@@ -742,7 +767,7 @@ export interface ConsultingHistoryReviewResponse {
 
 export interface ConsultingHistorySummaryResponse {
   id: number;
-  scenario?: string;
+  scenario?: ConsultScenario;
   consultedAt: string;
   selectedFocusLabel?: string;
   currentValue?: number | null;
@@ -765,13 +790,13 @@ export interface ConsultingHistoryLikeResponse {
 export interface ConsultingHistoryDateItemResponse {
   id: number;
   consultedAt: string;
-  mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
-  scenario?: 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE';
+  mode: ConsultMode;
+  scenario?: ConsultScenario;
   label: ConsultingHistoryDateLabelResponse;
   shareKey: string;
-  selectedStockName: string;
+  selectedFocusLabel: string;
   aiAnswerText: string;
-  stock: StockSnapshotResponse;
+  focus: FocusSnapshotResponse;
   tarotCardNames: string[];
   review: ConsultingHistoryReviewResponse;
 }
@@ -788,121 +813,47 @@ export interface UpdateConsultingReviewPayload {
   reviewedAt?: string;
 }
 
-export interface CreateVirtualInvestmentPayload {
-  stockCode: string;
-  buyQuantity: number;
-  boughtAt?: string;
-}
-
-export interface VirtualInvestmentPositionResponse {
-  id: number;
-  userId: number;
-  stockCode: string;
-  averageBuyPrice: number;
-  buyQuantity: number;
-  boughtAt: string;
-  isHolding: boolean;
-  currentPrice: number;
-  currentReturnRate: number;
-  evaluationProfit: number;
-  priceFallback: boolean;
-}
-
-export interface SajuSnapshotResponse {
-  wood: number;
-  fire: number;
-  earth: number;
-  metal: number;
-  water: number;
-  summary: string;
-}
-
-export interface TarotCardHistoryResponse {
-  selectedIndex: number;
-  code: string;
-  deckType: string;
-  name: string;
-  cardNumber: number;
-  sortOrder: number;
-  arcanaType: string;
-  suit?: string;
-  meaning: string;
-  imageUrl?: string;
-  videoUrl?: string;
-}
-
-export interface TarotSnapshotResponse {
-  interpretationMode?: string;
-  summary: string;
-  cards: TarotCardHistoryResponse[];
-}
-
-export interface SharedConsultingHistoryResponse {
-  id: number;
-  userId: number;
-  mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
-  scenario?: 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE';
-  shareKey: string;
-  consultedAt: string;
-  stock: StockSnapshotResponse;
-  saju?: SajuSnapshotResponse;
-  tarot?: TarotSnapshotResponse;
-  question?: string;
-  aiAnswerText: string;
-  marketAnalysisText: string;
-  tarotAnalysisText?: string;
-  sajuAnalysisText?: string;
-  analysisResultJson: string;
-  aiResponseJson: string;
-  threadId?: string;
-  threadStatus?: ConsultingThreadStatus;
-  lastEvidenceUpdatedAt?: string;
-  expiresAt?: string;
-  evidence?: ConsultEvidenceSummary;
-  limitations?: ConsultLimitation[];
-}
-
-export interface KisApiRawResponse {
-  rtCd?: string;
-  msgCd?: string;
-  msg1?: string;
-  output?: unknown;
-  output1?: unknown;
-  output2?: unknown;
-  ctxAreaFk100?: string;
-  ctxAreaNk100?: string;
-}
-
 export interface SignUpPayload {
   name: string;
   email: string;
   password: string;
   birthDate: string;
   birthTime?: string;
-  investmentRiskProfile: 'STABLE' | 'AGGRESSIVE';
+  gender?: 'F' | 'M';
+  investmentRiskProfile: InvestmentRiskProfile;
   preferredSectors: string[];
+}
+
+export interface AssistantDeckSelectionRequest {
+  deckVersionId: string;
+  selectedIndices?: number[];
 }
 
 export interface ConsultPayload {
   userId: number;
-  mode: 'ONLY_STOCK' | 'STOCK_SAJU' | 'STOCK_TAROT' | 'STOCK_ALL';
-  scenario?: 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE';
-  stockCode: string;
-  stockName?: string;
-  threadId?: string;
+  mode: ConsultMode;
+  scenario?: ConsultScenario;
+  focusLabel?: string;
   tarotIndices?: number[];
   tarotDeckVersionId?: string;
+  assistantDeckSelections?: AssistantDeckSelectionRequest[];
   tarotInterpretationMode?: 'MAIN_TRADITIONAL';
-  question: string;
+  question?: string;
   referenceDateTime?: string;
 }
 
 export interface TarotDeckVersionResponse {
   id: string;
   name: string;
-  description?: string;
+  description: string;
   coverImageUrl?: string | null;
   active: boolean;
+  deckType?: 'TAROT' | 'ORACLE';
+  deckRole?: 'MAIN' | 'ASSISTANT';
+  cardSetId?: string;
+  drawCount?: number;
+  requiredSubscriptionTier?: SubscriptionTier;
+  selected?: boolean;
 }
 
 export interface TarotDeckCardResponse {
@@ -910,14 +861,18 @@ export interface TarotDeckCardResponse {
   code: string;
   deckVersionId: string;
   deckType: 'TAROT' | 'ORACLE';
+  deckRole?: 'MAIN' | 'ASSISTANT';
+  cardSetId?: string;
   name: string;
   koreanName?: string;
   sortOrder: number;
-  arcanaType: string;
+  arcanaType?: string;
   suit?: string;
   meaning: string;
+  description?: string;
   imageUrl?: string | null;
   videoUrl?: string | null;
+  cardNumber?: number;
 }
 
 export interface BirthTarotProfileResponse {
@@ -925,8 +880,10 @@ export interface BirthTarotProfileResponse {
   name?: string;
   koreanName?: string;
   number?: number;
-  meaning?: string;
-  description?: string;
+  cardMeaning?: string;
+  cardDescription?: string;
+  birthMeaning?: string;
+  birthDescription?: string;
   imageUrl?: string | null;
   videoUrl?: string | null;
 }
@@ -938,7 +895,6 @@ export interface SajuDescriptionResponse {
 
 export interface SajuProfileResponse {
   palza?: string[];
-  palja?: string[];
   ohang?: {
     wood?: number;
     fire?: number;
@@ -948,9 +904,8 @@ export interface SajuProfileResponse {
   };
   ilju?: SajuDescriptionResponse | null;
   wolji?: SajuDescriptionResponse | null;
-  daeun?: SajuDescriptionResponse | string | null;
-  sewun?: SajuDescriptionResponse | string | null;
-  sipsung?: string[];
+  daeun?: SajuDescriptionResponse | null;
+  sewun?: SajuDescriptionResponse | null;
 }
 
 export interface UserProfileDetailsResponse {
@@ -980,27 +935,14 @@ export async function verifySignupCode(payload: EmailCodeVerifyPayload) {
   });
 }
 
-export async function sendEmailVerificationMail(email: string) {
-  return requestWithFallbackPaths<MessageResponse>(
-    ['/auth/email/send', '/api/auth/email/send'],
-    {
-      method: 'POST',
-      body: { email },
-    },
-  );
-}
-
 export async function getEmailVerificationStatus(email: string) {
-  return requestWithFallbackPaths<EmailVerificationStatusResponse>(
-    [
-      `/auth/email/status${buildQuery({ email })}`,
-      `/api/auth/email/status${buildQuery({ email })}`,
-    ],
+  return request<EmailVerificationStatusResponse>(
+    `/api/auth/email/status${buildQuery({ email })}`,
   );
 }
 
 export async function getMe() {
-  return request<AuthUserResponse>('/api/auth/me');
+  return request<CurrentUserResponse>('/api/auth/me');
 }
 
 export async function getMyProfileDetails() {
@@ -1008,20 +950,17 @@ export async function getMyProfileDetails() {
 }
 
 export async function updateMyProfile(payload: UpdateMyProfilePayload) {
-  return request<AuthUserResponse>('/api/users/me', {
+  return request<CurrentUserResponse>('/api/users/me', {
     method: 'PATCH',
     body: payload,
   });
 }
 
 export async function createInquiry(payload: CreateInquiryPayload) {
-  return requestWithFallbackPaths<MessageResponse>(
-    ['/api/support/inquiries', '/api/inquiries', '/api/users/me/inquiries'],
-    {
-      method: 'POST',
-      body: payload,
-    },
-  );
+  return request<MessageResponse>('/api/support/inquiries', {
+    method: 'POST',
+    body: payload,
+  });
 }
 
 export async function withdraw(payload: WithdrawPayload) {
@@ -1066,18 +1005,8 @@ export async function confirmPasswordReset(payload: PasswordResetConfirmPayload)
   });
 }
 
-export async function getInvestmentIndex() {
-  return request<TotalIndexResponse>('/api/v1/investment-index');
-}
-
 export async function getHomeSummary() {
   return request<HomeSummaryResponse>('/api/v1/home/summary');
-}
-
-export async function getHomeIndexChart(indexCode: string, period = '1D') {
-  return request<HomeIndexChartResponse>(
-    `/api/v1/home/index-chart${buildQuery({ indexCode, period })}`,
-  );
 }
 
 export async function getScenarios() {
@@ -1118,6 +1047,7 @@ export async function getConsultingHistories(userId: number, pageable: PageableQ
     size: pageable.size,
     sort: pageable.sort,
   });
+
   return request<PageConsultingHistoryDateSummaryResponse>(
     `/api/users/${userId}/consulting-histories${query}`,
   );
@@ -1129,6 +1059,7 @@ export async function getLikedConsultingHistories(userId: number, pageable: Page
     size: pageable.size,
     sort: pageable.sort,
   });
+
   return request<PageResponse<ConsultingHistorySummaryResponse>>(
     `/api/users/${userId}/consulting-histories/liked${query}`,
   );
@@ -1170,108 +1101,6 @@ export async function unlikeConsultingHistory(userId: number, historyId: number)
       method: 'DELETE',
     },
   );
-}
-
-export async function getVirtualInvestments(userId: number, holdingOnly?: boolean) {
-  return request<VirtualInvestmentPositionResponse[]>(
-    `/api/users/${userId}/virtual-investments${buildQuery({ holdingOnly })}`,
-  );
-}
-
-export async function createVirtualInvestment(
-  userId: number,
-  payload: CreateVirtualInvestmentPayload,
-) {
-  return request<VirtualInvestmentPositionResponse>(`/api/users/${userId}/virtual-investments`, {
-    method: 'POST',
-    body: payload,
-  });
-}
-
-export async function getSectorIndex(indexCode: string, marketDivisionCode = 'U') {
-  return request<KisApiRawResponse>(
-    `/api/kis/market/sectors/index-price${buildQuery({ indexCode, marketDivisionCode })}`,
-  );
-}
-
-export async function getSectorConstituents(indexCode: string, marketDivisionCode = 'U') {
-  return request<KisApiRawResponse>(
-    `/api/kis/market/sectors/constituents${buildQuery({ indexCode, marketDivisionCode })}`,
-  );
-}
-
-export interface VolumeRankQuery {
-  marketDivisionCode?: string;
-  screenDivisionCode?: string;
-  inputIscd?: string;
-  divisionClassCode?: string;
-  belongingClassCode?: string;
-  targetClassCode?: string;
-  targetExcludeClassCode?: string;
-  inputPrice1?: string;
-  inputPrice2?: string;
-  volumeCount?: string;
-  inputDate1?: string;
-}
-
-export async function getVolumeRank(query: VolumeRankQuery = {}) {
-  return request<KisApiRawResponse>(
-    `/api/kis/market/rankings/volume-rank${buildQuery({
-      marketDivisionCode: query.marketDivisionCode ?? 'J',
-      screenDivisionCode: query.screenDivisionCode ?? '20171',
-      inputIscd: query.inputIscd ?? '0000',
-      divisionClassCode: query.divisionClassCode ?? '0',
-      belongingClassCode: query.belongingClassCode ?? '0',
-      targetClassCode: query.targetClassCode ?? '111111111',
-      targetExcludeClassCode: query.targetExcludeClassCode ?? '0000000000',
-      inputPrice1: query.inputPrice1 ?? '0',
-      inputPrice2: query.inputPrice2 ?? '0',
-      volumeCount: query.volumeCount ?? '0',
-      inputDate1: query.inputDate1 ?? '0',
-    })}`,
-  );
-}
-
-export async function getTopUpdown(marketDivisionCode = 'J', screenDivisionCode = '20170', rankingSortCode = '0') {
-  return request<KisApiRawResponse>(
-    `/api/kis/market/rankings/top-updown${buildQuery({
-      marketDivisionCode,
-      screenDivisionCode,
-      rankingSortCode,
-    })}`,
-  );
-}
-
-export interface MarketCapQuery {
-  marketDivisionCode?: string;
-  screenDivisionCode?: string;
-  divisionClassCode?: string;
-  inputIscd?: string;
-  targetClassCode?: string;
-  targetExcludeClassCode?: string;
-  inputPrice1?: string;
-  inputPrice2?: string;
-  volumeCount?: string;
-}
-
-export async function getMarketCap(query: MarketCapQuery = {}) {
-  return request<KisApiRawResponse>(
-    `/api/kis/market/rankings/market-cap${buildQuery({
-      marketDivisionCode: query.marketDivisionCode ?? 'J',
-      screenDivisionCode: query.screenDivisionCode ?? '20174',
-      divisionClassCode: query.divisionClassCode ?? '0',
-      inputIscd: query.inputIscd ?? '0000',
-      targetClassCode: query.targetClassCode ?? '0',
-      targetExcludeClassCode: query.targetExcludeClassCode ?? '0',
-      inputPrice1: query.inputPrice1 ?? '',
-      inputPrice2: query.inputPrice2 ?? '',
-      volumeCount: query.volumeCount ?? '',
-    })}`,
-  );
-}
-
-export async function getHoliday(baseDate: string) {
-  return request<KisApiRawResponse>(`/api/kis/market/holiday${buildQuery({ baseDate })}`);
 }
 
 export function toSessionState(auth: AuthResponse): SessionState {

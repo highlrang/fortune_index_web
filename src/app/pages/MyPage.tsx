@@ -1566,7 +1566,7 @@ export function MyPage() {
               개인정보처리방침
             </button>
           </div>
-          <p>© 2024 Stock Oracle. All rights reserved.</p>
+          <p>© 2024 Fortune Index. All rights reserved.</p>
         </div>
       </div>
 
@@ -1753,8 +1753,18 @@ function splitDateParts(value?: string | null) {
   };
 }
 
-function splitTimeParts(value?: string | null) {
+function splitTimeParts(
+  value?: { hour?: number; minute?: number; second?: number } | string | null,
+) {
   if (!value) return { hour: '', minute: '' };
+
+  if (typeof value !== 'string') {
+    const hour =
+      typeof value.hour === 'number' ? String(value.hour).padStart(2, '0') : '';
+    const minute =
+      typeof value.minute === 'number' ? String(value.minute).padStart(2, '0') : '';
+    return { hour, minute };
+  }
 
   const trimmed = value.trim();
   const match = trimmed.match(/^(\d{2}):(\d{2})/);
@@ -1837,8 +1847,8 @@ function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) 
     name: birthTarot?.name ?? 'The Star',
     koreanName: birthTarot?.koreanName ?? '별',
     number: birthTarot?.number ?? 17,
-    meaning: birthTarot?.meaning ?? '희망, 영감, 밝은 미래',
-    description: birthTarot?.description?.trim() || null,
+    meaning: birthTarot?.cardMeaning ?? '희망, 영감, 밝은 미래',
+    description: birthTarot?.cardDescription?.trim() || null,
     imageUrl:
       resolveApiAssetUrl(birthTarot?.imageUrl) ??
       'https://images.unsplash.com/photo-1683217956228-d3d24916df55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YXJvdCUyMGNhcmQlMjBteXN0aWNhbHxlbnwxfHx8fDE3NzM3NDg5OTd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
@@ -1847,7 +1857,7 @@ function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) 
 
 function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
   const saju = profileDetails?.saju;
-  const palza = saju?.palza ?? saju?.palja ?? ['乙未', '己卯', '壬午', '辛亥'];
+  const palza = saju?.palza ?? ['乙未', '己卯', '壬午', '辛亥'];
   const descriptionSections = [
     {
       key: 'ilju',
