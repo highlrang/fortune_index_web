@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, redirect } from 'react-router';
 import { SignupPage } from './pages/SignupPage';
 import { LoginPage } from './pages/LoginPage';
 import { HomePage } from './pages/HomePage';
@@ -14,13 +14,42 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { TermsPage } from './pages/TermsPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { SignupEmailPendingPage } from './pages/SignupEmailPendingPage';
-import { SignupEmailSuccessPage } from './pages/SignupEmailSuccessPage';
+import { SignupEmailVerifiedPage } from './pages/SignupEmailVerifiedPage';
 import { SignupProfilePage } from './pages/SignupProfilePage';
+import { PasswordResetPage } from './pages/PasswordResetPage';
+import { savePasswordResetToken } from '@/lib/passwordReset';
+import { saveSignupEmailVerificationToken } from '@/lib/signupVerification';
+
+function captureSignupEmailVerificationToken({ request }: { request: Request }) {
+  const url = new URL(request.url);
+  const emailVerificationToken =
+    url.searchParams.get('emailVerificationToken')?.trim() ||
+    url.searchParams.get('token')?.trim() ||
+    '';
+
+  if (!emailVerificationToken) return null;
+
+  saveSignupEmailVerificationToken(emailVerificationToken);
+  throw redirect('/signup/profile');
+}
+
+function capturePasswordResetToken({ request }: { request: Request }) {
+  const url = new URL(request.url);
+  const resetToken = url.searchParams.get('resetToken')?.trim() ?? '';
+
+  if (!resetToken) return null;
+
+  savePasswordResetToken(resetToken);
+  if (url.pathname === '/password-reset') return null;
+
+  throw redirect(`/password-reset?resetToken=${encodeURIComponent(resetToken)}`);
+}
 
 export const router = createBrowserRouter([
   {
     path: '/',
     Component: LoginPage,
+    loader: (args) => capturePasswordResetToken(args) ?? captureSignupEmailVerificationToken(args),
   },
   {
     path: '/signup',
@@ -31,8 +60,8 @@ export const router = createBrowserRouter([
     Component: SignupEmailPendingPage,
   },
   {
-    path: '/signup/email-success',
-    Component: SignupEmailSuccessPage,
+    path: '/signup/email/verified',
+    Component: SignupEmailVerifiedPage,
   },
   {
     path: '/signup/profile',
@@ -41,6 +70,12 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     Component: LoginPage,
+    loader: (args) => capturePasswordResetToken(args) ?? captureSignupEmailVerificationToken(args),
+  },
+  {
+    path: '/password-reset',
+    Component: PasswordResetPage,
+    loader: capturePasswordResetToken,
   },
   {
     path: '/home',

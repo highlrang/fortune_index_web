@@ -5,9 +5,39 @@ import { router } from './routes';
 import { applyThemePreference, resolveInitialThemePreference } from '@/lib/theme';
 import { getCurrentUser } from '@/lib/session';
 import { setSelectedTarotDeckId } from '@/lib/tarot';
+import { savePasswordResetToken } from '@/lib/passwordReset';
+import { saveSignupEmailVerificationToken } from '@/lib/signupVerification';
 
 export default function App() {
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const emailVerificationToken =
+      searchParams.get('emailVerificationToken')?.trim() ||
+      searchParams.get('token')?.trim() ||
+      '';
+
+    if (emailVerificationToken) {
+      saveSignupEmailVerificationToken(emailVerificationToken);
+
+      if (window.location.pathname !== '/signup/profile') {
+        window.history.replaceState(null, '', '/signup/profile');
+      }
+    }
+
+    const resetToken = searchParams.get('resetToken')?.trim() ?? '';
+
+    if (resetToken) {
+      savePasswordResetToken(resetToken);
+
+      if (window.location.pathname !== '/password-reset') {
+        window.history.replaceState(
+          null,
+          '',
+          `/password-reset?resetToken=${encodeURIComponent(resetToken)}`,
+        );
+      }
+    }
+
     const currentUser = getCurrentUser();
     const defaultTheme = currentUser?.darkModeEnabled === false ? 'light' : 'dark';
 

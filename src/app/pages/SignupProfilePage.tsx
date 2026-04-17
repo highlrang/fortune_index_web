@@ -1,12 +1,16 @@
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
+import {
+  getSignupEmailVerificationToken,
+  getSignupVerificationEmail,
+} from '@/lib/signupVerification';
 import { PremiumSignupForm } from '../components/PremiumSignupForm';
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupProfilePage() {
-  const [searchParams] = useSearchParams();
-  const email = searchParams.get('email')?.trim() ?? '';
+  const emailVerificationToken = getSignupEmailVerificationToken();
+  const verifiedEmail = getSignupVerificationEmail();
 
-  if (!email) {
+  if (!emailVerificationToken) {
     return (
       <SignupStageLayout
         title="회원가입"
@@ -32,7 +36,10 @@ export function SignupProfilePage() {
       title="회원가입"
       description="인증된 이메일을 바탕으로 회원정보를 입력해주세요."
     >
-      <PremiumSignupForm verifiedEmail={email} />
+      <PremiumSignupForm
+        emailVerificationToken={emailVerificationToken}
+        verifiedEmail={verifiedEmail}
+      />
     </SignupStageLayout>
   );
 }

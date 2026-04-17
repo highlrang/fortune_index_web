@@ -8,10 +8,10 @@ import { Skeleton } from './ui/skeleton';
 interface InvestmentGaugeProps {
   data?: HomeInvestmentIndexResponse | null;
   isLoading?: boolean;
+  isSaving?: boolean;
   error?: string;
+  onConditionChange?: (totalScore: number) => void;
 }
-
-type SituationOption = 'good' | 'normal' | 'bad' | null;
 
 const situationOptions = [
   {
@@ -40,27 +40,15 @@ const situationOptions = [
 export function InvestmentGauge({
   data = null,
   isLoading = false,
+  isSaving = false,
   error = '',
+  onConditionChange,
 }: InvestmentGaugeProps) {
-  const [selectedSituation, setSelectedSituation] = useState<SituationOption>(null);
   const [isSituationDrawerOpen, setIsSituationDrawerOpen] = useState(false);
   const selectedSituationMeta =
-    situationOptions.find((option) => option.id === selectedSituation) ?? null;
-  const sourceScores = [
-    data?.fortune.score,
-    data?.tarot.score,
-    selectedSituationMeta?.score,
-  ].filter((value): value is number => typeof value === 'number');
-  const combinedScore =
-    sourceScores.length > 0
-      ? Math.round(sourceScores.reduce((sum, value) => sum + value, 0) / sourceScores.length)
-      : 0;
-  const scoreSummary =
-    combinedScore >= 80
-      ? '좋은 느낌을 자연스럽게 이어가기 좋은 날'
-      : combinedScore >= 65
-        ? '조급하지 않게 가면 잘 맞는 날'
-        : '서두르기보다 한 번 더 살펴보면 좋은 날';
+    situationOptions.find((option) => option.score === data?.totalScore) ?? null;
+  const displayScore = data?.totalScore ?? 0;
+  const scoreSummary = data?.summary ?? '';
 
   return (
     <div className="fi-glass relative overflow-hidden rounded-3xl p-8 shadow-2xl">
@@ -84,7 +72,7 @@ export function InvestmentGauge({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
               >
-                {combinedScore}
+                {displayScore}
               </motion.span>
             )}
           </div>
@@ -111,6 +99,7 @@ export function InvestmentGauge({
           )}
 
           {error ? <p className="mt-3 text-center text-xs fi-text-accent">{error}</p> : null}
+          {!error && isSaving ? <p className="mt-3 text-center text-xs fi-text-subtle">투자 컨디션 저장 중...</p> : null}
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -178,7 +167,7 @@ export function InvestmentGauge({
             </p>
             <div className="flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>
               <Activity className="h-4 w-4" />
-              {selectedSituationMeta ? selectedSituationMeta.shortLabel : '선택하기'}
+              {selectedSituationMeta ? selectedSituationMeta.shortLabel : data?.customized ? '조정됨' : '기본값'}
             </div>
             <div className="mt-1 flex items-center gap-1">
               <div
@@ -186,7 +175,7 @@ export function InvestmentGauge({
                 style={{ backgroundColor: selectedSituationMeta ? 'var(--app-info-border)' : 'var(--app-text-subtle)' }}
               />
               <span className="text-[10px]" style={{ color: selectedSituationMeta ? 'var(--app-info-text)' : 'var(--app-text-subtle)' }}>
-                {selectedSituationMeta ? `${selectedSituationMeta.score}점` : '점수 반영'}
+                {data ? `${data.totalScore}점` : '점수 반영'}
               </span>
             </div>
           </button>
@@ -254,14 +243,14 @@ export function InvestmentGauge({
                     <div className="space-y-3 overflow-y-auto px-6 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                       {situationOptions.map((option) => {
                         const Icon = option.icon;
-                        const isSelected = selectedSituation === option.id;
+                        const isSelected = data?.totalScore === option.score;
 
                         return (
                           <button
                             key={option.id}
                             type="button"
                             onClick={() => {
-                              setSelectedSituation((current) => (current === option.id ? null : option.id));
+                              onConditionChange?.(option.score);
                               setIsSituationDrawerOpen(false);
                             }}
                             className="relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left transition-all"

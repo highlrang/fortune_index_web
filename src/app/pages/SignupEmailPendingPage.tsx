@@ -3,9 +3,16 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { LoaderCircle, Mail, RefreshCw } from 'lucide-react';
 import {
   getEmailVerificationStatus,
-  requestSignupEmailCode,
+  requestSignupEmailVerification,
   type EmailVerificationStatusResponse,
 } from '@/lib/api';
+import {
+  SIGNUP_EMAIL_VERIFICATION_TOKEN_KEY,
+  clearSignupEmailVerification,
+  getSignupEmailVerificationToken,
+  saveSignupEmailVerificationToken,
+  saveSignupVerificationEmail,
+} from '@/lib/signupVerification';
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 const POLLING_INTERVAL_MS = 3000;
@@ -28,8 +35,6 @@ export function SignupEmailPendingPage() {
   const timeoutIdRef = useRef<number | null>(null);
   const isPollingRef = useRef(false);
 
-  const encodedEmail = encodeURIComponent(email);
-
   useEffect(() => {
     if (resendCooldown <= 0) return undefined;
 
@@ -39,6 +44,17 @@ export function SignupEmailPendingPage() {
 
     return () => window.clearTimeout(cooldownTimer);
   }, [resendCooldown]);
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === SIGNUP_EMAIL_VERIFICATION_TOKEN_KEY && event.newValue) {
+        navigate('/signup/profile', { replace: true });
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [navigate]);
 
   useEffect(() => {
     if (!email) return undefined;
@@ -55,7 +71,20 @@ export function SignupEmailPendingPage() {
 
     const handleStatus = (response: EmailVerificationStatusResponse) => {
       if (response.status === 'VERIFIED') {
-        navigate(`/signup/email-success?email=${encodedEmail}`, { replace: true });
+        if (response.emailVerificationToken) {
+          saveSignupEmailVerificationToken(response.emailVerificationToken);
+          navigate('/signup/profile', { replace: true });
+          return true;
+        }
+
+        const emailVerificationToken = getSignupEmailVerificationToken();
+        if (emailVerificationToken) {
+          navigate('/signup/profile', { replace: true });
+          return true;
+        }
+
+        setError('');
+        setStatusMessage('이메일 인증이 확인되었습니다. 메일에서 브라우저로 계속하기를 눌러 인증 정보를 불러와 주세요.');
         return true;
       }
 
@@ -110,7 +139,7 @@ export function SignupEmailPendingPage() {
         window.clearTimeout(timeoutIdRef.current);
       }
     };
-  }, [email, encodedEmail, hasTimedOut, navigate]);
+  }, [email, hasTimedOut, navigate]);
 
   const handleOpenMailApp = () => {
     window.location.href = `mailto:${email}`;
@@ -122,7 +151,9 @@ export function SignupEmailPendingPage() {
     setIsSending(true);
 
     try {
-      await requestSignupEmailCode(email);
+      clearSignupEmailVerification();
+      await requestSignupEmailVerification(email);
+      saveSignupVerificationEmail(email);
       startedAtRef.current = Date.now();
       setHasTimedOut(false);
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
@@ -148,7 +179,19 @@ export function SignupEmailPendingPage() {
     try {
       const response = await getEmailVerificationStatus(email);
       if (response.status === 'VERIFIED') {
-        navigate(`/signup/email-success?email=${encodedEmail}`, { replace: true });
+        if (response.emailVerificationToken) {
+          saveSignupEmailVerificationToken(response.emailVerificationToken);
+          navigate('/signup/profile', { replace: true });
+          return;
+        }
+
+        const emailVerificationToken = getSignupEmailVerificationToken();
+        if (emailVerificationToken) {
+          navigate('/signup/profile', { replace: true });
+          return;
+        }
+
+        setStatusMessage('이메일 인증이 확인되었습니다. 메일에서 브라우저로 계속하기를 눌러 인증 정보를 불러와 주세요.');
         return;
       }
 

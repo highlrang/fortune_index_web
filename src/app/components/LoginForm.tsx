@@ -73,9 +73,9 @@ export function LoginForm() {
       ) : null}
 
       <div className="text-right">
-        <button type="button" className="text-sm fi-text-subtle transition-colors hover:opacity-80">
+        <Link to="/password-reset" className="text-sm fi-text-subtle transition-colors hover:opacity-80">
           비밀번호를 잊으셨나요?
-        </button>
+        </Link>
       </div>
 
       <motion.button

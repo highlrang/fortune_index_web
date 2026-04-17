@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
 import { LoaderCircle, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { requestSignupEmailCode } from '@/lib/api';
+import { requestSignupEmailVerification } from '@/lib/api';
+import {
+  clearSignupEmailVerification,
+  saveSignupVerificationEmail,
+} from '@/lib/signupVerification';
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupPage() {
@@ -24,7 +28,9 @@ export function SignupPage() {
     setIsSubmitting(true);
 
     try {
-      await requestSignupEmailCode(email);
+      clearSignupEmailVerification();
+      await requestSignupEmailVerification(email);
+      saveSignupVerificationEmail(email);
       navigate(`/signup/email-check?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '인증 메일 발송에 실패했습니다.');
@@ -58,7 +64,7 @@ export function SignupPage() {
         </div>
 
         <div className="fi-glass rounded-xl px-4 py-4 text-sm leading-6 fi-text-muted">
-          인증 메일 발송 후 메일 확인 화면으로 이동합니다. 인증 링크를 누르면 자동으로 다음 단계가 열립니다.
+          인증 메일 발송 후 메일 확인 화면으로 이동합니다. 메일의 인증 링크를 열면 다음 단계가 열립니다.
         </div>
 
         {error ? (

@@ -4,6 +4,7 @@ import { Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { signup, toSessionState } from '@/lib/api';
 import { saveSession } from '@/lib/session';
+import { clearSignupEmailVerification } from '@/lib/signupVerification';
 
 type Gender = 'male' | 'female' | null;
 type RiskProfile = 'STABLE' | 'AGGRESSIVE';
@@ -28,10 +29,14 @@ const sectorOptions = [
 ];
 
 interface PremiumSignupFormProps {
-  verifiedEmail: string;
+  emailVerificationToken: string;
+  verifiedEmail?: string;
 }
 
-export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
+export function PremiumSignupForm({
+  emailVerificationToken,
+  verifiedEmail,
+}: PremiumSignupFormProps) {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -87,7 +92,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
     try {
       const response = await signup({
         name,
-        email: verifiedEmail,
+        emailVerificationToken,
         password,
         birthDate,
         birthTime: birthTimeUnknown || !birthTime ? undefined : birthTime,
@@ -95,6 +100,7 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
         preferredSectors,
       });
 
+      clearSignupEmailVerification();
       saveSession(toSessionState(response));
       navigate('/home');
     } catch (err) {
@@ -113,8 +119,8 @@ export function PremiumSignupForm({ verifiedEmail }: PremiumSignupFormProps) {
         <div className="relative">
           <input
             id="email"
-            type="email"
-            value={verifiedEmail}
+            type="text"
+            value={verifiedEmail || '이메일 인증 완료'}
             readOnly
             className="fi-input fi-input-readonly w-full rounded-xl px-5 py-4 outline-none"
             style={{ background: 'rgba(16, 185, 129, 0.12)' }}

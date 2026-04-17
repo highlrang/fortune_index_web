@@ -1,7 +1,13 @@
 import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { getHomeSummary, type HomeSummaryResponse } from '@/lib/api';
+import {
+  getHomeSummary,
+  getTodayInvestmentCondition,
+  updateTodayInvestmentCondition,
+  type HomeSummaryResponse,
+  type InvestmentConditionResponse,
+} from '@/lib/api';
 import { InvestmentGauge } from '../components/InvestmentGauge';
 import { HomeFortuneJourneySection } from '../components/HomeFortuneJourneySection';
 import { BottomNavigation } from '../components/BottomNavigation';
@@ -9,16 +15,20 @@ import { BottomNavigation } from '../components/BottomNavigation';
 export function HomePage() {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
+  const [investmentCondition, setInvestmentCondition] = useState<InvestmentConditionResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [conditionSaveError, setConditionSaveError] = useState('');
+  const [isSavingCondition, setIsSavingCondition] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    getHomeSummary()
-      .then((response) => {
+    Promise.all([getHomeSummary(), getTodayInvestmentCondition()])
+      .then(([homeResponse, conditionResponse]) => {
         if (!active) return;
-        setSummary(response);
+        setSummary(homeResponse);
+        setInvestmentCondition(conditionResponse);
       })
       .catch((err) => {
         if (!active) return;
@@ -33,6 +43,31 @@ export function HomePage() {
       active = false;
     };
   }, []);
+
+  const handleInvestmentConditionChange = async (totalScore: number) => {
+    const previousCondition = investmentCondition;
+    const previousSummary = summary;
+
+    setConditionSaveError('');
+    setIsSavingCondition(true);
+    setInvestmentCondition((current) =>
+      current ? { ...current, totalScore, customized: true } : current,
+    );
+
+    try {
+      const updatedCondition = await updateTodayInvestmentCondition({ totalScore });
+      setInvestmentCondition(updatedCondition);
+      setSummary((current) =>
+        current ? { ...current, investmentIndex: updatedCondition } : current,
+      );
+    } catch (err) {
+      setInvestmentCondition(previousCondition);
+      setSummary(previousSummary);
+      setConditionSaveError(err instanceof Error ? err.message : '투자 컨디션 저장에 실패했습니다.');
+    } finally {
+      setIsSavingCondition(false);
+    }
+  };
 
   return (
     <div className="fi-page min-h-screen pb-24">
@@ -63,9 +98,11 @@ export function HomePage() {
         {/* Investment Gauge */}
         <div className="mb-8">
           <InvestmentGauge
-            data={summary?.investmentIndex}
+            data={investmentCondition ?? summary?.investmentIndex}
             isLoading={isLoading}
-            error={error}
+            isSaving={isSavingCondition}
+            error={conditionSaveError || error}
+            onConditionChange={handleInvestmentConditionChange}
           />
         </div>
 

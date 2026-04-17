@@ -406,9 +406,15 @@ export interface AuthResponse {
   tokens: AuthTokenResponse;
 }
 
-export interface EmailCodeResponse {
+export interface EmailVerificationRequestResponse {
   email: string;
   purpose: string;
+  expiresAt: string;
+}
+
+export interface PasswordResetRequestResponse {
+  email: string;
+  purpose: 'PASSWORD_RESET';
   expiresAt: string;
 }
 
@@ -421,15 +427,9 @@ export interface CreateInquiryPayload {
   content: string;
 }
 
-export interface EmailVerificationResponse {
-  email: string;
-  purpose: string;
-  verified: boolean;
-  verifiedAt: string;
-}
-
 export interface EmailVerificationStatusResponse {
   status: string;
+  emailVerificationToken?: string;
 }
 
 export interface ScenarioOptionResponse {
@@ -451,8 +451,17 @@ export interface HomeTarotResponse {
 export interface HomeInvestmentIndexResponse {
   totalScore: number;
   summary: string;
+  customized?: boolean;
   fortune: HomeFortuneResponse;
   tarot: HomeTarotResponse;
+}
+
+export type InvestmentConditionResponse = HomeInvestmentIndexResponse & {
+  customized: boolean;
+};
+
+export interface UpdateInvestmentConditionPayload {
+  totalScore: number;
 }
 
 export interface HomeSummaryResponse {
@@ -667,18 +676,12 @@ export interface ConsultResponse {
   investmentEvidence: InvestmentEvidenceResponse;
 }
 
-export interface EmailCodeVerifyPayload {
-  email: string;
-  verificationCode: string;
-}
-
 export interface TokenRefreshPayload {
   refreshToken: string;
 }
 
 export interface PasswordResetConfirmPayload {
-  email: string;
-  verificationCode: string;
+  resetToken: string;
   newPassword: string;
 }
 
@@ -815,7 +818,7 @@ export interface UpdateConsultingReviewPayload {
 
 export interface SignUpPayload {
   name: string;
-  email: string;
+  emailVerificationToken: string;
   password: string;
   birthDate: string;
   birthTime?: string;
@@ -921,17 +924,10 @@ export async function signup(payload: SignUpPayload) {
   return request<AuthResponse>('/api/auth/signup', { method: 'POST', body: payload });
 }
 
-export async function requestSignupEmailCode(email: string) {
-  return request<EmailCodeResponse>('/api/auth/signup/email/request', {
+export async function requestSignupEmailVerification(email: string) {
+  return request<EmailVerificationRequestResponse>('/api/auth/signup/email/request', {
     method: 'POST',
     body: { email },
-  });
-}
-
-export async function verifySignupCode(payload: EmailCodeVerifyPayload) {
-  return request<EmailVerificationResponse>('/api/auth/signup/email/verify', {
-    method: 'POST',
-    body: payload,
   });
 }
 
@@ -984,17 +980,10 @@ export async function refreshAuthToken(payload: TokenRefreshPayload) {
   });
 }
 
-export async function requestPasswordResetCode(email: string) {
-  return request<EmailCodeResponse>('/api/auth/password-reset/request', {
+export async function requestPasswordResetEmail(email: string) {
+  return request<PasswordResetRequestResponse>('/api/auth/password-reset/request', {
     method: 'POST',
     body: { email },
-  });
-}
-
-export async function verifyPasswordResetCode(payload: EmailCodeVerifyPayload) {
-  return request<EmailVerificationResponse>('/api/auth/password-reset/verify', {
-    method: 'POST',
-    body: payload,
   });
 }
 
@@ -1007,6 +996,17 @@ export async function confirmPasswordReset(payload: PasswordResetConfirmPayload)
 
 export async function getHomeSummary() {
   return request<HomeSummaryResponse>('/api/v1/home/summary');
+}
+
+export async function getTodayInvestmentCondition() {
+  return request<InvestmentConditionResponse>('/api/investment-condition/today');
+}
+
+export async function updateTodayInvestmentCondition(payload: UpdateInvestmentConditionPayload) {
+  return request<InvestmentConditionResponse>('/api/investment-condition/today', {
+    method: 'PATCH',
+    body: payload,
+  });
 }
 
 export async function getScenarios() {
