@@ -6,8 +6,7 @@ import {
   type SessionState,
 } from './session';
 
-const DEFAULT_API_BASE_URL = 'http://117.52.84.99:7071';
-const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const API_KEY = import.meta.env.VITE_API_KEY;
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -337,11 +336,6 @@ export function resolveApiAssetUrl(url?: string | null) {
   } catch {
     return new URL(url, API_BASE_URL).toString();
   }
-}
-
-function normalizeApiBaseUrl(value?: string) {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : DEFAULT_API_BASE_URL;
 }
 
 function isPublicAuthPath(path: string) {

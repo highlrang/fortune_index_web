@@ -13,10 +13,13 @@ import { LikedFortunesPage } from './pages/LikedFortunesPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { TermsPage } from './pages/TermsPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { RefundPolicyPage } from './pages/RefundPolicyPage';
 import { SignupEmailPendingPage } from './pages/SignupEmailPendingPage';
 import { SignupEmailVerifiedPage } from './pages/SignupEmailVerifiedPage';
 import { SignupProfilePage } from './pages/SignupProfilePage';
 import { PasswordResetPage } from './pages/PasswordResetPage';
+import { WealthLandingPage } from './pages/WealthLandingPage';
+import { SubscriptionLandingPage } from './pages/SubscriptionLandingPage';
 import { savePasswordResetToken } from '@/lib/passwordReset';
 import { saveSignupEmailVerificationToken } from '@/lib/signupVerification';
 
@@ -78,6 +81,14 @@ export const router = createBrowserRouter([
     loader: capturePasswordResetToken,
   },
   {
+    path: '/web/wealth',
+    Component: WealthLandingPage,
+  },
+  {
+    path: '/web/subscription',
+    Component: SubscriptionLandingPage,
+  },
+  {
     path: '/home',
     Component: HomePage,
   },
@@ -124,5 +135,9 @@ export const router = createBrowserRouter([
   {
     path: '/privacy',
     Component: PrivacyPolicyPage,
+  },
+  {
+    path: '/refund-policy',
+    Component: RefundPolicyPage,
   },
 ]);

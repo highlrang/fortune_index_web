@@ -29,8 +29,8 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
         <label htmlFor="email" className="block text-sm fi-text-accent">
           이메일
         </label>
@@ -42,13 +42,13 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="example@email.com"
             required
-            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-4 py-3 transition-all"
           />
           <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <label htmlFor="password" className="block text-sm fi-text-accent">
           비밀번호
         </label>
@@ -60,7 +60,7 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="비밀번호를 입력해주세요"
             required
-            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-4 py-3 transition-all"
           />
           <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
@@ -81,7 +81,7 @@ export function LoginForm() {
       <motion.button
         type="submit"
         disabled={isSubmitting}
-        className="fi-cta group relative w-full overflow-hidden rounded-xl px-8 py-5 transition-all disabled:cursor-not-allowed disabled:opacity-60"
+        className="fi-cta group relative w-full overflow-hidden rounded-xl px-6 py-4 transition-all disabled:cursor-not-allowed disabled:opacity-60"
         whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
         whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
       >

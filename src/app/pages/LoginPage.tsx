@@ -12,10 +12,10 @@ export function LoginPage() {
       </div>
 
       {/* Main container */}
-      <div className="relative mx-auto max-w-md px-6 py-12">
+      <div className="relative mx-auto max-w-md px-5 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-12 text-center">
-          <div className="mb-6 flex items-center justify-center gap-2">
+        <div className="mb-6 text-center">
+          <div className="mb-3 flex items-center justify-center gap-2">
             <Sparkles className="h-6 w-6 fi-text-accent" />
             <h1 className="text-2xl font-medium fi-text-main">
               Fortune Index
@@ -28,12 +28,12 @@ export function LoginPage() {
         </div>
 
         {/* Wheel of Fortune */}
-        <div className="mb-12">
+        <div className="-my-2 mb-4 scale-90">
           <WheelOfFortune />
         </div>
 
         {/* Title */}
-        <div className="mb-8 space-y-2">
+        <div className="mb-5 space-y-2">
           <h2 className="text-center text-xl fi-text-main">로그인</h2>
           <div className="fi-top-divider mx-auto h-px w-24" />
         </div>
@@ -41,7 +41,7 @@ export function LoginPage() {
         {/* Form */}
         <div className="relative">
           {/* Glassmorphism container */}
-          <div className="fi-glass rounded-2xl p-8">
+          <div className="fi-glass rounded-2xl p-5 sm:p-6">
             <LoginForm />
           </div>
 
@@ -51,7 +51,7 @@ export function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 text-center">
+        <div className="mt-8 text-center">
           <p className="text-xs fi-text-subtle">
             © 2026 Fortune Index. All rights reserved.
           </p>
