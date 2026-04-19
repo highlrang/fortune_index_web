@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Sparkles } from 'lucide-react';
 import { WheelOfFortune } from './WheelOfFortune';
+import { VodaThemeLogo } from './logos/VodaLogo';
 
 interface SignupStageLayoutProps {
   title: string;
@@ -22,12 +22,8 @@ export function SignupStageLayout({
 
       <div className="relative mx-auto max-w-md px-6 py-12">
         <div className="mb-12 text-center">
-          <div className="mb-6 flex items-center justify-center gap-2">
-            <Sparkles className="h-6 w-6 fi-text-accent" />
-            <h1 className="text-2xl font-medium fi-text-main">
-              Fortune Index
-            </h1>
-            <Sparkles className="h-6 w-6 fi-text-accent" />
+          <div className="mb-6 flex items-center justify-center">
+            <VodaThemeLogo size={152} />
           </div>
           <p className="text-sm fi-text-muted">사주와 타로로 풀어내는 나만의 투자 운세</p>
         </div>
@@ -52,7 +48,7 @@ export function SignupStageLayout({
         </div>
 
         <div className="mt-16 text-center">
-          <p className="text-xs fi-text-subtle">© 2026 Fortune Index. All rights reserved.</p>
+          <p className="text-xs fi-text-subtle">© 2026 Voda. All rights reserved.</p>
         </div>
       </div>
     </div>

@@ -1566,7 +1566,7 @@ export function MyPage() {
               개인정보처리방침
             </button>
           </div>
-          <p>© 2024 Fortune Index. All rights reserved.</p>
+          <p>© 2024 Voda. All rights reserved.</p>
         </div>
       </div>
 

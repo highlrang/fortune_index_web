@@ -20,6 +20,7 @@ import { SignupProfilePage } from './pages/SignupProfilePage';
 import { PasswordResetPage } from './pages/PasswordResetPage';
 import { WealthLandingPage } from './pages/WealthLandingPage';
 import { SubscriptionLandingPage } from './pages/SubscriptionLandingPage';
+import { LogoShowcasePage } from './pages/LogoShowcasePage';
 import { savePasswordResetToken } from '@/lib/passwordReset';
 import { saveSignupEmailVerificationToken } from '@/lib/signupVerification';
 
@@ -87,6 +88,14 @@ export const router = createBrowserRouter([
   {
     path: '/web/subscription',
     Component: SubscriptionLandingPage,
+  },
+  {
+    path: '/voda',
+    Component: LogoShowcasePage,
+  },
+  {
+    path: '/logo-showcase',
+    Component: LogoShowcasePage,
   },
   {
     path: '/home',

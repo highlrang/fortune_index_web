@@ -41,7 +41,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 
   /* Dark mode default */
-  --bg-main: #101427;
+  --bg-main: #1e1b4b;
   --card-surface: rgba(39, 34, 68, 0.72);
   --card-blur: blur(25px);
   --card-border: rgba(223, 188, 95, 0.38);
@@ -62,9 +62,9 @@
   --tarot-surface-bg: rgba(255, 255, 255, 0.07);
   --tarot-surface-hover: rgba(255, 255, 255, 0.14);
   --tarot-surface-border: var(--card-border);
-  --tarot-ambient-start: rgba(18, 22, 42, 0.96);
-  --tarot-ambient-mid: rgba(84, 52, 138, 0.8);
-  --tarot-ambient-end: rgba(16, 20, 39, 0.98);
+  --tarot-ambient-start: #1e1b4b;
+  --tarot-ambient-mid: #312e81;
+  --tarot-ambient-end: #2e1065;
   --tarot-ambient-blob-a: rgba(173, 136, 255, 0.24);
   --tarot-ambient-blob-b: rgba(223, 188, 95, 0.12);
   --tarot-cta-start: rgba(223, 188, 95, 0.3);
@@ -358,6 +358,8 @@
   }
 
   .fi-glass {
+    position: relative;
+    overflow: hidden;
     background: var(--card-surface);
     border: var(--app-hairline-border) solid var(--card-border);
     backdrop-filter: var(--card-blur);
@@ -365,6 +367,8 @@
   }
 
   .fi-glass-strong {
+    position: relative;
+    overflow: hidden;
     background: var(--app-modal-bg);
     border: var(--app-hairline-border) solid var(--card-border);
     backdrop-filter: var(--card-blur);
@@ -372,12 +376,28 @@
   }
 
   .fi-accent-card {
-    background:
-      linear-gradient(135deg, var(--app-accent-soft) 0%, transparent 78%),
-      var(--card-surface);
+    position: relative;
+    overflow: hidden;
+    background: var(--card-surface);
     border: var(--app-hairline-border) solid var(--app-accent-border);
     backdrop-filter: var(--card-blur);
     -webkit-backdrop-filter: var(--card-blur);
+  }
+
+  .fi-glass::before,
+  .fi-glass-strong::before,
+  .fi-accent-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(
+      to top left,
+      rgba(139, 92, 246, 0.05),
+      transparent,
+      rgba(6, 182, 212, 0.05)
+    );
   }
 
   .fi-icon-button {

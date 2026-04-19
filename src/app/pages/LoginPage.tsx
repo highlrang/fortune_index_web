@@ -1,6 +1,6 @@
 import { WheelOfFortune } from '../components/WheelOfFortune';
 import { LoginForm } from '../components/LoginForm';
-import { Sparkles } from 'lucide-react';
+import { VodaThemeLogo } from '../components/logos/VodaLogo';
 
 export function LoginPage() {
   return (
@@ -15,12 +15,8 @@ export function LoginPage() {
       <div className="relative mx-auto max-w-md px-5 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-6 text-center">
-          <div className="mb-3 flex items-center justify-center gap-2">
-            <Sparkles className="h-6 w-6 fi-text-accent" />
-            <h1 className="text-2xl font-medium fi-text-main">
-              Fortune Index
-            </h1>
-            <Sparkles className="h-6 w-6 fi-text-accent" />
+          <div className="mb-3 flex items-center justify-center">
+            <VodaThemeLogo size={152} />
           </div>
           <p className="text-sm fi-text-muted">
             사주와 타로로 풀어내는 나만의 투자 운세
@@ -53,7 +49,7 @@ export function LoginPage() {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs fi-text-subtle">
-            © 2026 Fortune Index. All rights reserved.
+            © 2026 Voda. All rights reserved.
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { Link } from 'react-router';
 import { BenefitCard } from '../components/subscription/BenefitCard';
 import { ComparisonTable } from '../components/subscription/ComparisonTable';
+import { VodaLogoHybrid } from '../components/logos/VodaLogo';
 
 const PAYMENT_PAGE_URL = import.meta.env.VITE_PAYMENT_PAGE_URL ?? 'https://payment.example.com/checkout';
 
@@ -235,7 +236,9 @@ export function SubscriptionLandingPage() {
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 grid gap-8 md:grid-cols-3">
               <div>
-                <h3 className="mb-4 text-lg font-medium text-white">Stock Oracle</h3>
+                <div className="mb-4">
+                  <VodaLogoHybrid size={118} theme="dark" />
+                </div>
                 <p className="text-sm text-white/60">당신의 운명을 밝히는 프리미엄 타로 플랫폼</p>
               </div>
               <div>
@@ -257,7 +260,7 @@ export function SubscriptionLandingPage() {
                 <p className="text-sm text-white/60">첫 결제 후 7일 이내 전액 환불 가능합니다. 서비스 이용 전 환불 요청 시 처리됩니다.</p>
               </div>
             </div>
-            <div className="border-t border-white/10 pt-8 text-center text-sm text-white/40">© 2026 Stock Oracle. All rights reserved.</div>
+            <div className="border-t border-white/10 pt-8 text-center text-sm text-white/40">© 2026 Voda. All rights reserved.</div>
           </div>
         </footer>
       </div>

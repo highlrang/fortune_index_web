@@ -1,7 +1,7 @@
 
-  # Stock Oracle Figma AI
+  # Voda
 
-  This is a code bundle for Stock Oracle Figma AI. The original project is available at https://www.figma.com/design/sEaAObWJ5XdsYLb4EkhZiG/Stock-Oracle-Figma-AI.
+  Voda web application.
 
   ## Running the code
 

@@ -11,6 +11,7 @@ import {
 import { InvestmentGauge } from '../components/InvestmentGauge';
 import { HomeFortuneJourneySection } from '../components/HomeFortuneJourneySection';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { VodaThemeLogo } from '../components/logos/VodaLogo';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -82,7 +83,7 @@ export function HomePage() {
         {/* Top Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-medium fi-text-main">Fortune Index</h1>
+            <VodaThemeLogo size={118} />
             <p className="text-xs fi-text-muted">당신의 재운을 밝힙니다</p>
           </div>
           <button 
