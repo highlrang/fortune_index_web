@@ -72,9 +72,10 @@ export function VodaLogo({ size = 120, className = '' }: VodaLogoProps) {
 
 export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: VodaLogoHybridProps) {
   const gradientId = useStableSvgId('voda-gradient');
+  const textGradientId = useStableSvgId('voda-text-gradient');
   const glowId = useStableSvgId('voda-glow');
   const bgGradientId = useStableSvgId('voda-bg-gradient');
-  const textColor = theme === 'dark' ? '#f1efff' : '#1e293b';
+  const textOutlineColor = theme === 'dark' ? '#1e1b4b' : '#ffffff';
 
   return (
     <svg
@@ -92,6 +93,13 @@ export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: V
           <stop offset="0%" stopColor="#fbbf24" stopOpacity="1" />
           <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />
           <stop offset="100%" stopColor="#d97706" stopOpacity="1" />
+        </linearGradient>
+
+        <linearGradient id={textGradientId} x1="75" y1="16" x2="178" y2="56" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#fde68a" />
+          <stop offset="38%" stopColor="#fbbf24" />
+          <stop offset="72%" stopColor="#f59e0b" />
+          <stop offset="100%" stopColor="#b45309" />
         </linearGradient>
 
         <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
@@ -146,8 +154,11 @@ export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: V
         y="50"
         fontFamily="system-ui, -apple-system, sans-serif"
         fontSize="40"
-        fontWeight="700"
-        fill={textColor}
+        fontWeight="800"
+        fill="#fbbf24"
+        stroke={textOutlineColor}
+        strokeWidth="1.2"
+        paintOrder="stroke fill"
         letterSpacing="-1"
       >
         Voda
@@ -158,10 +169,10 @@ export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: V
         y="50"
         fontFamily="system-ui, -apple-system, sans-serif"
         fontSize="40"
-        fontWeight="700"
-        fill={`url(#${gradientId})`}
+        fontWeight="800"
+        fill={`url(#${textGradientId})`}
         letterSpacing="-1"
-        opacity={theme === 'dark' ? '0.2' : '0.3'}
+        opacity="0.85"
       >
         Voda
       </text>

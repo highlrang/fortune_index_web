@@ -84,13 +84,16 @@ const accentCardStyle = {
   ...glassLayerStyle,
   borderColor: 'var(--app-accent-border)',
   background:
-    'linear-gradient(135deg, var(--app-accent-soft) 0%, transparent 78%)',
+    'linear-gradient(to bottom right, rgba(212, 175, 55, 0.2), rgba(217, 119, 6, 0.1), transparent)',
 };
 
 const accentIconStyle = {
   ...glassLayerStyle,
-  borderColor: 'var(--app-accent-border)',
-  backgroundColor: 'var(--app-accent-surface)',
+  borderColor: 'rgba(212, 175, 55, 0.4)',
+  background:
+    'linear-gradient(to bottom right, rgba(212, 175, 55, 0.3), rgba(217, 119, 6, 0.2))',
+  backdropFilter: 'blur(24px)',
+  WebkitBackdropFilter: 'blur(24px)',
   color: 'var(--tarot-point-color)',
 };
 
@@ -1326,7 +1329,7 @@ export function MyPage() {
             </div>
           </div>
 
-          <div className="space-y-0 divide-y p-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
+          <div className="space-y-0 divide-y divide-white/5 p-4">
             <div className="flex items-center gap-3 py-3">
               <Mail className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
               <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>이메일</span>
@@ -1448,7 +1451,7 @@ export function MyPage() {
             <h3 className="font-semibold" style={{ color: 'var(--tarot-text-main)' }}>상담 설정</h3>
           </div>
 
-          <div className="space-y-0 divide-y p-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
+          <div className="space-y-0 divide-y divide-white/5 p-4">
             <SettingToggle
               icon={Bell}
               label="알림 설정"

@@ -12,7 +12,7 @@ type QuickPrompt = {
   type: ConsultationType;
   label: string;
   scenario: ConsultScenario;
-  accent: string;
+  accentColor: string;
 };
 
 const quickPromptTemplates: QuickPrompt[] = [
@@ -21,21 +21,21 @@ const quickPromptTemplates: QuickPrompt[] = [
     type: 'saju',
     label: '사주',
     scenario: 'SAJU_MATCH',
-    accent: 'from-amber-400/25 via-yellow-300/10 to-transparent',
+    accentColor: 'rgba(251, 191, 36, 0.18)',
   },
   {
     id: 'tarot-entry',
     type: 'tarot',
     label: '타로',
     scenario: 'TIMING_ENTRY',
-    accent: 'from-fuchsia-400/25 via-violet-300/10 to-transparent',
+    accentColor: 'rgba(217, 70, 239, 0.16)',
   },
   {
     id: 'all-rescue',
     type: 'comprehensive',
     label: '종합',
     scenario: 'RESCUE_PLAN',
-    accent: 'from-rose-400/25 via-orange-300/10 to-transparent',
+    accentColor: 'rgba(251, 113, 133, 0.16)',
   },
 ];
 
@@ -71,7 +71,17 @@ export function HomeFortuneJourneySection() {
           </p>
         </div>
 
-        <div className="mb-5 space-y-3">
+        <div
+          className="mb-5 space-y-0 divide-y divide-white/5 overflow-hidden rounded-2xl border"
+          style={{
+            borderWidth: 'var(--app-hairline-border)',
+            borderStyle: 'solid',
+            borderColor: 'var(--card-border)',
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'var(--card-blur)',
+            WebkitBackdropFilter: 'var(--card-blur)',
+          }}
+        >
           {quickPrompts.map((prompt) => {
             const Icon = prompt.type === 'saju' ? Star : prompt.type === 'tarot' ? Sparkles : Layers;
 
@@ -88,17 +98,12 @@ export function HomeFortuneJourneySection() {
                     },
                   })
                 }
-                className="relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left transition-transform hover:scale-[1.01]"
-                style={{
-                  borderWidth: 'var(--app-hairline-border)',
-                  borderStyle: 'solid',
-                  borderColor: 'var(--card-border)',
-                  background: 'var(--card-surface)',
-                  backdropFilter: 'var(--card-blur)',
-                  WebkitBackdropFilter: 'var(--card-blur)',
-                }}
+                className="relative w-full overflow-hidden px-4 py-4 text-left transition-colors hover:bg-white/[0.03]"
               >
-                <div className={`absolute inset-0 bg-gradient-to-r ${prompt.accent}`} />
+                <div
+                  className="pointer-events-none absolute -left-8 top-0 h-full w-[85%] rounded-full blur-2xl"
+                  style={{ background: prompt.accentColor }}
+                />
                 <div className="relative flex items-start justify-between gap-3">
                   <div className="flex gap-3">
                     <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border" style={{ borderColor: 'var(--app-accent-border-strong)', background: 'var(--app-accent-surface)' }}>
