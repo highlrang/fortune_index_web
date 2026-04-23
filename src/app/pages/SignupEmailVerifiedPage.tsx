@@ -5,6 +5,11 @@ import {
   getSignupVerificationEmail,
   saveSignupEmailVerificationToken,
 } from '@/lib/signupVerification';
+import {
+  buildAuthVerifiedQuery,
+  getAuthVerifiedWebUrl,
+  openAuthVerifiedDeepLink,
+} from '@/lib/nativeDeepLink';
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupEmailVerifiedPage() {
@@ -25,8 +30,14 @@ export function SignupEmailVerifiedPage() {
         ReactNativeWebView?: { postMessage: (message: string) => void };
       }
     ).ReactNativeWebView?.postMessage('EMAIL_VERIFIED');
-    navigate('/signup/profile', { replace: true });
-  }, [emailVerificationToken, navigate]);
+
+    const query = buildAuthVerifiedQuery(verifiedEmail);
+    const openedDeepLink = openAuthVerifiedDeepLink(query);
+
+    if (!openedDeepLink) {
+      window.location.replace(getAuthVerifiedWebUrl(query));
+    }
+  }, [emailVerificationToken, verifiedEmail]);
 
   if (!emailVerificationToken) {
     return (

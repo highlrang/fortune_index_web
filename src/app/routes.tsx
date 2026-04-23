@@ -17,6 +17,7 @@ import { RefundPolicyPage } from './pages/RefundPolicyPage';
 import { SignupEmailPendingPage } from './pages/SignupEmailPendingPage';
 import { SignupEmailVerifiedPage } from './pages/SignupEmailVerifiedPage';
 import { SignupProfilePage } from './pages/SignupProfilePage';
+import { AuthVerifiedPage } from './pages/AuthVerifiedPage';
 import { PasswordResetPage } from './pages/PasswordResetPage';
 import { WealthLandingPage } from './pages/WealthLandingPage';
 import { SubscriptionLandingPage } from './pages/SubscriptionLandingPage';
@@ -34,7 +35,9 @@ function captureSignupEmailVerificationToken({ request }: { request: Request }) 
   if (!emailVerificationToken) return null;
 
   saveSignupEmailVerificationToken(emailVerificationToken);
-  throw redirect('/signup/profile');
+  throw redirect(
+    `/signup/email/verified?emailVerificationToken=${encodeURIComponent(emailVerificationToken)}`,
+  );
 }
 
 function capturePasswordResetToken({ request }: { request: Request }) {
@@ -66,6 +69,10 @@ export const router = createBrowserRouter([
   {
     path: '/signup/email/verified',
     Component: SignupEmailVerifiedPage,
+  },
+  {
+    path: '/auth/verified',
+    Component: AuthVerifiedPage,
   },
   {
     path: '/signup/profile',

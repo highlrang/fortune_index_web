@@ -2,6 +2,7 @@
 
 :root {
   --font-size: 16px;
+  --native-safe-top: 0px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -122,6 +123,20 @@
   --app-hairline-border: 0.5px;
   --app-surface-shadow: rgba(5, 7, 16, 0.28);
   --app-surface-highlight: rgba(255, 255, 255, 0.07);
+}
+
+html.is-native-webview.is-native-ios {
+  --native-safe-top: env(safe-area-inset-top, 0px);
+}
+
+html.is-native-webview.is-native-android {
+  --native-safe-top: 56px;
+}
+
+@supports (padding-top: max(0px)) {
+  html.is-native-webview.is-native-android {
+    --native-safe-top: max(56px, env(safe-area-inset-top, 0px));
+  }
 }
 
 [data-theme='light'] {
@@ -294,6 +309,28 @@
     @apply bg-background text-foreground;
   }
 
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  html.is-native-webview,
+  body.is-native-webview,
+  body.is-native-webview #root {
+    background:
+      linear-gradient(
+        135deg,
+        var(--tarot-ambient-start) 0%,
+        var(--tarot-ambient-mid) 52%,
+        var(--tarot-ambient-end) 100%
+      );
+  }
+
+  body.is-native-webview {
+    padding-top: var(--native-safe-top);
+  }
+
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
   * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
@@ -355,6 +392,11 @@
       var(--tarot-ambient-end) 100%
     );
     color: var(--text-primary);
+  }
+
+  body.is-native-webview .fi-page > .fixed.inset-0,
+  body.is-native-webview #root > .fixed.inset-0 {
+    top: var(--native-safe-top);
   }
 
   .fi-glass {

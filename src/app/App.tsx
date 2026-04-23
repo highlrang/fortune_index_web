@@ -6,7 +6,15 @@ import { applyThemePreference, resolveInitialThemePreference } from '@/lib/theme
 import { getCurrentUser } from '@/lib/session';
 import { setSelectedTarotDeckId } from '@/lib/tarot';
 import { savePasswordResetToken } from '@/lib/passwordReset';
-import { saveSignupEmailVerificationToken } from '@/lib/signupVerification';
+import {
+  getSignupVerificationEmail,
+  saveSignupEmailVerificationToken,
+} from '@/lib/signupVerification';
+import {
+  buildAuthVerifiedQuery,
+  getAuthVerifiedWebUrl,
+  openAuthVerifiedDeepLink,
+} from '@/lib/nativeDeepLink';
 
 export default function App() {
   useEffect(() => {
@@ -19,8 +27,15 @@ export default function App() {
     if (emailVerificationToken) {
       saveSignupEmailVerificationToken(emailVerificationToken);
 
-      if (window.location.pathname !== '/signup/profile') {
-        window.history.replaceState(null, '', '/signup/profile');
+      if (window.location.pathname !== '/signup/email/verified') {
+        const query = buildAuthVerifiedQuery(getSignupVerificationEmail());
+        const openedDeepLink = openAuthVerifiedDeepLink(query);
+
+        window.history.replaceState(null, '', getAuthVerifiedWebUrl(query));
+
+        if (!openedDeepLink) {
+          window.location.replace(getAuthVerifiedWebUrl(query));
+        }
       }
     }
 
