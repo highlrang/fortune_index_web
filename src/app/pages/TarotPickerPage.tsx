@@ -62,14 +62,6 @@ const glassPanelStyle = {
   WebkitBackdropFilter: 'var(--app-card-blur)',
 };
 
-const accentPanelStyle = {
-  borderColor: 'var(--tarot-cta-border)',
-  background:
-    'linear-gradient(135deg, color-mix(in srgb, var(--tarot-card-cover-start) 78%, transparent) 0%, color-mix(in srgb, var(--tarot-cta-mid) 58%, transparent) 100%)',
-  backdropFilter: 'var(--app-card-blur)',
-  WebkitBackdropFilter: 'var(--app-card-blur)',
-};
-
 function getCutShuffledOrder(order: number[], cutIndex: number) {
   return [...order.slice(cutIndex), ...order.slice(0, cutIndex)];
 }
@@ -606,25 +598,6 @@ export function TarotPickerPage() {
 
         {/* Guide text */}
         <div className="mb-6 grid gap-3">
-          <div className="rounded-[1.75rem] border px-4 py-4" style={accentPanelStyle}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="text-[10px] font-semibold tracking-[0.26em]" style={{ color: 'var(--app-accent-text-soft)' }}>
-                  TAROT RITUAL
-                </div>
-                <h2 className="mt-2 text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>
-                  {selectedDeck.name}
-                </h2>
-                <p className="mt-1 text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>
-                  {selectedDeck.description || '지금의 질문에 맞는 흐름으로 카드를 정렬해보세요.'}
-                </p>
-              </div>
-              <div className="rounded-full border px-3 py-1 text-[11px] font-medium" style={{ ...glassPanelStyle, color: 'var(--app-accent-text-soft)' }}>
-                78 CARD DECK
-              </div>
-            </div>
-          </div>
-
           <div className="rounded-[1.5rem] border px-4 py-3" style={glassPanelStyle}>
             <div className="flex items-center justify-between gap-4">
               <p className="text-sm leading-relaxed" style={{ color: 'var(--tarot-guide-text)' }}>
