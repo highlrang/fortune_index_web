@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Heart, TrendingUp, Sparkles, Eye, Calendar, Trash2 } from 'lucide-react';
+import { ArrowLeft, Heart, TrendingUp, Sparkles, Eye, Calendar, Trash2, MoonStar } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import {
@@ -13,7 +13,7 @@ import {
 } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
 
-type FortuneType = '투자 운세' | '투자 타로 운세' | '투자 사주 운세' | '투자 종합 운세';
+type FortuneType = '투자 운세' | '투자 타로 운세' | '투자 사주 운세' | '투자 별자리 운세' | '투자 종합 운세';
 
 export function LikedFortunesPage() {
   const navigate = useNavigate();
@@ -66,6 +66,8 @@ export function LikedFortunesPage() {
         return <Eye className="h-5 w-5" />;
       case '투자 사주 운세':
         return <Sparkles className="h-5 w-5" />;
+      case '투자 별자리 운세':
+        return <MoonStar className="h-5 w-5" />;
       default:
         return <TrendingUp className="h-5 w-5" />;
     }
@@ -77,6 +79,8 @@ export function LikedFortunesPage() {
         return 'from-purple-500/20 to-violet-600/20 border-purple-500/30 fi-status-text-info';
       case '투자 사주 운세':
         return 'from-amber-500/20 to-orange-600/20 border-amber-500/30 fi-status-text-warning';
+      case '투자 별자리 운세':
+        return 'from-sky-500/20 to-blue-600/20 border-sky-500/30 text-sky-300';
       default:
         return 'from-emerald-500/20 to-green-600/20 border-emerald-500/30 fi-status-text-success';
     }
@@ -248,6 +252,7 @@ function mapModeToFortuneType(fortune: ConsultingHistorySummaryResponse): Fortun
   if (fortune.tarotCardNames.length > 0 && fortune.scenario === 'SAJU_MATCH') {
     return '투자 종합 운세';
   }
+  if (fortune.mode === 'INVESTMENT_ZODIAC') return '투자 별자리 운세';
   if (fortune.scenario === 'SAJU_MATCH') return '투자 사주 운세';
   if (fortune.tarotCardNames.length > 0) return '투자 타로 운세';
   return '투자 운세';

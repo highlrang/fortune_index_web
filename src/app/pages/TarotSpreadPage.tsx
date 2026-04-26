@@ -467,7 +467,7 @@ export function TarotSpreadPage() {
       </div>
 
       {/* Bottom Controls */}
-      <div className="absolute bottom-5 left-0 right-0 z-50 flex items-center justify-center gap-3 px-4">
+      <div className="absolute bottom-10 left-0 right-0 z-50 flex items-center justify-center gap-3 px-4">
         {/* Confirm button */}
         {selectedCards.length === MAX_SELECTIONS && (
           <motion.button
@@ -503,12 +503,6 @@ export function TarotSpreadPage() {
             </div>
           </motion.button>
         )}
-      </div>
-
-      <div className="absolute bottom-20 left-0 right-0 z-10 text-center">
-        <p className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>
-          좌우로 드래그하여 카드를 탐색하세요
-        </p>
       </div>
     </div>
   );

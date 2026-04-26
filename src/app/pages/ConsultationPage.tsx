@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Star, Sparkles, Layers } from 'lucide-react';
+import { ArrowLeft, Star, Sparkles, Layers, MoonStar } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { consult, getScenarios, type ScenarioOptionResponse } from '@/lib/api';
@@ -8,7 +8,7 @@ import { pickConsultationQuestion } from '@/lib/consultPrompts';
 import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
-type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
+type ConsultationType = 'saju' | 'tarot' | 'zodiac' | 'comprehensive' | null;
 type ConsultationFlowState = {
   selectedType?: ConsultationType;
   selectedScenario?: string;
@@ -20,6 +20,7 @@ type ConsultationFlowState = {
 const consultationTypes = [
   { id: 'saju', label: '사주', icon: Star, color: 'from-amber-500/20 to-yellow-500/20' },
   { id: 'tarot', label: '타로', icon: Sparkles, color: 'from-purple-500/20 to-violet-500/20' },
+  { id: 'zodiac', label: '별자리', icon: MoonStar, color: 'from-sky-500/20 to-blue-500/20' },
   { id: 'comprehensive', label: '종합', icon: Layers, color: 'from-rose-500/20 to-pink-500/20' },
 ];
 
@@ -42,6 +43,7 @@ const scenarioLabelByCode: Record<string, string> = {
 const modeByType = {
   saju: 'INVESTMENT_SAJU',
   tarot: 'INVESTMENT_TAROT',
+  zodiac: 'INVESTMENT_ZODIAC',
   comprehensive: 'INVESTMENT_ALL',
 } as const;
 
@@ -182,7 +184,7 @@ export function ConsultationPage() {
 
         <div className="mb-8">
           <h2 className="mb-4 text-sm font-medium fi-text-muted">어떤 방식으로 볼까요?</h2>
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             {consultationTypes.map((type) => {
               const Icon = type.icon;
               const isSelected = selectedType === type.id;

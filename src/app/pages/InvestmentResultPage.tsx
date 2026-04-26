@@ -5,6 +5,7 @@ import {
   TrendingUp,
   Sparkles,
   Eye,
+  MoonStar,
   Share2,
   Heart,
   Clock,
@@ -72,11 +73,13 @@ const iconByKey = {
   investment_analysis: TrendingUp,
   saju_analysis: Sparkles,
   tarot_analysis: Eye,
+  zodiac_analysis: MoonStar,
 } as const;
 
 const titleByMode = {
   INVESTMENT_SAJU: '사주 해석',
   INVESTMENT_TAROT: '타로 해석',
+  INVESTMENT_ZODIAC: '별자리 해석',
   INVESTMENT_ALL: '종합 해석',
 } as const;
 

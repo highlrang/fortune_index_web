@@ -1,6 +1,6 @@
 import type { ConsultScenario } from './api';
 
-export type ConsultationPromptType = 'saju' | 'tarot' | 'comprehensive';
+export type ConsultationPromptType = 'saju' | 'tarot' | 'zodiac' | 'comprehensive';
 
 export const scenarioQuestionPrompts: Record<ConsultScenario, string[]> = {
   TIMING_ENTRY: [
@@ -98,6 +98,33 @@ const typeScenarioQuestionPrompts: Record<
       '카드로 지금 내 마음 상태를 정리해줘.',
       '지금 내 마음을 돌보려면 어떤 메시지를 따라가면 좋을까?',
       '타로가 보여주는 오늘의 마음 가이드를 알려줘.',
+    ],
+  },
+  zodiac: {
+    TIMING_ENTRY: [
+      '별자리 흐름으로 봤을 때 지금 움직여도 괜찮은 타이밍일까?',
+      '오늘 별자리 기운 기준으로 지금 시작에 힘이 실리는지 봐줘.',
+      '내 별자리 성향으로 볼 때 지금 첫발을 내딛어도 될까?',
+    ],
+    TIMING_EXIT: [
+      '별자리 기준으로 지금 더 가는 게 맞을까, 쉬어가는 게 맞을까?',
+      '오늘 별자리 흐름상 정리와 유지 중 어디에 더 가까운지 봐줘.',
+      '내 별자리 성향으로 지금은 멈춤이 필요한 때인지 알려줘.',
+    ],
+    SAJU_MATCH: [
+      '내 별자리 성향과 지금 흐름이 잘 맞는지 봐줘.',
+      '지금 상황이 내 별자리 기질에 잘 맞는 흐름일까?',
+      '별자리 기준으로 내가 편하게 감당할 수 있는 흐름인지 알려줘.',
+    ],
+    RESCUE_PLAN: [
+      '별자리 기준으로 지금 흔들리는 이유와 회복 포인트를 알려줘.',
+      '오늘 별자리 흐름에서 감정 균형을 어떻게 잡으면 좋을까?',
+      '내 별자리 성향상 불안할 때 어디를 먼저 정리하면 좋을지 봐줘.',
+    ],
+    MENTAL_GUIDE: [
+      '내 별자리 성향에 맞는 오늘의 마음 가이드를 알려줘.',
+      '별자리 기준으로 오늘 마음 중심을 어떻게 잡으면 좋을까?',
+      '오늘 별자리 흐름에서 안정감을 키우는 방향을 알려줘.',
     ],
   },
   comprehensive: {

@@ -1,11 +1,11 @@
 import { motion } from 'motion/react';
-import { ArrowRight, Layers, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, Layers, MoonStar, Sparkles, Star } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { pickScenarioQuestion } from '@/lib/consultPrompts';
 import type { ConsultScenario } from '@/lib/api';
 
-type ConsultationType = 'saju' | 'tarot' | 'comprehensive';
+type ConsultationType = 'saju' | 'tarot' | 'zodiac' | 'comprehensive';
 
 type QuickPrompt = {
   id: string;
@@ -29,6 +29,13 @@ const quickPromptTemplates: QuickPrompt[] = [
     label: '타로',
     scenario: 'TIMING_ENTRY',
     accentColor: 'rgba(217, 70, 239, 0.16)',
+  },
+  {
+    id: 'zodiac-guide',
+    type: 'zodiac',
+    label: '별자리',
+    scenario: 'MENTAL_GUIDE',
+    accentColor: 'rgba(96, 165, 250, 0.16)',
   },
   {
     id: 'all-rescue',
@@ -83,7 +90,14 @@ export function HomeFortuneJourneySection() {
           }}
         >
           {quickPrompts.map((prompt) => {
-            const Icon = prompt.type === 'saju' ? Star : prompt.type === 'tarot' ? Sparkles : Layers;
+            const Icon =
+              prompt.type === 'saju'
+                ? Star
+                : prompt.type === 'tarot'
+                  ? Sparkles
+                  : prompt.type === 'zodiac'
+                    ? MoonStar
+                    : Layers;
 
             return (
               <button

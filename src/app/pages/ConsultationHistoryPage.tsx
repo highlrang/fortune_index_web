@@ -1,27 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, Sparkles, TrendingUp, Eye, ChevronRight, Clock, X } from 'lucide-react';
+import { Calendar, Sparkles, TrendingUp, Eye, ChevronRight, Clock, X, Heart, MoonStar } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import {
   getHistoryDetail,
   getHistoryList,
+  getLikedConsultingHistories,
   type ConsultResponse,
   type ConsultingHistoryListItemResponse,
   type SharedConsultingHistoryResponse,
 } from '@/lib/api';
 import { getCurrentUser } from '@/lib/session';
 
-export type ConsultationType = '투자 운세' | '투자 타로 운세' | '투자 사주 운세' | '투자 종합 운세';
+export type ConsultationType =
+  | '투자 운세'
+  | '투자 타로 운세'
+  | '투자 사주 운세'
+  | '투자 별자리 운세'
+  | '투자 종합 운세';
+type LikeFilter = 'all' | 'liked';
 
 export function ConsultationHistoryPage() {
   const navigate = useNavigate();
   const currentUserId = getCurrentUser()?.id ?? null;
   const [items, setItems] = useState<ConsultingHistoryListItemResponse[]>([]);
+  const [likedHistoryIds, setLikedHistoryIds] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [openingHistoryId, setOpeningHistoryId] = useState<number | null>(null);
   const [filterType, setFilterType] = useState<ConsultationType | 'all'>('all');
+  const [likeFilter, setLikeFilter] = useState<LikeFilter>('all');
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
 
   useEffect(() => {
@@ -36,10 +45,14 @@ export function ConsultationHistoryPage() {
     setError('');
     setLoading(true);
 
-    getHistoryList(currentUserId)
-      .then((response) => {
+    Promise.all([
+      getHistoryList(currentUserId),
+      getLikedConsultingHistories(currentUserId, { page: 0, size: 200 }),
+    ])
+      .then(([historyResponse, likedResponse]) => {
         if (!active) return;
-        setItems(response);
+        setItems(historyResponse);
+        setLikedHistoryIds((likedResponse.content ?? []).map((item) => item.id));
       })
       .catch((err) => {
         if (!active) return;
@@ -78,18 +91,22 @@ export function ConsultationHistoryPage() {
     '투자 운세',
     '투자 타로 운세',
     '투자 사주 운세',
+    '투자 별자리 운세',
     '투자 종합 운세',
   ];
 
   const filteredItems = useMemo(() => {
-    const base =
+    const likedIdSet = new Set(likedHistoryIds);
+    const typeFiltered =
       filterType === 'all' ? items : items.filter((item) => mapModeToLabel(item.mode) === filterType);
+    const base =
+      likeFilter === 'liked' ? typeFiltered.filter((item) => likedIdSet.has(item.id)) : typeFiltered;
 
     return [...base].sort((a, b) => {
       if (sortOrder === 'oldest') return a.consultedAt.localeCompare(b.consultedAt);
       return b.consultedAt.localeCompare(a.consultedAt);
     });
-  }, [filterType, items, sortOrder]);
+  }, [filterType, items, likeFilter, likedHistoryIds, sortOrder]);
 
   const groupedItems = useMemo(() => groupByDate(filteredItems, sortOrder), [filteredItems, sortOrder]);
 
@@ -151,6 +168,59 @@ export function ConsultationHistoryPage() {
               </div>
 
               <div>
+                <label className="mb-2 block text-xs font-medium fi-text-muted">좋아요 필터</label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setLikeFilter('all')}
+                    className="rounded-full border px-4 py-2 text-xs font-medium transition-all"
+                    style={
+                      likeFilter === 'all'
+                        ? {
+                            borderColor: 'var(--app-accent-border-strong)',
+                            background: 'var(--app-accent-surface)',
+                            color: 'var(--app-accent-text-soft)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                        : {
+                            borderColor: 'var(--card-border)',
+                            background: 'var(--card-surface)',
+                            color: 'var(--app-text-muted)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                    }
+                  >
+                    전체
+                  </button>
+                  <button
+                    onClick={() => setLikeFilter('liked')}
+                    className="inline-flex items-center gap-1 rounded-full border px-4 py-2 text-xs font-medium transition-all"
+                    style={
+                      likeFilter === 'liked'
+                        ? {
+                            borderColor: 'var(--app-accent-border-strong)',
+                            background: 'var(--app-accent-surface)',
+                            color: 'var(--app-accent-text-soft)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                        : {
+                            borderColor: 'var(--card-border)',
+                            background: 'var(--card-surface)',
+                            color: 'var(--app-text-muted)',
+                            backdropFilter: 'var(--card-blur)',
+                            WebkitBackdropFilter: 'var(--card-blur)',
+                          }
+                    }
+                  >
+                    <Heart className="h-3 w-3" />
+                    좋아요한 운세
+                  </button>
+                </div>
+              </div>
+
+              <div>
                 <label className="mb-2 block text-xs font-medium fi-text-muted">정렬</label>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -206,9 +276,12 @@ export function ConsultationHistoryPage() {
                 <span className="text-xs fi-text-subtle">
                   총 <span className="font-semibold fi-text-accent">{filteredItems.length}</span>건
                 </span>
-                {filterType !== 'all' && (
+                {(filterType !== 'all' || likeFilter !== 'all') && (
                   <button
-                    onClick={() => setFilterType('all')}
+                    onClick={() => {
+                      setFilterType('all');
+                      setLikeFilter('all');
+                    }}
                     className="flex items-center gap-1 text-xs fi-text-accent transition-colors hover:opacity-80"
                   >
                     <X className="h-3 w-3" />
@@ -240,7 +313,9 @@ export function ConsultationHistoryPage() {
               </div>
               <h3 className="mb-2 text-lg font-semibold fi-text-main">상담 내역이 없습니다</h3>
               <p className="text-sm fi-text-muted">
-                {filterType !== 'all' ? '해당 조건의 상담 내역이 없습니다' : '첫 상담을 시작해보세요'}
+                {filterType !== 'all' || likeFilter !== 'all'
+                  ? '해당 조건의 상담 내역이 없습니다'
+                  : '첫 상담을 시작해보세요'}
               </p>
             </motion.div>
           ) : (
@@ -267,6 +342,7 @@ export function ConsultationHistoryPage() {
                       const typeLabel = mapModeToLabel(item.mode);
                       const TypeIcon = getTypeIcon(item.mode);
                       const colorClass = getTypeColor(typeLabel);
+                      const isLiked = likedHistoryIds.includes(item.id);
                       return (
                         <motion.button
                           key={item.id}
@@ -288,7 +364,15 @@ export function ConsultationHistoryPage() {
                                   <TypeIcon className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1">
-                                  <h3 className="mb-1 text-base font-semibold fi-text-main">{typeLabel}</h3>
+                                  <div className="mb-1 flex items-center gap-2">
+                                    <h3 className="text-base font-semibold fi-text-main">{typeLabel}</h3>
+                                    {isLiked ? (
+                                      <span className="inline-flex items-center gap-1 rounded-full border border-rose-400/30 bg-rose-500/10 px-2 py-0.5 text-[11px] text-rose-300">
+                                        <Heart className="h-3 w-3 fill-current" />
+                                        좋아요
+                                      </span>
+                                    ) : null}
+                                  </div>
                                   <div className="flex items-center gap-2 text-xs fi-text-subtle">
                                     <Clock className="h-3 w-3" />
                                     <span>{new Date(item.consultedAt).toLocaleString()}</span>
@@ -366,6 +450,7 @@ function formatDate(dateStr: string) {
 function mapModeToLabel(mode: ConsultingHistoryListItemResponse['mode']): ConsultationType {
   if (mode === 'INVESTMENT_TAROT') return '투자 타로 운세';
   if (mode === 'INVESTMENT_SAJU') return '투자 사주 운세';
+  if (mode === 'INVESTMENT_ZODIAC') return '투자 별자리 운세';
   if (mode === 'INVESTMENT_ALL') return '투자 종합 운세';
   return '투자 운세';
 }
@@ -373,12 +458,14 @@ function mapModeToLabel(mode: ConsultingHistoryListItemResponse['mode']): Consul
 function getTypeIcon(mode: ConsultingHistoryListItemResponse['mode']) {
   if (mode === 'INVESTMENT_TAROT') return Eye;
   if (mode === 'INVESTMENT_SAJU') return Sparkles;
+  if (mode === 'INVESTMENT_ZODIAC') return MoonStar;
   return TrendingUp;
 }
 
 function getTypeColor(type: ConsultationType) {
   if (type.includes('타로')) return 'from-purple-500/20 to-violet-600/20 text-purple-400';
   if (type.includes('사주')) return 'from-amber-500/20 to-orange-600/20 text-amber-400';
+  if (type.includes('별자리')) return 'from-sky-500/20 to-blue-600/20 text-sky-400';
   return 'from-emerald-500/20 to-green-600/20 text-emerald-400';
 }
 

@@ -500,7 +500,7 @@ export function TarotPickerPage() {
             </button>
             <div>
               <h1 className="text-xl font-medium" style={{ color: 'var(--tarot-text-main)' }}>카드 섞기</h1>
-              <p className="text-xs" style={{ color: 'var(--tarot-text-muted)' }}>{selectedDeck.name} 덱으로 운명의 순서를 만들어보세요</p>
+              <p className="text-xs" style={{ color: 'var(--tarot-text-muted)' }}>측면을 눌러 덱을 가르고, 좌우로 천천히 돌려 오늘의 리듬을 정하세요.</p>
             </div>
           </div>
           <motion.button
@@ -596,24 +596,8 @@ export function TarotPickerPage() {
           </motion.button>
         </div>
 
-        {/* Guide text */}
-        <div className="mb-6 grid gap-3">
-          <div className="rounded-[1.5rem] border px-4 py-3" style={glassPanelStyle}>
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--tarot-guide-text)' }}>
-                {isSplit
-                  ? '덱을 터치해 순서를 교차시키고, 손끝으로 마지막 흐름을 고르세요.'
-                  : '측면을 눌러 덱을 가르고, 좌우로 천천히 돌려 오늘의 리듬을 정하세요.'}
-              </p>
-              <div className="hidden min-w-fit rounded-full border px-3 py-1 text-[11px] md:block" style={{ ...glassPanelStyle, color: 'var(--app-text-muted)' }}>
-                SHUFFLE FLOW
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Card deck - horizontal lying stack */}
-        <div className="relative mb-8 flex min-h-[450px] items-center justify-center" style={{ perspective: '1200px' }}>
+        <div className="relative mb-4 flex min-h-[450px] items-center justify-center" style={{ perspective: '1200px' }}>
           <AnimatePresence>
             {isRandomShuffleAnimating ? (
               <motion.div
@@ -669,8 +653,8 @@ export function TarotPickerPage() {
                 {visualDeckOrder.map((cardIndex, i) => {
                   const zOffset = i * CARD_THICKNESS;
                   const isVisible = i % 2 === 0 || i < 5 || i > TOTAL_CARDS - 6;
-                  const isTopCard = i === 0;
-                  const isBottomCard = i === TOTAL_CARDS - 1;
+                  const isTopCard = i === TOTAL_CARDS - 1;
+                  const isBottomCard = i === 0;
                   const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating);
 
                   return (
@@ -756,8 +740,8 @@ export function TarotPickerPage() {
                 {upperDeckCards.map((cardIndex, i) => {
                   const zOffset = i * CARD_THICKNESS - splitPointZ;
                   const isVisible = i % 2 === 0 || i < 5 || i > upperDeckCards.length - 6;
-                  const isTopCard = i === 0;
-                  const isBottomCard = !isMergedStack && i === upperDeckCards.length - 1;
+                  const isTopCard = i === upperDeckCards.length - 1;
+                  const isBottomCard = !isMergedStack && i === 0;
 
                   return (
                     <motion.div
@@ -815,8 +799,8 @@ export function TarotPickerPage() {
                   const zOffset = i * CARD_THICKNESS;
                   const deckSize = lowerDeckCards.length;
                   const isVisible = i % 2 === 0 || i < 5 || i > deckSize - 6;
-                  const isTopCard = !isMergedStack && i === 0;
-                  const isBottomCard = i === deckSize - 1;
+                  const isTopCard = i === deckSize - 1;
+                  const isBottomCard = i === 0;
 
                   return (
                     <motion.div
@@ -856,12 +840,12 @@ export function TarotPickerPage() {
                     }
 
                     return (
-                      <motion.div
-                        key={`merged-hotspot-${cardIndex}`}
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                        style={{
-                          width: `${CARD_WIDTH}px`,
-                          height: `${CARD_HEIGHT}px`,
+                    <motion.div
+                      key={`merged-hotspot-${cardIndex}`}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{
+                        width: `${CARD_WIDTH}px`,
+                        height: `${CARD_HEIGHT}px`,
                           z: zOffset,
                           pointerEvents: 'none',
                         }}
@@ -892,7 +876,7 @@ export function TarotPickerPage() {
         </div>
 
         {/* Keep button area mounted to avoid repainting the whole content stack after shuffle */}
-        <div className="pb-8 pt-2" style={{ minHeight: '104px' }}>
+        <div className="-mt-3 pb-2 pt-0" style={{ minHeight: '68px' }}>
           <motion.div
             initial={false}
             animate={{
@@ -938,9 +922,6 @@ export function TarotPickerPage() {
                 </span>
               </div>
             </motion.button>
-            <p className="mt-3 text-center text-xs tracking-[0.18em]" style={{ color: 'var(--app-text-subtle)' }}>
-              PREPARED FOR REVEAL
-            </p>
           </motion.div>
         </div>
       </div>

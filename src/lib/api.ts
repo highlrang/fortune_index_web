@@ -350,7 +350,11 @@ function isPublicAuthPath(path: string) {
 
 export type SubscriptionTier = 'FREE' | 'PREMIUM';
 export type InvestmentRiskProfile = 'STABLE' | 'AGGRESSIVE';
-export type ConsultMode = 'INVESTMENT_SAJU' | 'INVESTMENT_TAROT' | 'INVESTMENT_ALL';
+export type ConsultMode =
+  | 'INVESTMENT_SAJU'
+  | 'INVESTMENT_TAROT'
+  | 'INVESTMENT_ZODIAC'
+  | 'INVESTMENT_ALL';
 export type ConsultScenario =
   | 'TIMING_ENTRY'
   | 'TIMING_EXIT'
@@ -433,33 +437,57 @@ export interface ScenarioOptionResponse {
 }
 
 export interface HomeFortuneResponse {
-  dailyGanji: string;
-  score: number;
+  name: string;
+  summary: string;
 }
 
 export interface HomeTarotResponse {
-  cardName: string;
-  score: number;
-}
-
-export interface HomeInvestmentIndexResponse {
-  totalScore: number;
+  name: string;
   summary: string;
-  customized?: boolean;
-  fortune: HomeFortuneResponse;
-  tarot: HomeTarotResponse;
 }
 
-export type InvestmentConditionResponse = HomeInvestmentIndexResponse & {
-  customized: boolean;
-};
-
-export interface UpdateInvestmentConditionPayload {
-  totalScore: number;
+export interface HomeZodiacResponse {
+  name: string;
+  summary: string;
 }
 
 export interface HomeSummaryResponse {
-  investmentIndex: HomeInvestmentIndexResponse;
+  summary: string;
+  saju: HomeFortuneResponse;
+  tarot: HomeTarotResponse;
+  zodiac: HomeZodiacResponse;
+}
+
+export interface ZodiacAspectResponse {
+  between: string;
+  type: string;
+  angle: number;
+  orb: number;
+  interpretation: string;
+}
+
+export interface ZodiacPlanetResponse {
+  body: string;
+  sign: string;
+  englishName: string;
+  degree: number;
+  longitude: number;
+}
+
+export interface TodayZodiacFortuneResponse {
+  date: string;
+  baseDateTimeKst: string;
+  baseDateTimeUtc: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  moonSign: string;
+  moonEnglishName: string;
+  marketMood: string;
+  aspect?: ZodiacAspectResponse | null;
+  summary: string;
+  guidance: string;
+  planets: ZodiacPlanetResponse[];
 }
 
 export interface FocusConsultResponse {
@@ -593,6 +621,7 @@ export interface AnalysisResultsPayload {
   investment_analysis: AnalysisSectionPayload;
   tarot_analysis?: AnalysisSectionPayload;
   saju_analysis?: AnalysisSectionPayload;
+  zodiac_analysis?: AnalysisSectionPayload;
 }
 
 export interface HybridConsultingAiResponse {
@@ -764,6 +793,7 @@ export interface ConsultingHistoryReviewResponse {
 
 export interface ConsultingHistorySummaryResponse {
   id: number;
+  mode?: ConsultMode;
   scenario?: ConsultScenario;
   consultedAt: string;
   selectedFocusLabel?: string;
@@ -905,9 +935,27 @@ export interface SajuProfileResponse {
   sewun?: SajuDescriptionResponse | null;
 }
 
+export interface ZodiacProfileResponse {
+  sign?: string;
+  englishName?: string;
+  dateRange?: string;
+  element?: string;
+  keyword?: string;
+  summary?: string;
+  traits?: string[];
+}
+
+export interface AstrologyProfileResponse {
+  moonSign?: string;
+  risingSign?: string;
+  sunSign?: string;
+}
+
 export interface UserProfileDetailsResponse {
   birthTarot?: BirthTarotProfileResponse | null;
   saju?: SajuProfileResponse | null;
+  zodiac?: ZodiacProfileResponse | null;
+  astrology?: AstrologyProfileResponse | null;
 }
 
 export async function login(payload: { email: string; password: string }) {
@@ -992,15 +1040,8 @@ export async function getHomeSummary() {
   return request<HomeSummaryResponse>('/api/v1/home/summary');
 }
 
-export async function getTodayInvestmentCondition() {
-  return request<InvestmentConditionResponse>('/api/investment-condition/today');
-}
-
-export async function updateTodayInvestmentCondition(payload: UpdateInvestmentConditionPayload) {
-  return request<InvestmentConditionResponse>('/api/investment-condition/today', {
-    method: 'PATCH',
-    body: payload,
-  });
+export async function getTodayZodiacFortune() {
+  return request<TodayZodiacFortuneResponse>('/api/zodiac-fortune/today');
 }
 
 export async function getScenarios() {
