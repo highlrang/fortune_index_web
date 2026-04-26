@@ -25,11 +25,18 @@ const accentCardStyle = {
     'linear-gradient(145deg, color-mix(in srgb, var(--app-accent-soft) 42%, transparent) 0%, color-mix(in srgb, var(--bg-main) 88%, transparent) 100%)',
 };
 
+const pendingCardMeta = '불러오는 중';
+const unavailableCardValue = '-';
+const unavailableCardMeta = '아직 준비되지 않았어요';
+
 export function HomePage() {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const sajuSummary = summary?.saju;
+  const tarotSummary = summary?.tarot;
+  const zodiacSummary = summary?.zodiac;
 
   useEffect(() => {
     let active = true;
@@ -93,23 +100,23 @@ export function HomePage() {
           <div className="grid grid-cols-3 gap-3">
             <DailyCard
               label="오늘의 사주"
-              value={summary?.saju.name ?? '-'}
-              meta={summary?.saju.summary ?? '불러오는 중'}
+              value={sajuSummary?.name ?? unavailableCardValue}
+              meta={sajuSummary?.summary ?? (isLoading ? pendingCardMeta : unavailableCardMeta)}
               icon={<Sun className="h-5 w-5" />}
               isLoading={isLoading}
               styleVariant="accent"
             />
             <DailyCard
               label="오늘의 타로"
-              value={summary?.tarot.name ?? '-'}
-              meta={summary?.tarot.summary ?? '불러오는 중'}
+              value={tarotSummary?.name ?? unavailableCardValue}
+              meta={tarotSummary?.summary ?? (isLoading ? pendingCardMeta : unavailableCardMeta)}
               icon={<Sparkles className="h-5 w-5" />}
               isLoading={isLoading}
             />
             <DailyCard
               label="오늘의 별자리"
-              value={summary?.zodiac.name ?? '-'}
-              meta={summary?.zodiac.summary ?? '불러오는 중'}
+              value={zodiacSummary?.name ?? unavailableCardValue}
+              meta={zodiacSummary?.summary ?? (isLoading ? pendingCardMeta : unavailableCardMeta)}
               icon={<MoonStar className="h-5 w-5" />}
               isLoading={isLoading}
             />
