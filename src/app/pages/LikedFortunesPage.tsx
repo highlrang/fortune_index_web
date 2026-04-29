@@ -7,10 +7,9 @@ import {
   getHistoryDetail,
   getLikedConsultingHistories,
   unlikeConsultingHistory,
-  type ConsultResponse,
   type ConsultingHistorySummaryResponse,
-  type SharedConsultingHistoryResponse,
 } from '@/lib/api';
+import { mapHistoryDetailToConsultResult } from '@/lib/consultHistory';
 import { getCurrentUser } from '@/lib/session';
 
 type FortuneType = '투자 운세' | '투자 타로 운세' | '투자 사주 운세' | '투자 별자리 운세' | '투자 종합 운세';
@@ -283,100 +282,4 @@ function buildSummary(fortune: ConsultingHistorySummaryResponse) {
   ].filter(Boolean);
 
   return parts.join(' · ') || '저장된 운세입니다.';
-}
-
-function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse): ConsultResponse {
-  return {
-    mode: detail.mode,
-    focus: {
-      label: detail.focus.label,
-      currentValue: detail.focus.currentValue,
-      changeRate: detail.focus.changeRate,
-      interestArea: detail.focus.label,
-      fallback: false,
-    },
-    saju: detail.saju
-      ? {
-          analysis: {
-            natalChart: {},
-            keyPalaces: {},
-            characters: [],
-            tenGods: [],
-            fiveElementBalance: {
-              wood: detail.saju.wood,
-              fire: detail.saju.fire,
-              earth: detail.saju.earth,
-              metal: detail.saju.metal,
-              water: detail.saju.water,
-            },
-            yinYangBalance: { yinCount: 0, yangCount: 0, totalCount: 0 },
-            annualFortune: {},
-            majorFortune: {},
-          },
-          dayMaster: { symbol: '-', fiveElement: '-', yinYang: '-' },
-          dayBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
-          monthBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
-          currentFortune: {},
-        }
-      : undefined,
-    tarot: detail.tarot
-      ? {
-          interpretationMode: detail.tarot.interpretationMode ?? 'MAIN_TRADITIONAL',
-          cards: detail.tarot.cards.map((card) => ({
-            selectedIndex: card.selectedIndex,
-            code: card.code,
-            deckType: card.deckType as 'TAROT' | 'ORACLE',
-            name: card.name,
-            sortOrder: card.sortOrder,
-            arcanaType: card.arcanaType,
-            suit: card.suit,
-            meaning: card.meaning,
-            imageUrl: card.imageUrl ?? '',
-            videoUrl: card.videoUrl,
-          })),
-        }
-      : undefined,
-    ai: {
-      provider: '-',
-      model: '-',
-      mode: detail.mode,
-      analysisResults: {
-        investment_analysis: { title: '투자 분석', content: detail.investmentAnalysisText ?? '' },
-        tarot_analysis: { title: '타로 분석', content: detail.tarotAnalysisText ?? '' },
-        saju_analysis: { title: '사주 분석', content: detail.sajuAnalysisText ?? '' },
-      },
-      finalAdvice: detail.aiAnswerText,
-      riskScore: 0,
-      rawJson: detail.aiResponseJson,
-      evidence: {
-        grounded: false,
-        citations: [],
-      },
-    },
-    history: {
-      ...detail,
-    },
-    investmentEvidence: {
-      routing: {
-        requiresInvestmentData: false,
-        requiresFortuneFlowData: false,
-        requiresSymbolQuote: false,
-        requiresPositionData: false,
-        requiresWebSearch: false,
-        questionType: '',
-        reason: '',
-      },
-      priceFresh: false,
-      positionFresh: false,
-      newsFresh: false,
-      investmentDataUsed: false,
-      investmentFlowDataUsed: false,
-      symbolQuoteUsed: false,
-      positionDataUsed: false,
-      webSearchUsed: false,
-      grounded: false,
-      citations: [],
-      staleReasons: [],
-    },
-  };
 }

@@ -10,7 +10,6 @@ import {
   Heart,
   Clock,
   Trash2,
-  RefreshCw,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
@@ -106,24 +105,8 @@ export function InvestmentResultPage() {
   }, [consultResult]);
 
   const confidenceScore = useMemo(() => {
-    if (!consultResult) return 78;
-    return Math.max(0, 100 - (consultResult.ai?.riskScore ?? 22));
-  }, [consultResult]);
-
-  const evidenceSummary = useMemo(() => {
-    if (!consultResult) return [];
-
-    return [
-      consultResult.investmentEvidence.investmentAsOf
-        ? { label: '투자 데이터 시각', value: formatDateTime(consultResult.investmentEvidence.investmentAsOf) }
-        : null,
-      consultResult.investmentEvidence.positionAsOf
-        ? { label: '내 정보 반영 시각', value: formatDateTime(consultResult.investmentEvidence.positionAsOf) }
-        : null,
-      consultResult.investmentEvidence.newsAsOf
-        ? { label: '뉴스 반영 시각', value: formatDateTime(consultResult.investmentEvidence.newsAsOf) }
-        : null,
-    ].filter(Boolean) as Array<{ label: string; value: string }>;
+    if (!consultResult || typeof consultResult.ai?.riskScore !== 'number') return null;
+    return Math.max(0, 100 - consultResult.ai.riskScore);
   }, [consultResult]);
 
   const [isLiked, setIsLiked] = useState(Boolean(navigationState?.initialLiked));
@@ -175,7 +158,7 @@ export function InvestmentResultPage() {
   const focusValue = formatCurrentValue(consultResult.focus?.currentValue);
   const changeRate = formatChangeRate(consultResult.focus?.changeRate);
   const finalAdvice =
-    consultResult.ai?.finalAdvice ?? consultResult.history?.aiAnswerText ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
+    consultResult.ai?.finalAdvice ?? consultResult.history?.overallSummary ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
   const historyId = consultResult.history?.id;
 
   return (
@@ -216,51 +199,53 @@ export function InvestmentResultPage() {
         </div>
 
         <div className="px-6 pb-24 pt-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-8"
-          >
-            <div className="relative overflow-hidden rounded-3xl p-8" style={accentCardStyle}>
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
+          {typeof confidenceScore === 'number' ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-8"
+            >
+              <div className="relative overflow-hidden rounded-3xl p-8" style={accentCardStyle}>
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
-              <div className="relative">
-                <div className="mb-4 flex items-center justify-center gap-2">
-                  <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-point-color)' }} />
-                  <h2 className="text-center text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--app-accent-text-soft)' }}>
-                    오늘의 자신감
-                  </h2>
-                </div>
+                <div className="relative">
+                  <div className="mb-4 flex items-center justify-center gap-2">
+                    <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-point-color)' }} />
+                    <h2 className="text-center text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--app-accent-text-soft)' }}>
+                      오늘의 자신감
+                    </h2>
+                  </div>
 
-                <div className="mb-3 flex items-center justify-center">
-                  <div
-                    className="relative flex h-40 w-40 items-center justify-center rounded-full border-4"
-                    style={{
-                      borderColor: 'var(--app-accent-border-strong)',
-                      background:
-                        'linear-gradient(135deg, var(--app-accent-soft) 0%, color-mix(in srgb, var(--app-accent-glow) 35%, transparent) 100%)',
-                    }}
-                  >
-                    <div className="text-center">
-                      <span className="text-6xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{confidenceScore}</span>
-                      <span className="ml-2 text-2xl" style={{ color: 'var(--app-text-muted)' }}>점</span>
+                  <div className="mb-3 flex items-center justify-center">
+                    <div
+                      className="relative flex h-40 w-40 items-center justify-center rounded-full border-4"
+                      style={{
+                        borderColor: 'var(--app-accent-border-strong)',
+                        background:
+                          'linear-gradient(135deg, var(--app-accent-soft) 0%, color-mix(in srgb, var(--app-accent-glow) 35%, transparent) 100%)',
+                      }}
+                    >
+                      <div className="text-center">
+                        <span className="text-6xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{confidenceScore}</span>
+                        <span className="ml-2 text-2xl" style={{ color: 'var(--app-text-muted)' }}>점</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="text-center">
-                  <p className="text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
-                    {confidenceScore >= 80 ? '마음 편히 가도 좋은 흐름' : confidenceScore >= 60 ? '차분하게 가면 괜찮은 흐름' : '조금 천천히 보는 편이 좋아요'}
-                  </p>
-                  <p className="mt-2 text-sm" style={{ color: 'var(--app-accent-text-soft)' }}>
-                    {focusValue ? `${focusLabel} ${focusValue}` : focusLabel}
-                    {changeRate ? ` · ${changeRate}` : ''}
-                  </p>
+                  <div className="text-center">
+                    <p className="text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
+                      {confidenceScore >= 80 ? '마음 편히 가도 좋은 흐름' : confidenceScore >= 60 ? '차분하게 가면 괜찮은 흐름' : '조금 천천히 보는 편이 좋아요'}
+                    </p>
+                    <p className="mt-2 text-sm" style={{ color: 'var(--app-accent-text-soft)' }}>
+                      {focusValue ? `${focusLabel} ${focusValue}` : focusLabel}
+                      {changeRate ? ` · ${changeRate}` : ''}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          ) : null}
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -280,44 +265,6 @@ export function InvestmentResultPage() {
                   </div>
                   <p className="flex-1 text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.6 }}
-            className="mb-6"
-          >
-            <div className="rounded-2xl p-6" style={glassCardStyle}>
-              <div className="mb-4 flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" style={{ color: 'var(--app-info-text)' }} />
-                <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>참고 근거</h3>
-              </div>
-
-              <div className="mb-4 flex flex-wrap gap-2">
-                <EvidenceBadge label={consultResult.investmentEvidence.priceFresh ? '가격 최신' : '가격 지연'} />
-                <EvidenceBadge label={consultResult.investmentEvidence.newsFresh ? '뉴스 최신' : '뉴스 지연'} />
-                <EvidenceBadge label={consultResult.investmentEvidence.positionFresh ? '내 정보 최신' : '내 정보 지연'} />
-              </div>
-
-              <div className="space-y-3 text-sm" style={{ color: 'var(--app-text-soft)' }}>
-                {evidenceSummary.map((item) => (
-                  <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
-                    <span style={{ color: 'var(--app-text-muted)' }}>{item.label}</span>
-                    <span className="text-right" style={{ color: 'var(--tarot-text-main)' }}>{item.value}</span>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
-                  <span style={{ color: 'var(--app-text-muted)' }}>출처 수</span>
-                  <span style={{ color: 'var(--tarot-text-main)' }}>{consultResult.investmentEvidence.citations.length}건</span>
-                </div>
-                {consultResult.investmentEvidence.staleReasons.length > 0 ? (
-                  <div className="rounded-xl px-4 py-3 text-sm" style={dangerCardStyle}>
-                    {consultResult.investmentEvidence.staleReasons.join(' · ')}
-                  </div>
-                ) : null}
               </div>
             </div>
           </motion.div>
@@ -444,16 +391,6 @@ export function InvestmentResultPage() {
       <BottomNavigation />
     </div>
   );
-}
-
-function EvidenceBadge({ label }: { label: string }) {
-  return <span className="fi-status-badge-success rounded-full border px-3 py-1.5 text-xs">{label}</span>;
-}
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
 }
 
 function formatCurrentValue(value?: number | null) {

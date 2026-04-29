@@ -7,10 +7,9 @@ import {
   getHistoryDetail,
   getHistoryList,
   getLikedConsultingHistories,
-  type ConsultResponse,
   type ConsultingHistoryListItemResponse,
-  type SharedConsultingHistoryResponse,
 } from '@/lib/api';
+import { mapHistoryDetailToConsultResult } from '@/lib/consultHistory';
 import { getCurrentUser } from '@/lib/session';
 
 export type ConsultationType =
@@ -20,6 +19,14 @@ export type ConsultationType =
   | '투자 별자리 운세'
   | '투자 종합 운세';
 type LikeFilter = 'all' | 'liked';
+
+const scenarioLabelByCode: Record<string, string> = {
+  TIMING_ENTRY: '시작',
+  TIMING_EXIT: '정리',
+  SAJU_MATCH: '궁합',
+  RESCUE_PLAN: '회복',
+  MENTAL_GUIDE: '마음',
+};
 
 export function ConsultationHistoryPage() {
   const navigate = useNavigate();
@@ -385,17 +392,40 @@ export function ConsultationHistoryPage() {
 
                             <div className="mb-3 flex flex-wrap gap-2">
                               <span className="fi-badge rounded-full px-3 py-1 text-xs">
-                                {item.focusLabel}
+                                {typeLabel}
                               </span>
-                              {item.tarotCardNames.map((cat) => (
-                                <span
-                                  key={`${item.id}-${cat}`}
-                                  className="fi-badge rounded-full px-3 py-1 text-xs"
-                                >
-                                  {cat}
+                              {item.scenario ? (
+                                <span className="fi-badge rounded-full px-3 py-1 text-xs">
+                                  {formatScenarioLabel(item.scenario)}
                                 </span>
-                              ))}
+                              ) : null}
                             </div>
+
+                            {item.question ? (
+                              <p
+                                className="mb-3 text-sm fi-text-main"
+                                style={{
+                                  display: '-webkit-box',
+                                  WebkitBoxOrient: 'vertical',
+                                  WebkitLineClamp: 2,
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                {item.question}
+                              </p>
+                            ) : null}
+
+                            <p
+                              className="mb-3 text-sm leading-relaxed fi-text-muted"
+                              style={{
+                                display: '-webkit-box',
+                                WebkitBoxOrient: 'vertical',
+                                WebkitLineClamp: 2,
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {item.overallSummary}
+                            </p>
 
                             <div className="flex items-center justify-end gap-1 text-xs fi-text-accent transition-colors group-hover:opacity-80">
                               <span>{openingHistoryId === item.id ? '불러오는 중...' : '자세히 보기'}</span>
@@ -469,98 +499,6 @@ function getTypeColor(type: ConsultationType) {
   return 'from-emerald-500/20 to-green-600/20 text-emerald-400';
 }
 
-function mapHistoryDetailToConsultResult(detail: SharedConsultingHistoryResponse): ConsultResponse {
-  return {
-    mode: detail.mode,
-    focus: {
-      label: detail.focus.label,
-      currentValue: detail.focus.currentValue,
-      changeRate: detail.focus.changeRate,
-      interestArea: detail.focus.label,
-      fallback: false,
-    },
-    saju: detail.saju
-      ? {
-          analysis: {
-            natalChart: {},
-            keyPalaces: {},
-            characters: [],
-            tenGods: [],
-            fiveElementBalance: {
-              wood: detail.saju.wood,
-              fire: detail.saju.fire,
-              earth: detail.saju.earth,
-              metal: detail.saju.metal,
-              water: detail.saju.water,
-            },
-            yinYangBalance: { yinCount: 0, yangCount: 0, totalCount: 0 },
-            annualFortune: {},
-            majorFortune: {},
-          },
-          dayMaster: { symbol: '-', fiveElement: '-', yinYang: '-' },
-          dayBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
-          monthBranch: { symbol: '-', fiveElement: '-', yinYang: '-' },
-          currentFortune: {},
-        }
-      : undefined,
-    tarot: detail.tarot
-      ? {
-          interpretationMode: detail.tarot.interpretationMode ?? 'MAIN_TRADITIONAL',
-          cards: detail.tarot.cards.map((card) => ({
-            selectedIndex: card.selectedIndex,
-            code: card.code,
-            deckType: card.deckType as 'TAROT' | 'ORACLE',
-            name: card.name,
-            sortOrder: card.sortOrder,
-            arcanaType: card.arcanaType,
-            suit: card.suit,
-            meaning: card.meaning,
-            imageUrl: card.imageUrl ?? '',
-            videoUrl: card.videoUrl,
-          })),
-        }
-      : undefined,
-    ai: {
-      provider: '-',
-      model: '-',
-      mode: detail.mode,
-      analysisResults: {
-        investment_analysis: { title: '투자 분석', content: detail.investmentAnalysisText ?? '' },
-        tarot_analysis: { title: '타로 분석', content: detail.tarotAnalysisText ?? '' },
-        saju_analysis: { title: '사주 분석', content: detail.sajuAnalysisText ?? '' },
-      },
-      finalAdvice: detail.aiAnswerText,
-      riskScore: 0,
-      rawJson: detail.aiResponseJson,
-      evidence: {
-        grounded: false,
-        citations: [],
-      },
-    },
-    history: {
-      ...detail,
-    },
-    investmentEvidence: {
-      routing: {
-        requiresInvestmentData: false,
-        requiresFortuneFlowData: false,
-        requiresSymbolQuote: false,
-        requiresPositionData: false,
-        requiresWebSearch: false,
-        questionType: '',
-        reason: '',
-      },
-      priceFresh: false,
-      positionFresh: false,
-      newsFresh: false,
-      investmentDataUsed: false,
-      investmentFlowDataUsed: false,
-      symbolQuoteUsed: false,
-      positionDataUsed: false,
-      webSearchUsed: false,
-      grounded: false,
-      citations: [],
-      staleReasons: [],
-    },
-  };
+function formatScenarioLabel(scenario: string) {
+  return scenarioLabelByCode[scenario] ?? scenario;
 }

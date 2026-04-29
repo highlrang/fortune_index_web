@@ -618,10 +618,16 @@ export interface AnalysisSectionPayload {
 }
 
 export interface AnalysisResultsPayload {
-  investment_analysis: AnalysisSectionPayload;
+  investment_analysis?: AnalysisSectionPayload;
   tarot_analysis?: AnalysisSectionPayload;
   saju_analysis?: AnalysisSectionPayload;
   zodiac_analysis?: AnalysisSectionPayload;
+}
+
+export interface ConsultingHistoryAnalysisResponse {
+  saju: string | null;
+  tarot: string | null;
+  zodiac: string | null;
 }
 
 export interface HybridConsultingAiResponse {
@@ -630,7 +636,7 @@ export interface HybridConsultingAiResponse {
   mode: string;
   analysisResults: AnalysisResultsPayload;
   finalAdvice: string;
-  riskScore: number;
+  riskScore?: number;
   rawJson: string;
   evidence: {
     grounded: boolean;
@@ -681,12 +687,12 @@ export interface SharedConsultingHistoryResponse {
   saju?: SajuSnapshotResponse;
   tarot?: TarotSnapshotResponse;
   question?: string;
-  aiAnswerText: string;
-  investmentAnalysisText: string;
-  tarotAnalysisText?: string;
-  sajuAnalysisText?: string;
+  riskScore?: number | null;
+  overallSummary: string;
+  analysis: ConsultingHistoryAnalysisResponse;
   analysisResultJson: string;
   aiResponseJson: string;
+  retro?: Record<string, unknown> | null;
 }
 
 export interface ConsultResponse {
@@ -776,8 +782,10 @@ export interface ConsultingHistoryListItemResponse {
   mode: ConsultMode;
   scenario?: ConsultScenario;
   focusLabel: string;
+  question?: string;
   consultedAt: string;
-  aiSummary: string;
+  overallSummary: string;
+  analysis: ConsultingHistoryAnalysisResponse;
   tarotInterpretationMode?: string;
   tarotCardCodes: string[];
   tarotCardNames: string[];
@@ -822,7 +830,8 @@ export interface ConsultingHistoryDateItemResponse {
   label: ConsultingHistoryDateLabelResponse;
   shareKey: string;
   selectedFocusLabel: string;
-  aiAnswerText: string;
+  overallSummary: string;
+  analysis?: ConsultingHistoryAnalysisResponse;
   focus: FocusSnapshotResponse;
   tarotCardNames: string[];
   review: ConsultingHistoryReviewResponse;
