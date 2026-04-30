@@ -1,5 +1,6 @@
 const SESSION_KEY = 'fortune-index-session';
 const LAST_CONSULT_KEY = 'fortune-index-last-consult';
+const HOME_TAROT_DRAW_KEY = 'fortune-index-home-tarot-draw';
 
 export type InvestmentRiskProfile = 'STABLE' | 'AGGRESSIVE';
 
@@ -33,6 +34,22 @@ export interface SessionTokens {
 export interface SessionState {
   user: SessionUser;
   tokens: SessionTokens;
+}
+
+export interface HomeTarotDrawCard {
+  selectedIndex: number;
+  label: string;
+  meaning: string;
+  description?: string;
+  imageSrc: string;
+  videoSrc?: string;
+}
+
+export interface HomeTarotDrawState {
+  deckVersionId: string;
+  deckName: string;
+  cards: HomeTarotDrawCard[];
+  updatedAt: string;
 }
 
 export function getSession(): SessionState | null {
@@ -90,6 +107,22 @@ export function getLastConsultResult<T>() {
     return JSON.parse(raw) as T;
   } catch {
     localStorage.removeItem(LAST_CONSULT_KEY);
+    return null;
+  }
+}
+
+export function saveHomeTarotDraw(draw: HomeTarotDrawState) {
+  localStorage.setItem(HOME_TAROT_DRAW_KEY, JSON.stringify(draw));
+}
+
+export function getHomeTarotDraw() {
+  const raw = localStorage.getItem(HOME_TAROT_DRAW_KEY);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as HomeTarotDrawState;
+  } catch {
+    localStorage.removeItem(HOME_TAROT_DRAW_KEY);
     return null;
   }
 }

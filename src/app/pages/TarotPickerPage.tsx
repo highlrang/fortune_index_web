@@ -8,6 +8,7 @@ type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
 type ConsultationFlowState = {
   selectedType?: ConsultationType;
   selectedScenario?: string;
+  selectedScenarioTitle?: string;
   question?: string;
   selectedCards?: number[];
   tarotDeckVersionId?: string;

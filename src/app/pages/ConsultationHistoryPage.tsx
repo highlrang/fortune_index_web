@@ -20,14 +20,6 @@ export type ConsultationType =
   | '투자 종합 운세';
 type LikeFilter = 'all' | 'liked';
 
-const scenarioLabelByCode: Record<string, string> = {
-  TIMING_ENTRY: '시작',
-  TIMING_EXIT: '정리',
-  SAJU_MATCH: '궁합',
-  RESCUE_PLAN: '회복',
-  MENTAL_GUIDE: '마음',
-};
-
 export function ConsultationHistoryPage() {
   const navigate = useNavigate();
   const currentUserId = getCurrentUser()?.id ?? null;
@@ -394,9 +386,9 @@ export function ConsultationHistoryPage() {
                               <span className="fi-badge rounded-full px-3 py-1 text-xs">
                                 {typeLabel}
                               </span>
-                              {item.scenario ? (
+                              {item.focusLabel ? (
                                 <span className="fi-badge rounded-full px-3 py-1 text-xs">
-                                  {formatScenarioLabel(item.scenario)}
+                                  {item.focusLabel}
                                 </span>
                               ) : null}
                             </div>
@@ -497,8 +489,4 @@ function getTypeColor(type: ConsultationType) {
   if (type.includes('사주')) return 'from-amber-500/20 to-orange-600/20 text-amber-400';
   if (type.includes('별자리')) return 'from-sky-500/20 to-blue-600/20 text-sky-400';
   return 'from-emerald-500/20 to-green-600/20 text-emerald-400';
-}
-
-function formatScenarioLabel(scenario: string) {
-  return scenarioLabelByCode[scenario] ?? scenario;
 }

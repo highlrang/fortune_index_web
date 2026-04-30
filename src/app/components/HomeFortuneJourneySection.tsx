@@ -1,9 +1,12 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Layers, MoonStar, Sparkles, Star } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { pickScenarioQuestion } from '@/lib/consultPrompts';
 import type { ConsultScenario } from '@/lib/api';
+import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
+import { getHomeTarotDraw, type HomeTarotDrawCard, type HomeTarotDrawState } from '@/lib/session';
 
 type ConsultationType = 'saju' | 'tarot' | 'zodiac' | 'comprehensive';
 
@@ -54,6 +57,8 @@ const tarotCardPositions = [
 
 export function HomeFortuneJourneySection() {
   const navigate = useNavigate();
+  const [homeTarotDraw, setHomeTarotDraw] = useState<HomeTarotDrawState | null>(null);
+  const [selectedCard, setSelectedCard] = useState<HomeTarotDrawCard | null>(null);
   const quickPrompts = useMemo(
     () =>
       quickPromptTemplates.map((prompt) => ({
@@ -62,7 +67,10 @@ export function HomeFortuneJourneySection() {
       })),
     [],
   );
-  const tarotDrawQuestion = useMemo(() => pickScenarioQuestion('TIMING_ENTRY'), []);
+
+  useEffect(() => {
+    setHomeTarotDraw(getHomeTarotDraw());
+  }, []);
 
   return (
     <section className="fi-glass relative overflow-hidden rounded-3xl px-5 py-6 shadow-2xl">
@@ -160,41 +168,93 @@ export function HomeFortuneJourneySection() {
             </div>
           </div>
 
-          <div className="mb-5 flex items-end justify-center gap-3 py-3">
-            {tarotCardPositions.map((position, index) => (
-              <motion.div
-                key={index}
-                className={`relative h-36 w-24 ${position}`}
-                animate={{ y: index === 1 ? [0, -6, 0] : [0, 4, 0] }}
-                transition={{ duration: 3 + index * 0.4, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <div
-                  className="absolute inset-0 overflow-hidden rounded-[22px] border"
-                  style={{
-                    borderColor: 'var(--tarot-card-cover-border)',
-                    background:
-                      'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
-                    boxShadow: index === 1 ? '0 20px 45px -30px var(--app-accent-glow)' : '0 16px 36px -30px rgba(0,0,0,0.45)',
-                  }}
+          {homeTarotDraw?.cards.length ? (
+            <div className="mb-5 py-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-xs fi-text-muted">
+                  {homeTarotDraw.deckName} · 카드를 눌러 의미와 설명을 확인하세요.
+                </p>
+                <p className="text-[11px] fi-text-subtle">
+                  {new Date(homeTarotDraw.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-start justify-center gap-3">
+                {homeTarotDraw.cards.map((card, index) => (
+                  <motion.button
+                    key={`${card.selectedIndex}-${card.label}`}
+                    type="button"
+                    onClick={() => setSelectedCard(card)}
+                    className={`group relative w-24 text-center ${tarotCardPositions[index] ?? ''}`}
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <div
+                      className="relative h-36 overflow-hidden rounded-[22px] border"
+                      style={{
+                        borderColor: 'var(--tarot-card-cover-border)',
+                        backgroundColor: 'color-mix(in srgb, var(--bg-main) 72%, transparent)',
+                        boxShadow: index === 1 ? '0 20px 45px -30px var(--app-accent-glow)' : '0 16px 36px -30px rgba(0,0,0,0.45)',
+                      }}
+                    >
+                      {card.videoSrc ? (
+                        <video
+                          key={card.videoSrc}
+                          src={card.videoSrc}
+                          className="h-full w-full object-cover"
+                          autoPlay
+                          muted
+                          playsInline
+                          loop
+                        />
+                      ) : (
+                        <img
+                          src={card.imageSrc || tarotCardImage}
+                          alt={card.label}
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent px-2 py-3">
+                        <p className="text-[11px] font-semibold text-white">{card.label}</p>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mb-5 flex items-end justify-center gap-3 py-3">
+              {tarotCardPositions.map((position, index) => (
+                <motion.div
+                  key={index}
+                  className={`relative h-36 w-24 ${position}`}
+                  animate={{ y: index === 1 ? [0, -6, 0] : [0, 4, 0] }}
+                  transition={{ duration: 3 + index * 0.4, repeat: Infinity, ease: 'easeInOut' }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.18] via-transparent to-white/[0.05]" />
-                  <div className="absolute inset-3 rounded-[18px] border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-12 w-12 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)', boxShadow: '0 0 24px color-mix(in srgb, var(--tarot-card-sigil) 35%, transparent)' }} />
+                  <div
+                    className="absolute inset-0 overflow-hidden rounded-[22px] border"
+                    style={{
+                      borderColor: 'var(--tarot-card-cover-border)',
+                      background:
+                        'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
+                      boxShadow: index === 1 ? '0 20px 45px -30px var(--app-accent-glow)' : '0 16px 36px -30px rgba(0,0,0,0.45)',
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.18] via-transparent to-white/[0.05]" />
+                    <div className="absolute inset-3 rounded-[18px] border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)', boxShadow: '0 0 24px color-mix(in srgb, var(--tarot-card-sigil) 35%, transparent)' }} />
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           <button
             type="button"
             onClick={() =>
               navigate('/tarot-picker', {
                 state: {
-                  selectedType: 'tarot',
-                  selectedScenario: 'TIMING_ENTRY',
-                  question: tarotDrawQuestion,
                 },
               })
             }
@@ -207,10 +267,59 @@ export function HomeFortuneJourneySection() {
               color: 'var(--tarot-text-main)',
             }}
           >
-            카드 뽑으러 가기
+            {homeTarotDraw?.cards.length ? '다시 뽑으러 가기' : '카드 뽑으러 가기'}
           </button>
         </motion.div>
       </div>
+
+      <Dialog open={selectedCard !== null} onOpenChange={(open) => (!open ? setSelectedCard(null) : undefined)}>
+        <DialogContent
+          className="border-none p-0 text-white"
+          style={{
+            maxWidth: 'min(26rem, calc(100% - 2rem))',
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--tarot-ambient-start) 94%, transparent) 0%, color-mix(in srgb, var(--tarot-ambient-mid) 92%, transparent) 100%)',
+          }}
+        >
+          {selectedCard ? (
+            <div className="overflow-hidden rounded-[24px]">
+              <div className="mx-auto mt-6 w-40 overflow-hidden rounded-[22px] border" style={{ borderColor: 'var(--tarot-card-cover-border)' }}>
+                {selectedCard.videoSrc ? (
+                  <video
+                    key={selectedCard.videoSrc}
+                    src={selectedCard.videoSrc}
+                    className="h-56 w-full object-cover"
+                    autoPlay
+                    muted
+                    playsInline
+                    loop
+                  />
+                ) : (
+                  <img
+                    src={selectedCard.imageSrc || tarotCardImage}
+                    alt={selectedCard.label}
+                    className="h-56 w-full object-cover"
+                  />
+                )}
+              </div>
+              <DialogHeader className="px-6 pb-6 pt-5 text-left">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
+                  3 Card Draw
+                </p>
+                <DialogTitle className="mt-1 text-xl font-semibold text-white">
+                  {selectedCard.label}
+                </DialogTitle>
+                <DialogDescription className="text-sm leading-6 text-white/72">
+                  {selectedCard.meaning}
+                </DialogDescription>
+                {selectedCard.description ? (
+                  <p className="mt-3 text-sm leading-6 text-white/80">{selectedCard.description}</p>
+                ) : null}
+              </DialogHeader>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

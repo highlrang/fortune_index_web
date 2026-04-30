@@ -12,6 +12,7 @@ type ConsultationType = 'saju' | 'tarot' | 'zodiac' | 'comprehensive' | null;
 type ConsultationFlowState = {
   selectedType?: ConsultationType;
   selectedScenario?: string;
+  selectedScenarioTitle?: string;
   question?: string;
   selectedCards?: number[];
   tarotDeckVersionId?: string;
@@ -25,20 +26,12 @@ const consultationTypes = [
 ];
 
 const fallbackScenarios: ScenarioOptionResponse[] = [
-  { code: 'TIMING_ENTRY', title: '시작', description: '지금 시작해도 괜찮은지 살펴봐요.' },
-  { code: 'TIMING_EXIT', title: '정리', description: '지금 멈추거나 정리해도 괜찮은지 봐요.' },
-  { code: 'SAJU_MATCH', title: '궁합', description: '내 사주와 잘 맞는 흐름인지 확인해요.' },
-  { code: 'RESCUE_PLAN', title: '회복', description: '답답한 상황을 어떻게 풀면 좋을지 정리해요.' },
-  { code: 'MENTAL_GUIDE', title: '마음', description: '불안한 마음을 가라앉히고 방향을 정리해요.' },
+  { code: 'MENTAL_GUIDE', title: '흐름', description: '지금 내 운세와 상태가 어떤지 가볍게 확인하고 싶을 때' },
+  { code: 'SAJU_MATCH', title: '선택', description: '지금 마음이 끌리는 방향이 나와 잘 맞는지 궁금할 때' },
+  { code: 'TIMING_ENTRY', title: '시작', description: '새로운 선택을 해도 되는 때인지 알고 싶을 때' },
+  { code: 'TIMING_EXIT', title: '정리', description: '계속 가야 할지, 한발 물러서야 할지 고민될 때' },
+  { code: 'RESCUE_PLAN', title: '회복', description: '마음이 급하거나 상황이 꼬여서 다시 균형을 찾고 싶을 때' },
 ];
-
-const scenarioLabelByCode: Record<string, string> = {
-  TIMING_ENTRY: '시작',
-  TIMING_EXIT: '정리',
-  SAJU_MATCH: '궁합',
-  RESCUE_PLAN: '회복',
-  MENTAL_GUIDE: '마음',
-};
 
 const modeByType = {
   saju: 'INVESTMENT_SAJU',
@@ -64,6 +57,7 @@ export function ConsultationPage() {
   const [loadingScenarios, setLoadingScenarios] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const selectedScenarioOption = scenarios.find((scenario) => scenario.code === selectedScenario);
 
   const questionPlaceholder = useMemo(() => {
     if (!selectedScenario) {
@@ -75,10 +69,7 @@ export function ConsultationPage() {
       selectedType,
     )}`;
   }, [selectedScenario, selectedType]);
-  const visibleScenarios = scenarios.filter((scenario, index, list) => {
-    const label = scenarioLabelByCode[scenario.code] ?? scenario.title;
-    return list.findIndex((item) => (scenarioLabelByCode[item.code] ?? item.title) === label) === index;
-  });
+  const visibleScenarios = scenarios;
 
   useEffect(() => {
     let active = true;
@@ -116,6 +107,11 @@ export function ConsultationPage() {
       return;
     }
 
+    if (!selectedScenario) {
+      setError('시나리오를 선택해주세요.');
+      return;
+    }
+
     if (!trimmedQuestion) {
       setError('질문을 입력해주세요.');
       return;
@@ -127,6 +123,7 @@ export function ConsultationPage() {
         state: {
           selectedType,
           selectedScenario,
+          selectedScenarioTitle: selectedScenarioOption?.title,
           question: trimmedQuestion,
           tarotDeckVersionId,
         } satisfies ConsultationFlowState,
@@ -144,7 +141,7 @@ export function ConsultationPage() {
         scenario: selectedScenario
           ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
           : undefined,
-        focusLabel: selectedScenario ? scenarioLabelByCode[selectedScenario] ?? selectedScenario : undefined,
+        focusLabel: selectedScenarioOption?.title,
         question: trimmedQuestion,
         tarotIndices: selectedCards.length > 0 ? selectedCards : undefined,
         tarotDeckVersionId: selectedCards.length > 0 ? tarotDeckVersionId : undefined,
@@ -230,15 +227,16 @@ export function ConsultationPage() {
 
         <div className="mb-6">
           <h2 className="mb-4 text-sm font-medium fi-text-muted">무엇이 가장 궁금한가요?</h2>
-          <div className="flex flex-wrap gap-2.5">
-            {visibleScenarios.map((scenario) => {
+          <div className="grid grid-cols-6 gap-2.5 sm:grid-cols-5">
+            {visibleScenarios.map((scenario, index) => {
               const isSelected = selectedScenario === scenario.code;
+              const isLastRowOfFive = visibleScenarios.length === 5 && index >= 3;
 
               return (
                 <button
                   key={scenario.code}
                   onClick={() => setSelectedScenario((current) => (current === scenario.code ? '' : scenario.code))}
-                  className="rounded-full border px-4 py-2 text-sm transition-all"
+                  className={`rounded-full border px-4 py-2 text-sm transition-all sm:col-span-1 ${isLastRowOfFive ? 'col-span-3' : 'col-span-2'}`}
                   style={
                     isSelected
                       ? {
@@ -257,7 +255,7 @@ export function ConsultationPage() {
                         }
                   }
                 >
-                  <span className="font-medium">{scenarioLabelByCode[scenario.code] ?? scenario.title}</span>
+                  <span className="font-medium">{scenario.title}</span>
                 </button>
               );
             })}

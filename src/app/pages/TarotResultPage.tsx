@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
 import { consult, getTarotDeckCards, resolveApiAssetUrl, type TarotDeckCardResponse } from '@/lib/api';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
-import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
+import { getCurrentUser, saveHomeTarotDraw, saveLastConsultResult } from '@/lib/session';
 
 type CardRevealState = 'back' | 'expanding' | 'revealing' | 'shrinking' | 'front';
 type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
@@ -13,6 +13,7 @@ type TarotResultLocationState = {
   selectedCards?: number[];
   selectedType?: ConsultationType;
   selectedScenario?: string;
+  selectedScenarioTitle?: string;
   question?: string;
   tarotDeckVersionId?: string;
 };
@@ -22,6 +23,7 @@ interface CardData {
   selectedIndex: number;
   label: string;
   meaning: string;
+  description?: string;
   revealState: CardRevealState;
   imageSrc: string;
   videoSrc?: string;
@@ -134,8 +136,15 @@ export function TarotResultPage() {
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
   const selectedType = flowState?.selectedType;
   const selectedScenario = flowState?.selectedScenario;
+  const selectedScenarioTitle = flowState?.selectedScenarioTitle;
   const question = flowState?.question;
   const trimmedQuestion = question?.trim() ?? '';
+  const canSubmitConsult =
+    Boolean(selectedType) &&
+    Boolean(selectedScenario) &&
+    Boolean(trimmedQuestion) &&
+    selectedType !== null &&
+    selectedType in modeByType;
   
   const [cards, setCards] = useState<CardData[]>(() =>
     selectedCards.map((selectedIndex, slotIndex) => ({
@@ -186,11 +195,35 @@ export function TarotResultPage() {
               ...card,
               label: metadata.koreanName ?? metadata.name,
               meaning: metadata.meaning,
+              description: metadata.description,
               imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
               videoSrc: resolveApiAssetUrl(metadata.videoUrl) || undefined,
             };
           }),
         );
+
+        if (!canSubmitConsult) {
+          saveHomeTarotDraw({
+            deckVersionId: tarotDeckVersionId,
+            deckName: selectedDeck.name,
+            cards: selectedCards
+              .map((selectedIndex) => {
+                const metadata = cardMap.get(selectedIndex);
+                if (!metadata) return null;
+
+                return {
+                  selectedIndex,
+                  label: metadata.koreanName ?? metadata.name,
+                  meaning: metadata.meaning,
+                  description: metadata.description,
+                  imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
+                  videoSrc: resolveApiAssetUrl(metadata.videoUrl) || undefined,
+                };
+              })
+              .filter((card): card is NonNullable<typeof card> => card !== null),
+            updatedAt: new Date().toISOString(),
+          });
+        }
       })
       .catch(() => {
         // Keep the placeholder card presentation if the deck metadata API is unavailable.
@@ -199,7 +232,7 @@ export function TarotResultPage() {
     return () => {
       active = false;
     };
-  }, [selectedCards, tarotDeckVersionId]);
+  }, [canSubmitConsult, selectedCards, selectedDeck.name, tarotDeckVersionId]);
 
   const handleCardClick = (cardId: number) => {
     if (isAnimating) return;
@@ -238,20 +271,15 @@ export function TarotResultPage() {
   };
 
   const handleConfirm = async () => {
+    if (!canSubmitConsult) {
+      navigate('/home');
+      return;
+    }
+
     const currentUser = getCurrentUser();
 
     if (!currentUser) {
       navigate('/login');
-      return;
-    }
-
-    if (!selectedType || !trimmedQuestion || !(selectedType in modeByType)) {
-      navigate('/consultation', {
-        state: {
-          selectedCards,
-          tarotDeckVersionId,
-        },
-      });
       return;
     }
 
@@ -265,7 +293,7 @@ export function TarotResultPage() {
         scenario: selectedScenario
           ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
           : undefined,
-        focusLabel: selectedScenario ?? undefined,
+        focusLabel: selectedScenarioTitle,
         question: trimmedQuestion,
         tarotIndices: selectedCards,
         tarotDeckVersionId,
@@ -732,7 +760,7 @@ export function TarotResultPage() {
                 <div className="relative flex items-center justify-center gap-2">
                   <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-text-main)' }} />
                   <span className="font-bold" style={{ color: 'var(--tarot-text-main)' }}>
-                    {isSubmitting ? '리딩 중...' : '운세 결과 보러 가기'}
+                    {isSubmitting ? '리딩 중...' : canSubmitConsult ? '운세 결과 보러 가기' : '홈으로 돌아가기'}
                   </span>
                 </div>
               </motion.button>

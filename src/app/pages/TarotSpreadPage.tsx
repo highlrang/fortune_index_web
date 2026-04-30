@@ -15,6 +15,7 @@ type ConsultationFlowState = {
   deckOrder?: number[];
   selectedType?: ConsultationType;
   selectedScenario?: string;
+  selectedScenarioTitle?: string;
   question?: string;
   tarotDeckVersionId?: string;
 };
