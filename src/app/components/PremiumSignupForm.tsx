@@ -111,8 +111,8 @@ export function PremiumSignupForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2.5">
         <label htmlFor="email" className="block text-sm fi-text-accent">
           인증된 이메일
         </label>
@@ -122,7 +122,7 @@ export function PremiumSignupForm({
             type="text"
             value={verifiedEmail || '이메일 인증 완료'}
             readOnly
-            className="fi-input fi-input-readonly w-full rounded-xl px-5 py-4 outline-none"
+            className="fi-input fi-input-readonly w-full rounded-xl px-4 py-3.5 outline-none"
             style={{ background: 'rgba(16, 185, 129, 0.12)' }}
           />
           <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%)' }} />
@@ -136,7 +136,7 @@ export function PremiumSignupForm({
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <label htmlFor="password" className="block text-sm fi-text-accent">
           비밀번호
         </label>
@@ -149,13 +149,13 @@ export function PremiumSignupForm({
             placeholder="8자 이상 입력해주세요"
             required
             minLength={8}
-            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-4 py-3.5 transition-all"
           />
           <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <label htmlFor="passwordConfirm" className="block text-sm fi-text-accent">
           비밀번호 확인
         </label>
@@ -169,14 +169,14 @@ export function PremiumSignupForm({
             required
             minLength={8}
             aria-invalid={isPasswordMismatch}
-            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-4 py-3.5 transition-all"
           />
           <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
         {isPasswordMismatch ? <p className="text-xs" style={{ color: 'var(--app-danger-text)' }}>비밀번호가 일치하지 않습니다.</p> : null}
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <label htmlFor="name" className="block text-sm fi-text-accent">
           이름
         </label>
@@ -188,15 +188,15 @@ export function PremiumSignupForm({
             onChange={(e) => setName(e.target.value)}
             placeholder="이름을 입력해주세요"
             required
-            className="fi-input w-full rounded-xl px-5 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-4 py-3.5 transition-all"
           />
           <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--app-accent-soft) 0%, transparent 100%)' }} />
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <label className="block text-sm fi-text-accent">성별</label>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {[
             { label: '남성', value: 'male' as const },
             { label: '여성', value: 'female' as const },
@@ -205,7 +205,7 @@ export function PremiumSignupForm({
               key={option.value}
               type="button"
               onClick={() => setGender(option.value)}
-              className="relative overflow-hidden rounded-xl border px-6 py-5 transition-all"
+              className="relative overflow-hidden rounded-xl border px-5 py-4 transition-all"
               style={
                 gender === option.value
                   ? {
@@ -223,7 +223,7 @@ export function PremiumSignupForm({
               }
               whileTap={{ scale: 0.98 }}
             >
-              <span className="relative text-base" style={{ color: gender === option.value ? 'var(--app-accent-text-soft)' : 'var(--app-text-muted)' }}>
+              <span className="relative text-sm" style={{ color: gender === option.value ? 'var(--app-accent-text-soft)' : 'var(--app-text-muted)' }}>
                 {option.label}
               </span>
             </motion.button>
@@ -231,17 +231,17 @@ export function PremiumSignupForm({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <label className="block text-sm fi-text-accent">
           생년월일
         </label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           <select
             id="birthYear"
             value={birthYear}
             onChange={(e) => setBirthYear(e.target.value)}
             required
-            className="fi-input w-full rounded-xl px-4 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-3 py-3.5 text-sm transition-all"
           >
             <option value="">생년</option>
             {yearOptions.map((year) => (
@@ -255,7 +255,7 @@ export function PremiumSignupForm({
             value={birthMonth}
             onChange={(e) => setBirthMonth(e.target.value)}
             required
-            className="fi-input w-full rounded-xl px-4 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-3 py-3.5 text-sm transition-all"
           >
             <option value="">월</option>
             {monthOptions.map((month) => (
@@ -269,7 +269,7 @@ export function PremiumSignupForm({
             value={birthDay}
             onChange={(e) => setBirthDay(e.target.value)}
             required
-            className="fi-input w-full rounded-xl px-4 py-4 transition-all"
+            className="fi-input w-full rounded-xl px-3 py-3.5 text-sm transition-all"
           >
             <option value="">일</option>
             {dayOptions.map((day) => (
@@ -282,17 +282,17 @@ export function PremiumSignupForm({
         {birthYear.length === 4 && birthMonth.length > 0 && birthDay.length > 0 && !birthDate ? <p className="text-xs" style={{ color: 'var(--app-danger-text)' }}>유효한 생년월일을 입력해주세요.</p> : null}
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <label htmlFor="birthTime" className="block text-sm fi-text-accent">
           태어난 시간
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5">
           <select
             id="birthHour"
             value={birthHour}
             onChange={(e) => setBirthHour(e.target.value)}
             disabled={birthTimeUnknown}
-            className="fi-input w-full rounded-xl px-4 py-4 transition-all disabled:cursor-not-allowed disabled:opacity-40"
+            className="fi-input w-full rounded-xl px-3 py-3.5 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-40"
           >
             <option value="">시</option>
             {hourOptions.map((hour) => (
@@ -306,7 +306,7 @@ export function PremiumSignupForm({
             value={birthMinute}
             onChange={(e) => setBirthMinute(e.target.value)}
             disabled={birthTimeUnknown}
-            className="fi-input w-full rounded-xl px-4 py-4 transition-all disabled:cursor-not-allowed disabled:opacity-40"
+            className="fi-input w-full rounded-xl px-3 py-3.5 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-40"
           >
             <option value="">분</option>
             {minuteOptions.map((minute) => (

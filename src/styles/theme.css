@@ -400,6 +400,11 @@ html.is-native-webview.is-native-android {
     overflow: hidden;
   }
 
+  .fi-mobile-screen-scrollable {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
   .fi-mobile-scroll {
     min-height: 0;
     overflow-y: auto;
@@ -412,15 +417,15 @@ html.is-native-webview.is-native-android {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-top: clamp(1rem, 2.5vh, 2rem);
-    padding-bottom: clamp(1rem, 2.5vh, 2rem);
+    padding-top: clamp(0.875rem, 2vh, 1.5rem);
+    padding-bottom: clamp(0.875rem, 2vh, 1.5rem);
   }
 
-  @media (max-height: 820px) {
+  @media (max-height: 900px) {
     .fi-auth-shell {
       justify-content: flex-start;
-      padding-top: 1rem;
-      padding-bottom: 1rem;
+      padding-top: 0.875rem;
+      padding-bottom: 0.875rem;
     }
   }
 

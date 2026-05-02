@@ -7,8 +7,13 @@ import { PremiumSignupForm } from '../components/PremiumSignupForm';
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupProfilePage() {
-  const emailVerificationToken = getSignupEmailVerificationToken();
-  const verifiedEmail = getSignupVerificationEmail();
+  const searchParams = new URLSearchParams(window.location.search);
+  const isDevBypassEnabled =
+    import.meta.env.DEV && searchParams.get('bypassEmailVerification') === '1';
+  const emailVerificationToken =
+    getSignupEmailVerificationToken() || (isDevBypassEnabled ? 'dev-bypass-token' : '');
+  const verifiedEmail =
+    getSignupVerificationEmail() || (isDevBypassEnabled ? 'preview@voda.app' : '');
 
   if (!emailVerificationToken) {
     return (
@@ -34,8 +39,12 @@ export function SignupProfilePage() {
   return (
     <SignupStageLayout
       title="회원가입"
-      description="인증된 이메일을 바탕으로 회원정보를 입력해주세요."
-      contentScrollable
+      description={
+        isDevBypassEnabled
+          ? '개발용 미리보기 모드입니다. 실제 가입 전에는 이메일 인증이 필요합니다.'
+          : '인증된 이메일을 바탕으로 회원정보를 입력해주세요.'
+      }
+      pageScrollable
     >
       <PremiumSignupForm
         emailVerificationToken={emailVerificationToken}
