@@ -1,0 +1,45 @@
+<svg
+  width="1024"
+  height="1024"
+  viewBox="0 0 1024 1024"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient id="adaptive-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <filter id="adaptive-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="19.2" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#adaptive-glow)">
+    <path
+      d="M 256 256 L 512 768 L 768 256"
+      stroke="url(#adaptive-gradient)"
+      stroke-width="57.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <ellipse
+      cx="512"
+      cy="550.4"
+      rx="179.2"
+      ry="128"
+      stroke="url(#adaptive-gradient)"
+      stroke-width="44.8"
+      fill="none"
+    />
+    <circle cx="512" cy="550.4" r="64" fill="#fbbf24" />
+    <circle cx="512" cy="550.4" r="32" fill="#fef3c7" />
+  </g>
+</svg>

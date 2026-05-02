@@ -71,6 +71,11 @@ export const router = createBrowserRouter([
     Component: SignupEmailVerifiedPage,
   },
   {
+    path: '/email/verify',
+    Component: LoginPage,
+    loader: (args) => capturePasswordResetToken(args) ?? captureSignupEmailVerificationToken(args),
+  },
+  {
     path: '/auth/verified',
     Component: AuthVerifiedPage,
   },
