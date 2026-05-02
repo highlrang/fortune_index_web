@@ -35,6 +35,7 @@ export function SignupProfilePage() {
     <SignupStageLayout
       title="회원가입"
       description="인증된 이메일을 바탕으로 회원정보를 입력해주세요."
+      contentScrollable
     >
       <PremiumSignupForm
         emailVerificationToken={emailVerificationToken}

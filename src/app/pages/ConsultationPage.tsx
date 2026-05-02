@@ -159,14 +159,14 @@ export function ConsultationPage() {
   };
 
   return (
-    <div className="fi-page min-h-screen pb-32">
+    <div className="fi-page fi-mobile-screen">
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
-      <div className="relative mx-auto max-w-md px-5 pt-6">
-        <div className="mb-8 flex items-center gap-4">
+      <div className="relative mx-auto flex h-full max-w-md flex-col px-5 pt-4">
+        <div className="mb-5 flex items-center gap-4">
           <button
             onClick={() => navigate('/home')}
             className="fi-icon-button flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:opacity-90"
@@ -179,205 +179,202 @@ export function ConsultationPage() {
           </div>
         </div>
 
-        <div className="mb-8">
-          <h2 className="mb-4 text-sm font-medium fi-text-muted">어떤 방식으로 볼까요?</h2>
-          <div className="grid grid-cols-2 gap-2.5">
-            {consultationTypes.map((type) => {
-              const Icon = type.icon;
-              const isSelected = selectedType === type.id;
+        <div className="fi-mobile-scroll flex-1 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
+          <div className="space-y-5 pb-4">
+            <div>
+              <h2 className="mb-3 text-sm font-medium fi-text-muted">어떤 방식으로 볼까요?</h2>
+              <div className="grid grid-cols-2 gap-2.5">
+                {consultationTypes.map((type) => {
+                  const Icon = type.icon;
+                  const isSelected = selectedType === type.id;
 
-              return (
-                <motion.button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id as ConsultationType)}
-                  className="relative overflow-hidden rounded-2xl border px-3 py-4 transition-all"
-                  style={
-                    isSelected
-                      ? {
-                          background: 'linear-gradient(135deg, var(--app-accent-surface) 0%, transparent 100%)',
-                          borderColor: 'var(--app-accent-border-strong)',
-                          backdropFilter: 'var(--card-blur)',
-                          WebkitBackdropFilter: 'var(--card-blur)',
-                        }
-                      : {
-                          background: 'var(--card-surface)',
-                          borderColor: 'var(--card-border)',
-                          backdropFilter: 'var(--card-blur)',
-                          WebkitBackdropFilter: 'var(--card-blur)',
-                        }
-                  }
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
-
-                  <div className="relative flex flex-col items-center gap-2">
-                    <div className={`rounded-xl bg-gradient-to-br p-2.5 ${type.color}`}>
-                      <Icon className="h-5 w-5" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-icon-muted)' }} />
-                    </div>
-                    <span className="text-sm font-medium" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-text-soft)' }}>
-                      {type.label}
-                    </span>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="mb-4 text-sm font-medium fi-text-muted">무엇이 가장 궁금한가요?</h2>
-          <div className="grid grid-cols-6 gap-2.5 sm:grid-cols-5">
-            {visibleScenarios.map((scenario, index) => {
-              const isSelected = selectedScenario === scenario.code;
-              const isLastRowOfFive = visibleScenarios.length === 5 && index >= 3;
-
-              return (
-                <button
-                  key={scenario.code}
-                  onClick={() => setSelectedScenario((current) => (current === scenario.code ? '' : scenario.code))}
-                  className={`rounded-full border px-4 py-2 text-sm transition-all sm:col-span-1 ${isLastRowOfFive ? 'col-span-3' : 'col-span-2'}`}
-                  style={
-                    isSelected
-                      ? {
-                          background: 'linear-gradient(90deg, var(--app-accent-surface) 0%, transparent 100%)',
-                          borderColor: 'var(--app-accent-border-strong)',
-                          color: 'var(--app-accent-text-soft)',
-                          backdropFilter: 'var(--card-blur)',
-                          WebkitBackdropFilter: 'var(--card-blur)',
-                        }
-                      : {
-                          background: 'var(--card-surface)',
-                          borderColor: 'var(--card-border)',
-                          color: 'var(--app-text-soft)',
-                          backdropFilter: 'var(--card-blur)',
-                          WebkitBackdropFilter: 'var(--card-blur)',
-                        }
-                  }
-                >
-                  <span className="font-medium">{scenario.title}</span>
-                </button>
-              );
-            })}
-          </div>
-          {loadingScenarios ? <p className="mt-3 text-xs fi-text-subtle">시나리오 불러오는 중...</p> : null}
-        </div>
-
-        <div className="mb-6 space-y-4">
-          <div>
-            <h2 className="mb-4 text-sm font-medium fi-text-muted">무엇이 궁금한가요? <span className="fi-text-subtle">*</span></h2>
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder={questionPlaceholder}
-              className="fi-input w-full rounded-2xl px-4 py-4 text-sm transition-colors"
-              rows={4}
-            />
-          </div>
-        </div>
-
-        {(selectedType === 'tarot' || selectedType === 'comprehensive') && selectedCards.length > 0 && (
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="fi-glass relative overflow-hidden rounded-2xl px-6 py-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
-
-              <div className="relative flex flex-col items-center gap-4">
-                <div className="flex gap-2">
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <div
-                      key={index}
-                      className={`h-16 w-12 rounded-lg border-2 ${
-                        selectedCards[index] !== undefined
-                          ? ''
-                          : ''
-                      }`}
+                  return (
+                    <motion.button
+                      key={type.id}
+                      onClick={() => setSelectedType(type.id as ConsultationType)}
+                      className="relative overflow-hidden rounded-2xl border px-3 py-3 transition-all"
                       style={
-                        selectedCards[index] !== undefined
+                        isSelected
                           ? {
-                              borderColor: 'var(--app-accent-border-strong)',
                               background: 'linear-gradient(135deg, var(--app-accent-surface) 0%, transparent 100%)',
+                              borderColor: 'var(--app-accent-border-strong)',
+                              backdropFilter: 'var(--card-blur)',
+                              WebkitBackdropFilter: 'var(--card-blur)',
                             }
                           : {
-                              borderColor: 'rgba(124, 77, 255, 0.35)',
-                              background: 'linear-gradient(135deg, rgba(124, 77, 255, 0.18) 0%, transparent 100%)',
+                              background: 'var(--card-surface)',
+                              borderColor: 'var(--card-border)',
+                              backdropFilter: 'var(--card-blur)',
+                              WebkitBackdropFilter: 'var(--card-blur)',
                             }
                       }
-                    />
-                  ))}
-                </div>
-                <div className="text-center">
-                  <p className="mb-1 text-base font-semibold fi-text-main">선택한 카드가 준비됐습니다</p>
-                  <p className="text-xs fi-text-muted">
-                    {selectedTarotDeck.name} · 선택된 카드 번호: {selectedCards.map((card) => card + 1).join(', ')}
-                  </p>
-                </div>
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
+
+                      <div className="relative flex flex-col items-center gap-2">
+                        <div className={`rounded-xl bg-gradient-to-br p-2 ${type.color}`}>
+                          <Icon className="h-5 w-5" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-icon-muted)' }} />
+                        </div>
+                        <span className="text-sm font-medium" style={{ color: isSelected ? 'var(--app-accent-text-soft)' : 'var(--app-text-soft)' }}>
+                          {type.label}
+                        </span>
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
-          </motion.div>
-        )}
 
-        {error ? (
-          <div className="fi-danger mb-6 rounded-2xl px-4 py-3 text-sm">
-            {error}
-          </div>
-        ) : null}
+            <div>
+              <h2 className="mb-3 text-sm font-medium fi-text-muted">무엇이 가장 궁금한가요?</h2>
+              <div className="grid grid-cols-6 gap-2 sm:grid-cols-5">
+                {visibleScenarios.map((scenario, index) => {
+                  const isSelected = selectedScenario === scenario.code;
+                  const isLastRowOfFive = visibleScenarios.length === 5 && index >= 3;
 
-        <motion.button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="fi-cta group relative w-full overflow-hidden rounded-2xl px-6 py-5 shadow-2xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
-          whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-          whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.15] via-transparent to-white/[0.05]" />
+                  return (
+                    <button
+                      key={scenario.code}
+                      onClick={() => setSelectedScenario((current) => (current === scenario.code ? '' : scenario.code))}
+                      className={`rounded-full border px-4 py-2 text-sm transition-all sm:col-span-1 ${isLastRowOfFive ? 'col-span-3' : 'col-span-2'}`}
+                      style={
+                        isSelected
+                          ? {
+                              background: 'linear-gradient(90deg, var(--app-accent-surface) 0%, transparent 100%)',
+                              borderColor: 'var(--app-accent-border-strong)',
+                              color: 'var(--app-accent-text-soft)',
+                              backdropFilter: 'var(--card-blur)',
+                              WebkitBackdropFilter: 'var(--card-blur)',
+                            }
+                          : {
+                              background: 'var(--card-surface)',
+                              borderColor: 'var(--card-border)',
+                              color: 'var(--app-text-soft)',
+                              backdropFilter: 'var(--card-blur)',
+                              WebkitBackdropFilter: 'var(--card-blur)',
+                            }
+                      }
+                    >
+                      <span className="font-medium">{scenario.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {loadingScenarios ? <p className="mt-3 text-xs fi-text-subtle">시나리오 불러오는 중...</p> : null}
+            </div>
 
-          <motion.div
-            className="absolute inset-0 rounded-2xl"
-            style={{
-              boxShadow: '0 0 20px rgba(241, 180, 92, 0.4), inset 0 0 20px rgba(241, 180, 92, 0.1)',
-            }}
-            animate={{
-              boxShadow: [
-                '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
-                '0 0 30px var(--app-accent-glow), inset 0 0 30px var(--app-accent-soft)',
-                '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
-              ],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
+            <div>
+              <h2 className="mb-3 text-sm font-medium fi-text-muted">무엇이 궁금한가요? <span className="fi-text-subtle">*</span></h2>
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder={questionPlaceholder}
+                className="fi-input w-full rounded-2xl px-4 py-4 text-sm transition-colors"
+                rows={3}
+              />
+            </div>
 
-          <div className="relative flex items-center justify-center gap-2">
-            <Sparkles
-              className="h-5 w-5 fi-text-main"
-              style={{
-                filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))',
-              }}
-            />
-            <span
-              className="text-base font-semibold fi-text-main"
-              style={{
-                filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))',
-              }}
+            {(selectedType === 'tarot' || selectedType === 'comprehensive') && selectedCards.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="fi-glass relative overflow-hidden rounded-2xl px-5 py-5">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-white/[0.02]" />
+
+                  <div className="relative flex flex-col items-center gap-3">
+                    <div className="flex gap-2">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="h-14 w-11 rounded-lg border-2"
+                          style={
+                            selectedCards[index] !== undefined
+                              ? {
+                                  borderColor: 'var(--app-accent-border-strong)',
+                                  background: 'linear-gradient(135deg, var(--app-accent-surface) 0%, transparent 100%)',
+                                }
+                              : {
+                                  borderColor: 'rgba(124, 77, 255, 0.35)',
+                                  background: 'linear-gradient(135deg, rgba(124, 77, 255, 0.18) 0%, transparent 100%)',
+                                }
+                          }
+                        />
+                      ))}
+                    </div>
+                    <div className="text-center">
+                      <p className="mb-1 text-sm font-semibold fi-text-main">선택한 카드가 준비됐습니다</p>
+                      <p className="text-xs fi-text-muted">
+                        {selectedTarotDeck.name} · 선택된 카드 번호: {selectedCards.map((card) => card + 1).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {error ? (
+              <div className="fi-danger rounded-2xl px-4 py-3 text-sm">
+                {error}
+              </div>
+            ) : null}
+
+            <motion.button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="fi-cta group relative w-full overflow-hidden rounded-2xl px-6 py-4 shadow-2xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+              whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
             >
-              {isSubmitting
-                ? '해석 중...'
-                : selectedType === 'tarot' || selectedType === 'comprehensive'
-                  ? '질문 들고 카드 뽑기'
-                  : '해석 보기'}
-            </span>
-          </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.15] via-transparent to-white/[0.05]" />
 
-          <div className="absolute inset-0 rounded-2xl border opacity-60" style={{ borderColor: 'var(--app-accent-border-strong)' }} />
-        </motion.button>
+              <motion.div
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                  boxShadow: '0 0 20px rgba(241, 180, 92, 0.4), inset 0 0 20px rgba(241, 180, 92, 0.1)',
+                }}
+                animate={{
+                  boxShadow: [
+                    '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
+                    '0 0 30px var(--app-accent-glow), inset 0 0 30px var(--app-accent-soft)',
+                    '0 0 20px var(--app-accent-glow), inset 0 0 20px var(--app-accent-soft)',
+                  ],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+
+              <div className="relative flex items-center justify-center gap-2">
+                <Sparkles
+                  className="h-5 w-5 fi-text-main"
+                  style={{
+                    filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.4))',
+                  }}
+                />
+                <span
+                  className="text-base font-semibold fi-text-main"
+                  style={{
+                    filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))',
+                  }}
+                >
+                  {isSubmitting
+                    ? '해석 중...'
+                    : selectedType === 'tarot' || selectedType === 'comprehensive'
+                      ? '질문 들고 카드 뽑기'
+                      : '해석 보기'}
+                </span>
+              </div>
+
+              <div className="absolute inset-0 rounded-2xl border opacity-60" style={{ borderColor: 'var(--app-accent-border-strong)' }} />
+            </motion.button>
+          </div>
+        </div>
       </div>
 
       <BottomNavigation />

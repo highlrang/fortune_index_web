@@ -4,7 +4,7 @@ import { VodaThemeLogo } from '../components/logos/VodaLogo';
 
 export function LoginPage() {
   return (
-    <div className="fi-page min-h-screen">
+    <div className="fi-page fi-mobile-screen">
       {/* Ambient background effects */}
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
@@ -12,25 +12,30 @@ export function LoginPage() {
       </div>
 
       {/* Main container */}
-      <div className="relative mx-auto max-w-md px-5 py-6 sm:py-8">
+      <div className="relative mx-auto flex h-full max-w-md flex-col px-5">
+        <div className="fi-auth-shell">
         {/* Header */}
-        <div className="mb-6 text-center">
-          <div className="mb-3 flex items-center justify-center">
-            <VodaThemeLogo size={152} />
+        <div className="mb-5 text-center max-[820px]:mb-4">
+          <div className="mb-3 flex items-center justify-center max-[820px]:mb-2">
+            <div className="scale-[0.82] max-[820px]:scale-[0.68] sm:scale-[0.9]">
+              <VodaThemeLogo size={152} />
+            </div>
           </div>
-          <p className="text-sm fi-text-muted">
+          <p className="text-xs fi-text-muted">
             사주와 타로로 풀어내는 나만의 투자 운세
           </p>
         </div>
 
         {/* Wheel of Fortune */}
-        <div className="-my-2 mb-4 scale-90">
-          <WheelOfFortune />
+        <div className="mb-4 flex justify-center max-[820px]:mb-3">
+          <div className="-my-3 scale-[0.84] max-[820px]:scale-[0.66]">
+            <WheelOfFortune />
+          </div>
         </div>
 
         {/* Title */}
-        <div className="mb-5 space-y-2">
-          <h2 className="text-center text-xl fi-text-main">로그인</h2>
+        <div className="mb-4 space-y-2 max-[820px]:mb-3">
+          <h2 className="text-center text-lg fi-text-main sm:text-xl">로그인</h2>
           <div className="fi-top-divider mx-auto h-px w-24" />
         </div>
 
@@ -47,10 +52,11 @@ export function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs fi-text-subtle">
+        <div className="mt-5 text-center max-[820px]:mt-4">
+          <p className="text-[11px] fi-text-subtle">
             © 2026 Voda. All rights reserved.
           </p>
+        </div>
         </div>
       </div>
     </div>

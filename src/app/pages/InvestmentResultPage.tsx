@@ -138,8 +138,8 @@ export function InvestmentResultPage() {
 
   if (!consultResult) {
     return (
-      <div className="min-h-screen" style={pageGradientStyle}>
-        <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
+      <div className="fi-mobile-screen" style={pageGradientStyle}>
+        <div className="mx-auto flex h-full max-w-md flex-col items-center justify-center px-6 text-center">
           <p className="mb-4 text-lg" style={{ color: 'var(--tarot-text-main)' }}>표시할 상담 결과가 없습니다.</p>
           <button
             onClick={() => navigate('/consultation')}
@@ -162,15 +162,15 @@ export function InvestmentResultPage() {
   const historyId = consultResult.history?.id;
 
   return (
-    <div className="min-h-screen overflow-auto" style={pageGradientStyle}>
+    <div className="fi-mobile-screen" style={pageGradientStyle}>
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 mx-auto flex h-full max-w-md flex-col">
         <div
-          className="sticky top-0 z-50 px-6 py-4"
+          className="z-50 px-6 py-4"
           style={{
             background:
               'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 92%, transparent) 0%, transparent 100%)',
@@ -198,7 +198,7 @@ export function InvestmentResultPage() {
           </div>
         </div>
 
-        <div className="px-6 pb-24 pt-6">
+        <div className="fi-mobile-scroll px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-4">
           {typeof confidenceScore === 'number' ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
