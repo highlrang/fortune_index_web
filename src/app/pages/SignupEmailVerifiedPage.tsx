@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import {
   getSignupVerificationEmail,
   saveSignupEmailVerificationToken,
@@ -13,7 +13,6 @@ import {
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupEmailVerifiedPage() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const emailVerificationToken =
     searchParams.get('emailVerificationToken')?.trim() ||
@@ -31,7 +30,10 @@ export function SignupEmailVerifiedPage() {
       }
     ).ReactNativeWebView?.postMessage('EMAIL_VERIFIED');
 
-    const query = buildAuthVerifiedQuery(verifiedEmail);
+    const query = buildAuthVerifiedQuery({
+      email: verifiedEmail,
+      emailVerificationToken,
+    });
     const openedDeepLink = openAuthVerifiedDeepLink(query);
 
     if (!openedDeepLink) {
@@ -63,7 +65,7 @@ export function SignupEmailVerifiedPage() {
   return (
     <SignupStageLayout
       title="이메일 인증 완료"
-      description="인증이 정상적으로 완료되었습니다. 다음 단계로 진행해주세요."
+      description="인증이 정상적으로 완료되었습니다. 회원정보 입력 화면으로 이동합니다."
     >
       <div className="space-y-6 text-center">
         <div
@@ -86,14 +88,6 @@ export function SignupEmailVerifiedPage() {
             {verifiedEmail || '인증 토큰이 저장되었습니다.'}
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => navigate('/signup/profile', { replace: true })}
-          className="fi-cta block w-full rounded-xl px-5 py-4 text-sm font-medium transition-all hover:opacity-90"
-        >
-          회원정보 입력하기
-        </button>
       </div>
     </SignupStageLayout>
   );

@@ -28,7 +28,10 @@ export default function App() {
       saveSignupEmailVerificationToken(emailVerificationToken);
 
       if (window.location.pathname !== '/signup/email/verified') {
-        const query = buildAuthVerifiedQuery(getSignupVerificationEmail());
+        const query = buildAuthVerifiedQuery({
+          email: getSignupVerificationEmail(),
+          emailVerificationToken,
+        });
         const openedDeepLink = openAuthVerifiedDeepLink(query);
 
         window.history.replaceState(null, '', getAuthVerifiedWebUrl(query));

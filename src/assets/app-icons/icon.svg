@@ -19,17 +19,9 @@
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
-
-    <radialGradient id="icon-bg-glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(512 512) rotate(90) scale(448)">
-      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.15" />
-      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0" />
-    </radialGradient>
   </defs>
 
-  <rect width="1024" height="1024" rx="224" fill="#0f1326" />
-  <circle cx="512" cy="512" r="448" fill="url(#icon-bg-glow)" />
-
-  <g filter="url(#icon-glow)">
+  <g transform="translate(61.44 61.44) scale(0.88)" filter="url(#icon-glow)">
     <path
       d="M 256 256 L 512 768 L 768 256"
       stroke="url(#icon-gradient)"

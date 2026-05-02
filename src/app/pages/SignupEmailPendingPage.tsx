@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { LoaderCircle, Mail, RefreshCw } from 'lucide-react';
+import { LoaderCircle, RefreshCw } from 'lucide-react';
 import {
   getEmailVerificationStatus,
   requestSignupEmailVerification,
@@ -84,7 +84,7 @@ export function SignupEmailPendingPage() {
         }
 
         setError('');
-        setStatusMessage('이메일 인증이 확인되었습니다. 메일에서 브라우저로 계속하기를 눌러 인증 정보를 불러와 주세요.');
+        setStatusMessage('이메일 인증이 확인되었습니다. 앱으로 돌아가 회원가입을 계속 진행해주세요.');
         return true;
       }
 
@@ -141,10 +141,6 @@ export function SignupEmailPendingPage() {
     };
   }, [email, hasTimedOut, navigate]);
 
-  const handleOpenMailApp = () => {
-    window.location.href = `mailto:${email}`;
-  };
-
   const handleResend = async () => {
     setError('');
     setStatusMessage('');
@@ -191,7 +187,7 @@ export function SignupEmailPendingPage() {
           return;
         }
 
-        setStatusMessage('이메일 인증이 확인되었습니다. 메일에서 브라우저로 계속하기를 눌러 인증 정보를 불러와 주세요.');
+        setStatusMessage('이메일 인증이 확인되었습니다. 앱으로 돌아가 회원가입을 계속 진행해주세요.');
         return;
       }
 
@@ -252,15 +248,6 @@ export function SignupEmailPendingPage() {
         ) : null}
 
         <div className="grid gap-3">
-          <button
-            type="button"
-            onClick={handleOpenMailApp}
-            className="fi-cta flex items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-medium transition-all hover:opacity-90"
-          >
-            <Mail className="h-4 w-4" />
-            메일 앱 열기
-          </button>
-
           <button
             type="button"
             onClick={handleResend}

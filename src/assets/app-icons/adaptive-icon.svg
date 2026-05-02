@@ -21,7 +21,7 @@
     </filter>
   </defs>
 
-  <g filter="url(#adaptive-glow)">
+  <g transform="translate(61.44 61.44) scale(0.88)" filter="url(#adaptive-glow)">
     <path
       d="M 256 256 L 512 768 L 768 256"
       stroke="url(#adaptive-gradient)"

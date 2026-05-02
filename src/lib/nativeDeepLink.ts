@@ -3,6 +3,11 @@ const AUTH_VERIFIED_PATH = '/auth/verified';
 const AUTH_VERIFIED_DEEP_LINK = `voda://${AUTH_VERIFIED_PATH.replace(/^\//, '')}`;
 const AUTH_VERIFIED_DEEP_LINK_ATTEMPT_KEY = 'voda-auth-verified-deep-link-attempted';
 
+type AuthVerifiedQueryOptions = {
+  email?: string;
+  emailVerificationToken?: string;
+};
+
 function isMobileBrowser() {
   return /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
 }
@@ -27,14 +32,21 @@ function markAuthVerifiedDeepLinkAttempted() {
   }
 }
 
-export function buildAuthVerifiedQuery(email?: string) {
+export function buildAuthVerifiedQuery({
+  email,
+  emailVerificationToken,
+}: AuthVerifiedQueryOptions = {}) {
   const searchParams = new URLSearchParams();
 
   if (email?.trim()) {
     searchParams.set('email', email.trim());
-  } else {
-    searchParams.set('status', 'success');
   }
+
+  if (emailVerificationToken?.trim()) {
+    searchParams.set('emailVerificationToken', emailVerificationToken.trim());
+  }
+
+  searchParams.set('status', 'success');
 
   return searchParams.toString();
 }
