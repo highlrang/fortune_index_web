@@ -20,10 +20,7 @@ export function getSignupEmailVerificationToken() {
 }
 
 export function captureSignupVerificationParams(searchParams: URLSearchParams) {
-  const emailVerificationToken =
-    searchParams.get('emailVerificationToken')?.trim() ||
-    searchParams.get('token')?.trim() ||
-    '';
+  const emailVerificationToken = searchParams.get('emailVerificationToken')?.trim() || '';
   const email = searchParams.get('email')?.trim() ?? '';
   const status = searchParams.get('status')?.trim().toLowerCase() ?? '';
   const isSuccess = status ? status === 'success' : Boolean(emailVerificationToken);

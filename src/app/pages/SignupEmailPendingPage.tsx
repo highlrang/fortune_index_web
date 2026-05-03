@@ -10,7 +10,6 @@ import {
   SIGNUP_EMAIL_VERIFICATION_TOKEN_KEY,
   clearSignupEmailVerification,
   getSignupEmailVerificationToken,
-  saveSignupEmailVerificationToken,
   saveSignupVerificationEmail,
 } from '@/lib/signupVerification';
 import { SignupStageLayout } from '../components/SignupStageLayout';
@@ -71,12 +70,6 @@ export function SignupEmailPendingPage() {
 
     const handleStatus = (response: EmailVerificationStatusResponse) => {
       if (response.status === 'VERIFIED') {
-        if (response.emailVerificationToken) {
-          saveSignupEmailVerificationToken(response.emailVerificationToken);
-          navigate('/signup/profile', { replace: true });
-          return true;
-        }
-
         const emailVerificationToken = getSignupEmailVerificationToken();
         if (emailVerificationToken) {
           navigate('/signup/profile', { replace: true });
@@ -84,7 +77,7 @@ export function SignupEmailPendingPage() {
         }
 
         setError('');
-        setStatusMessage('이메일 인증이 확인되었습니다. 앱으로 돌아가 회원가입을 계속 진행해주세요.');
+        setStatusMessage('이메일 인증은 확인되었습니다. 메일의 인증 링크를 클릭한 같은 브라우저/앱으로 돌아와 회원가입을 계속 진행해주세요.');
         return true;
       }
 
@@ -175,19 +168,13 @@ export function SignupEmailPendingPage() {
     try {
       const response = await getEmailVerificationStatus(email);
       if (response.status === 'VERIFIED') {
-        if (response.emailVerificationToken) {
-          saveSignupEmailVerificationToken(response.emailVerificationToken);
-          navigate('/signup/profile', { replace: true });
-          return;
-        }
-
         const emailVerificationToken = getSignupEmailVerificationToken();
         if (emailVerificationToken) {
           navigate('/signup/profile', { replace: true });
           return;
         }
 
-        setStatusMessage('이메일 인증이 확인되었습니다. 앱으로 돌아가 회원가입을 계속 진행해주세요.');
+        setStatusMessage('이메일 인증은 확인되었습니다. 메일의 인증 링크를 클릭한 같은 브라우저/앱으로 돌아와 회원가입을 계속 진행해주세요.');
         return;
       }
 
