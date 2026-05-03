@@ -19,6 +19,30 @@ export function getSignupEmailVerificationToken() {
   return localStorage.getItem(SIGNUP_EMAIL_VERIFICATION_TOKEN_KEY) ?? '';
 }
 
+export function captureSignupVerificationParams(searchParams: URLSearchParams) {
+  const emailVerificationToken =
+    searchParams.get('emailVerificationToken')?.trim() ||
+    searchParams.get('token')?.trim() ||
+    '';
+  const email = searchParams.get('email')?.trim() ?? '';
+  const status = searchParams.get('status')?.trim().toLowerCase() ?? '';
+
+  if (email) {
+    saveSignupVerificationEmail(email);
+  }
+
+  if (emailVerificationToken) {
+    saveSignupEmailVerificationToken(emailVerificationToken);
+  }
+
+  return {
+    email,
+    emailVerificationToken,
+    status,
+    isSuccess: status === 'success',
+  };
+}
+
 export function clearSignupEmailVerification() {
   localStorage.removeItem(SIGNUP_EMAIL_VERIFICATION_TOKEN_KEY);
   localStorage.removeItem(SIGNUP_EMAIL_VERIFICATION_EMAIL_KEY);

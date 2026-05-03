@@ -7,8 +7,8 @@ import { getCurrentUser } from '@/lib/session';
 import { setSelectedTarotDeckId } from '@/lib/tarot';
 import { savePasswordResetToken } from '@/lib/passwordReset';
 import {
+  captureSignupVerificationParams,
   getSignupVerificationEmail,
-  saveSignupEmailVerificationToken,
 } from '@/lib/signupVerification';
 import {
   buildAuthVerifiedQuery,
@@ -19,25 +19,26 @@ import {
 export default function App() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const emailVerificationToken =
-      searchParams.get('emailVerificationToken')?.trim() ||
-      searchParams.get('token')?.trim() ||
-      '';
+    const {
+      email,
+      emailVerificationToken,
+      status,
+    } = captureSignupVerificationParams(searchParams);
 
     if (emailVerificationToken) {
-      saveSignupEmailVerificationToken(emailVerificationToken);
-
       if (window.location.pathname !== '/signup/email/verified') {
         const query = buildAuthVerifiedQuery({
-          email: getSignupVerificationEmail(),
+          email: email || getSignupVerificationEmail(),
           emailVerificationToken,
+          status,
         });
         const openedDeepLink = openAuthVerifiedDeepLink(query);
 
-        window.history.replaceState(null, '', getAuthVerifiedWebUrl(query));
+        const targetUrl = getAuthVerifiedWebUrl(query);
+        window.history.replaceState(null, '', targetUrl);
 
         if (!openedDeepLink) {
-          window.location.replace(getAuthVerifiedWebUrl(query));
+          window.location.replace(targetUrl);
         }
       }
     }

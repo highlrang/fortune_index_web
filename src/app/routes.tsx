@@ -23,21 +23,28 @@ import { WealthLandingPage } from './pages/WealthLandingPage';
 import { SubscriptionLandingPage } from './pages/SubscriptionLandingPage';
 import { LogoShowcasePage } from './pages/LogoShowcasePage';
 import { savePasswordResetToken } from '@/lib/passwordReset';
-import { saveSignupEmailVerificationToken } from '@/lib/signupVerification';
+import { captureSignupVerificationParams } from '@/lib/signupVerification';
 
 function captureSignupEmailVerificationToken({ request }: { request: Request }) {
   const url = new URL(request.url);
-  const emailVerificationToken =
-    url.searchParams.get('emailVerificationToken')?.trim() ||
-    url.searchParams.get('token')?.trim() ||
-    '';
+  const { email, emailVerificationToken, status } = captureSignupVerificationParams(
+    url.searchParams,
+  );
 
   if (!emailVerificationToken) return null;
 
-  saveSignupEmailVerificationToken(emailVerificationToken);
-  throw redirect(
-    `/signup/email/verified?emailVerificationToken=${encodeURIComponent(emailVerificationToken)}`,
-  );
+  const redirectSearchParams = new URLSearchParams();
+  redirectSearchParams.set('emailVerificationToken', emailVerificationToken);
+
+  if (email) {
+    redirectSearchParams.set('email', email);
+  }
+
+  if (status) {
+    redirectSearchParams.set('status', status);
+  }
+
+  throw redirect(`/signup/email/verified?${redirectSearchParams.toString()}`);
 }
 
 function capturePasswordResetToken({ request }: { request: Request }) {

@@ -77,6 +77,11 @@ export function PremiumSignupForm({
       return;
     }
 
+    if (!gender) {
+      setError('성별을 선택해주세요.');
+      return;
+    }
+
     if (!birthTimeUnknown && !birthTime) {
       setError('태어난 시간을 올바르게 입력해주세요.');
       return;
@@ -96,6 +101,7 @@ export function PremiumSignupForm({
         password,
         birthDate,
         birthTime: birthTimeUnknown || !birthTime ? undefined : birthTime,
+        gender: gender === 'male' ? 'M' : 'F',
         investmentRiskProfile,
         preferredSectors,
       });

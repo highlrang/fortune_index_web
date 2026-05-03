@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router';
 import {
+  captureSignupVerificationParams,
   getSignupVerificationEmail,
-  saveSignupEmailVerificationToken,
 } from '@/lib/signupVerification';
 import {
   buildAuthVerifiedQuery,
@@ -14,16 +14,16 @@ import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function SignupEmailVerifiedPage() {
   const [searchParams] = useSearchParams();
-  const emailVerificationToken =
-    searchParams.get('emailVerificationToken')?.trim() ||
-    searchParams.get('token')?.trim() ||
-    '';
-  const verifiedEmail = getSignupVerificationEmail();
+  const {
+    email,
+    emailVerificationToken,
+    status,
+    isSuccess,
+  } = captureSignupVerificationParams(searchParams);
+  const verifiedEmail = email || getSignupVerificationEmail();
 
   useEffect(() => {
-    if (!emailVerificationToken) return;
-
-    saveSignupEmailVerificationToken(emailVerificationToken);
+    if (!emailVerificationToken || !isSuccess) return;
     (
       window as Window & {
         ReactNativeWebView?: { postMessage: (message: string) => void };
@@ -33,15 +33,16 @@ export function SignupEmailVerifiedPage() {
     const query = buildAuthVerifiedQuery({
       email: verifiedEmail,
       emailVerificationToken,
+      status,
     });
     const openedDeepLink = openAuthVerifiedDeepLink(query);
 
     if (!openedDeepLink) {
       window.location.replace(getAuthVerifiedWebUrl(query));
     }
-  }, [emailVerificationToken, verifiedEmail]);
+  }, [emailVerificationToken, isSuccess, status, verifiedEmail]);
 
-  if (!emailVerificationToken) {
+  if (!emailVerificationToken || !isSuccess) {
     return (
       <SignupStageLayout
         title="이메일 인증"
@@ -49,7 +50,7 @@ export function SignupEmailVerifiedPage() {
       >
         <div className="space-y-6">
           <div className="fi-danger rounded-xl px-4 py-3 text-sm">
-            이메일 인증 토큰이 없습니다. 인증 메일을 다시 요청해주세요.
+            이메일 인증 완료 정보를 확인하지 못했습니다. 인증 메일을 다시 요청해주세요.
           </div>
           <Link
             to="/signup"

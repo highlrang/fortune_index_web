@@ -3,24 +3,19 @@ import { CheckCircle2 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { openAuthVerifiedDeepLinkOnce } from '@/lib/nativeDeepLink';
 import {
+  captureSignupVerificationParams,
   getSignupEmailVerificationToken,
-  saveSignupEmailVerificationToken,
 } from '@/lib/signupVerification';
 import { SignupStageLayout } from '../components/SignupStageLayout';
 
 export function AuthVerifiedPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const email = searchParams.get('email')?.trim() ?? '';
-  const emailVerificationToken =
-    searchParams.get('emailVerificationToken')?.trim() ||
-    searchParams.get('token')?.trim() ||
-    '';
+  const { email, emailVerificationToken, isSuccess } =
+    captureSignupVerificationParams(searchParams);
 
   useEffect(() => {
-    if (emailVerificationToken) {
-      saveSignupEmailVerificationToken(emailVerificationToken);
-    }
+    if (!isSuccess) return;
 
     openAuthVerifiedDeepLinkOnce(searchParams.toString());
 
@@ -28,7 +23,7 @@ export function AuthVerifiedPage() {
     if (savedToken) {
       navigate('/signup/profile', { replace: true });
     }
-  }, [emailVerificationToken, navigate, searchParams]);
+  }, [emailVerificationToken, isSuccess, navigate, searchParams]);
 
   return (
     <SignupStageLayout
@@ -51,9 +46,13 @@ export function AuthVerifiedPage() {
         </div>
 
         <div className="space-y-2">
-          <p className="text-lg fi-text-main">메일 인증이 확인되었습니다.</p>
+          <p className="text-lg fi-text-main">
+            {isSuccess ? '메일 인증이 확인되었습니다.' : '이메일 인증 상태를 확인할 수 없습니다.'}
+          </p>
           <p className="text-sm leading-6 fi-text-muted">
-            회원정보 입력 단계로 자동 이동합니다.
+            {isSuccess
+              ? '회원정보 입력 단계로 자동 이동합니다.'
+              : '인증 메일을 다시 요청한 뒤 다시 시도해주세요.'}
           </p>
           {email ? (
             <p className="break-all text-xs leading-5 fi-text-subtle">{email}</p>

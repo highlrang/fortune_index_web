@@ -6,6 +6,7 @@ const AUTH_VERIFIED_DEEP_LINK_ATTEMPT_KEY = 'voda-auth-verified-deep-link-attemp
 type AuthVerifiedQueryOptions = {
   email?: string;
   emailVerificationToken?: string;
+  status?: string;
 };
 
 function isMobileBrowser() {
@@ -35,6 +36,7 @@ function markAuthVerifiedDeepLinkAttempted() {
 export function buildAuthVerifiedQuery({
   email,
   emailVerificationToken,
+  status,
 }: AuthVerifiedQueryOptions = {}) {
   const searchParams = new URLSearchParams();
 
@@ -46,7 +48,9 @@ export function buildAuthVerifiedQuery({
     searchParams.set('emailVerificationToken', emailVerificationToken.trim());
   }
 
-  searchParams.set('status', 'success');
+  if (status?.trim()) {
+    searchParams.set('status', status.trim());
+  }
 
   return searchParams.toString();
 }
