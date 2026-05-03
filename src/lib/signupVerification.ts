@@ -26,6 +26,7 @@ export function captureSignupVerificationParams(searchParams: URLSearchParams) {
     '';
   const email = searchParams.get('email')?.trim() ?? '';
   const status = searchParams.get('status')?.trim().toLowerCase() ?? '';
+  const isSuccess = status ? status === 'success' : Boolean(emailVerificationToken);
 
   if (email) {
     saveSignupVerificationEmail(email);
@@ -39,7 +40,7 @@ export function captureSignupVerificationParams(searchParams: URLSearchParams) {
     email,
     emailVerificationToken,
     status,
-    isSuccess: status === 'success',
+    isSuccess,
   };
 }
 
