@@ -421,6 +421,12 @@ html.is-native-webview.is-native-android {
     padding-bottom: clamp(0.875rem, 2vh, 1.5rem);
   }
 
+  .fi-auth-shell-keyboard-open {
+    justify-content: flex-start;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+
   @media (max-height: 900px) {
     .fi-auth-shell {
       justify-content: flex-start;

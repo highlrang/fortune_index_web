@@ -63,10 +63,6 @@ export function SignupPage() {
           </div>
         </div>
 
-        <div className="fi-glass rounded-xl px-4 py-4 text-sm leading-6 fi-text-muted">
-          인증 메일 발송 후 메일 확인 화면으로 이동합니다. 메일의 인증 링크를 열면 다음 단계가 열립니다.
-        </div>
-
         {error ? (
           <div className="fi-danger rounded-xl px-4 py-3 text-sm">
             {error}
