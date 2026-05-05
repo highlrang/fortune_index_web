@@ -14,74 +14,80 @@ function useStableSvgId(prefix: string) {
 }
 
 export function VodaLogo({ size = 120, className = '' }: VodaLogoProps) {
+  const accentId = useStableSvgId('voda-elegant-accent');
+
   return (
     <svg
       width={size}
-      height={size * 0.4}
-      viewBox="0 0 200 80"
+      height={size * (192 / 520)}
+      viewBox="0 0 520 192"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-label="Voda logo"
       role="img"
     >
-      <g>
-        <path
-          d="M 20 15 L 40 55 L 60 15"
-          stroke="currentColor"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <ellipse
-          cx="40"
-          cy="38"
-          rx="12"
-          ry="8"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          fill="none"
-        />
-        <circle cx="40" cy="38" r="3.5" fill="currentColor" />
-        <path
-          d="M 48 35 L 54 38 L 48 41"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          opacity="0.7"
-        />
-      </g>
+      <defs>
+        <linearGradient id={accentId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0.34" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0.08" />
+        </linearGradient>
+      </defs>
 
-      <text
-        x="75"
-        y="50"
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize="40"
-        fontWeight="600"
-        fill="currentColor"
-        letterSpacing="-1"
-      >
-        Voda
-      </text>
+      <path
+        d="M 25 50 Q 28 48 30 50 L 55 110 L 60 110 L 85 50 Q 87 48 90 50"
+        stroke="currentColor"
+        strokeWidth="15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <circle cx="160" cy="80" r="40" stroke="currentColor" strokeWidth="13" fill="none" />
+      <circle cx="160" cy="80" r="52" stroke={`url(#${accentId})`} strokeWidth="1.5" fill="none" opacity="0.7" />
+      <circle cx="160" cy="80" r="14" fill="currentColor" />
+      <circle cx="160" cy="80" r="7" fill="currentColor" opacity="0.3" />
+      <path
+        d="M 255 50 L 255 110 M 255 50 Q 318 50 318 80 Q 318 110 255 110"
+        stroke="currentColor"
+        strokeWidth="15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M 362 110 Q 367 105 372 90 L 385 52 Q 388 48 391 52 L 404 90 Q 409 105 414 110 M 377 83 L 399 83"
+        stroke="currentColor"
+        strokeWidth="15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M 30 130 L 410 130"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.25"
+      />
+      <circle cx="60" cy="130" r="1.5" fill="currentColor" opacity="0.4" />
+      <circle cx="380" cy="130" r="1.5" fill="currentColor" opacity="0.4" />
     </svg>
   );
 }
 
 export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: VodaLogoHybridProps) {
   const gradientId = useStableSvgId('voda-gradient');
-  const textGradientId = useStableSvgId('voda-text-gradient');
+  const shimmerGradientId = useStableSvgId('voda-shimmer-gradient');
   const glowId = useStableSvgId('voda-glow');
   const bgGradientId = useStableSvgId('voda-bg-gradient');
-  const textOutlineColor = theme === 'dark' ? '#1e1b4b' : '#ffffff';
+  const outerRingOpacity = theme === 'dark' ? 0.4 : 0.28;
+  const backgroundOpacity = theme === 'dark' ? 0.12 : 0.08;
 
   return (
     <svg
       width={size}
-      height={size * 0.4}
-      viewBox="0 0 200 80"
+      height={size * (198 / 660)}
+      viewBox="0 0 660 198"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
@@ -90,16 +96,14 @@ export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: V
     >
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fbbf24" stopOpacity="1" />
-          <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />
-          <stop offset="100%" stopColor="#d97706" stopOpacity="1" />
+          <stop offset="0%" stopColor="#c9a227" />
+          <stop offset="50%" stopColor="#d4af37" />
+          <stop offset="100%" stopColor="#c9a227" />
         </linearGradient>
-
-        <linearGradient id={textGradientId} x1="75" y1="16" x2="178" y2="56" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#fde68a" />
-          <stop offset="38%" stopColor="#fbbf24" />
-          <stop offset="72%" stopColor="#f59e0b" />
-          <stop offset="100%" stopColor="#b45309" />
+        <linearGradient id={shimmerGradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#fff8dc" stopOpacity="0.3" />
+          <stop offset="50%" stopColor="#d4af37" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="#8b7500" stopOpacity="0.1" />
         </linearGradient>
 
         <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
@@ -111,71 +115,89 @@ export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: V
         </filter>
 
         <radialGradient id={bgGradientId}>
-          <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
+          <stop offset="0%" stopColor="#d4af37" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#d4af37" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      <circle cx="40" cy="38" r="28" fill={`url(#${bgGradientId})`} opacity="0.1" />
+      <circle cx="86" cy="88" r="66" fill={`url(#${bgGradientId})`} opacity={backgroundOpacity} />
 
       <g filter={`url(#${glowId})`}>
+        <circle
+          cx="86"
+          cy="88"
+          r="56"
+          stroke={`url(#${shimmerGradientId})`}
+          strokeWidth="1"
+          fill="none"
+          opacity={outerRingOpacity}
+        />
         <path
-          d="M 20 15 L 40 55 L 60 15"
+          d="M 56 58 L 86 118 L 116 58"
           stroke={`url(#${gradientId})`}
-          strokeWidth="4"
+          strokeWidth="7"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
         />
         <ellipse
-          cx="40"
-          cy="38"
-          rx="12"
-          ry="8"
+          cx="86"
+          cy="92"
+          rx="22"
+          ry="16"
           stroke={`url(#${gradientId})`}
-          strokeWidth="2.5"
+          strokeWidth="5"
           fill="none"
         />
-        <circle cx="40" cy="38" r="4" fill="#fbbf24" />
-        <circle cx="40" cy="38" r="2" fill="#fef3c7" />
+        <circle cx="86" cy="92" r="7.5" fill="#d4af37" />
+        <circle cx="86" cy="92" r="3.8" fill="#e8d5a8" opacity="0.8" />
+      </g>
+
+      <g transform="translate(184, 0)">
         <path
-          d="M 48 35 L 54 38 L 48 41"
+          d="M 25 50 Q 28 48 30 50 L 55 110 L 60 110 L 85 50 Q 87 48 90 50"
           stroke={`url(#${gradientId})`}
-          strokeWidth="2.5"
+          strokeWidth="16"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
-          opacity="0.8"
+        />
+        <circle cx="160" cy="80" r="36" stroke={`url(#${gradientId})`} strokeWidth="15" fill="none" />
+        <circle
+          cx="160"
+          cy="80"
+          r="47"
+          stroke={`url(#${shimmerGradientId})`}
+          strokeWidth="1.5"
+          fill="none"
+          opacity={outerRingOpacity}
+        />
+        <circle cx="160" cy="80" r="13" fill="#d4af37" />
+        <circle cx="160" cy="80" r="6" fill="#e8d5a8" opacity="0.8" />
+        <path
+          d="M 255 50 L 255 110 M 255 50 Q 318 50 318 80 Q 318 110 255 110"
+          stroke={`url(#${gradientId})`}
+          strokeWidth="16"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <path
+          d="M 362 110 Q 367 105 372 90 L 385 52 Q 388 48 391 52 L 404 90 Q 409 105 414 110 M 377 83 L 399 83"
+          stroke={`url(#${gradientId})`}
+          strokeWidth="16"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <path
+          d="M 30 132 L 410 132"
+          stroke={`url(#${gradientId})`}
+          strokeWidth="1.5"
+          fill="none"
+          opacity="0.25"
         />
       </g>
-
-      <text
-        x="75"
-        y="50"
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize="40"
-        fontWeight="800"
-        fill="#fbbf24"
-        stroke={textOutlineColor}
-        strokeWidth="1.2"
-        paintOrder="stroke fill"
-        letterSpacing="-1"
-      >
-        Voda
-      </text>
-
-      <text
-        x="75"
-        y="50"
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize="40"
-        fontWeight="800"
-        fill={`url(#${textGradientId})`}
-        letterSpacing="-1"
-        opacity="0.85"
-      >
-        Voda
-      </text>
     </svg>
   );
 }

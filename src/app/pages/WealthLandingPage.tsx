@@ -215,9 +215,9 @@ export function WealthLandingPage() {
         <footer className="relative border-t border-white/10 bg-black/20 px-6 py-12 pb-28 backdrop-blur-sm md:px-12 lg:pb-12">
           <div className="mx-auto max-w-7xl text-center">
             <div className="mb-4 flex justify-center">
-              <VodaLogoHybrid size={118} theme="dark" />
+              <VodaLogoHybrid size={138} theme="dark" />
             </div>
-            <p className="mb-6 text-sm text-white/60">타로와 사주로 재물운을 분석하는 프리미엄 플랫폼</p>
+            <p className="mb-6 text-base text-white/60">타로와 사주로 재물운을 분석하는 프리미엄 플랫폼</p>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-white/60">
               <Link to="/terms" className="hover:text-white/80">서비스 약관</Link>
               <Link to="/privacy" className="hover:text-white/80">개인정보 처리 약관</Link>

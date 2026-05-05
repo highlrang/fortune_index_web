@@ -237,9 +237,9 @@ export function SubscriptionLandingPage() {
             <div className="mb-8 grid gap-8 md:grid-cols-3">
               <div>
                 <div className="mb-4">
-                  <VodaLogoHybrid size={118} theme="dark" />
+                  <VodaLogoHybrid size={138} theme="dark" />
                 </div>
-                <p className="text-sm text-white/60">당신의 운명을 밝히는 프리미엄 타로 플랫폼</p>
+                <p className="text-base text-white/60">당신의 운명을 밝히는 프리미엄 타로 플랫폼</p>
               </div>
               <div>
                 <h4 className="mb-4 text-sm font-medium text-white">서비스</h4>

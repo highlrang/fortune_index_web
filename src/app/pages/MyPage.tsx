@@ -82,12 +82,14 @@ const accentCardStyle = {
 
 const accentIconStyle = {
   ...glassLayerStyle,
-  borderColor: 'rgba(212, 175, 55, 0.4)',
+  borderWidth: '1px',
+  borderColor: 'var(--app-accent-border)',
   background:
-    'linear-gradient(to bottom right, rgba(212, 175, 55, 0.3), rgba(217, 119, 6, 0.2))',
+    'linear-gradient(135deg, color-mix(in srgb, var(--app-accent-surface) 66%, white 34%) 0%, color-mix(in srgb, var(--point-gold) 14%, transparent) 100%)',
   backdropFilter: 'blur(24px)',
   WebkitBackdropFilter: 'blur(24px)',
-  color: 'var(--tarot-point-color)',
+  color: 'var(--app-accent-text-soft)',
+  boxShadow: 'inset 0 1px 0 var(--app-surface-highlight), 0 8px 18px -24px var(--app-accent-glow)',
 };
 
 const accentButtonStyle = {
@@ -150,6 +152,14 @@ const fiveElementLabelMap: Record<FiveElementKey, string> = {
   earth: '土 (토)',
   metal: '金 (금)',
   water: '水 (수)',
+};
+
+const fiveElementColorMap: Record<FiveElementKey, string> = {
+  wood: '#5FAE7B',
+  fire: '#E07A5F',
+  earth: '#D4AF37',
+  metal: '#A0AEC0',
+  water: '#111827',
 };
 
 const inquiryTypeOptions: Array<{ label: string; value: InquiryCategory }> = [
@@ -262,6 +272,11 @@ export function MyPage() {
       zodiac: normalizedZodiac,
     };
   }, [profileDetails, user]);
+
+  const fiveElementEntries = useMemo(() => {
+    if (!userData) return [];
+    return getFiveElementEntries(userData.saju.ohang);
+  }, [userData]);
 
   useEffect(() => {
     if (typeof user?.notificationEnabled === 'boolean') {
@@ -569,7 +584,11 @@ export function MyPage() {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30 }}
               className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
-              style={accentButtonStyle}
+              style={{
+                ...accentButtonStyle,
+                background:
+                  'linear-gradient(135deg, color-mix(in srgb, var(--app-accent-gradient-start) 82%, var(--app-surface-bg-strong) 18%) 0%, color-mix(in srgb, var(--app-accent-gradient-end) 72%, var(--app-surface-bg-strong) 28%) 100%)',
+              }}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
                 <div>
@@ -1062,36 +1081,41 @@ export function MyPage() {
 
                 <div>
                   <h4 className="mb-3 text-sm font-medium" style={{ color: 'var(--tarot-point-color)' }}>오행 분포</h4>
-                  <div className="space-y-2">
-                    {Object.entries(userData.saju.ohang).map(([element, value]) => (
-                      <div key={element} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span style={{ color: 'var(--app-text-muted)' }}>
-                            {fiveElementLabelMap[element as FiveElementKey] ?? '水 (수)'}
+                  <div className="rounded-2xl border p-4" style={glassCardStyle}>
+                    <div className="space-y-3">
+                      {fiveElementEntries.map(({ key, label, value, color }) => (
+                        <div key={key} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+                            <span className="text-xs font-medium" style={{ color: 'var(--app-text-muted)' }}>
+                              {label}
+                            </span>
+                          </div>
+                          <div className="h-2.5 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${value}%` }}
+                              transition={{ duration: 0.9, delay: 0.15 }}
+                              className="h-full rounded-full"
+                              style={{
+                                background: `linear-gradient(90deg, ${color} 0%, color-mix(in srgb, ${color} 65%, white 35%) 100%)`,
+                              }}
+                            />
+                          </div>
+                          <span className="min-w-[2.5rem] text-right text-xs font-semibold" style={{ color }}>
+                            {formatPercentage(value)}%
                           </span>
-                          <span style={{ color: 'var(--tarot-point-color)' }}>{formatPercentage(value)}%</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${value}%` }}
-                            transition={{ duration: 1, delay: 0.2 }}
-                            className="h-full rounded-full"
-                            style={{
-                              background:
-                                'linear-gradient(90deg, var(--tarot-point-color) 0%, var(--app-accent-gradient-end) 100%)',
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 {userData.saju.sections.map((section) => (
                   <div
                     key={section.key}
-                    className={`rounded-2xl border p-4 backdrop-blur-xl ${section.className}`}
+                    className="rounded-2xl border p-4 backdrop-blur-xl"
+                    style={glassCardStyle}
                   >
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <h4 className={`text-sm font-medium ${section.titleClassName}`}>{section.label}</h4>
@@ -1160,7 +1184,7 @@ export function MyPage() {
                       <p className="mt-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.dateRange}</p>
                     </div>
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border" style={accentIconStyle}>
-                      <Star className="h-7 w-7" />
+                      <Star className="h-7 w-7" strokeWidth={2.2} />
                     </div>
                   </div>
 
@@ -1185,7 +1209,7 @@ export function MyPage() {
                   {userData.zodiac.traits.map((trait) => (
                     <div key={trait} className="rounded-2xl border px-3 py-4 text-center" style={glassCardStyle}>
                       <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border" style={accentIconStyle}>
-                        <Star className="h-4 w-4" />
+                        <Star className="h-4 w-4" strokeWidth={2.2} />
                       </div>
                       <p className="mt-3 text-xs font-medium" style={{ color: 'var(--tarot-text-main)' }}>{trait}</p>
                     </div>
@@ -1402,7 +1426,7 @@ export function MyPage() {
               <div className="absolute right-0 top-0 h-16 w-16 rounded-full blur-2xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
               <div className="relative flex flex-col items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border" style={accentIconStyle}>
-                  <Sparkles className="h-6 w-6" />
+                  <Sparkles className="h-6 w-6" strokeWidth={2.2} />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>타로</h3>
@@ -1422,7 +1446,7 @@ export function MyPage() {
               <div className="absolute right-0 top-0 h-16 w-16 rounded-full blur-2xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
               <div className="relative flex flex-col items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border" style={accentIconStyle}>
-                  <Sun className="h-6 w-6" />
+                  <Sun className="h-6 w-6" strokeWidth={2.2} />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>사주</h3>
@@ -1442,7 +1466,7 @@ export function MyPage() {
               <div className="absolute right-0 top-0 h-16 w-16 rounded-full blur-2xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
               <div className="relative flex flex-col items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border" style={accentIconStyle}>
-                  <Star className="h-6 w-6" />
+                  <Star className="h-6 w-6" strokeWidth={2.2} />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>별자리</h3>
@@ -2010,14 +2034,14 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
       label: '일주',
       data: normalizeSajuDescription(saju?.ilju, '일주 정보', '일주 해석 정보가 없습니다.'),
       className: 'border-emerald-400/25 bg-gradient-to-br from-emerald-500/10 to-teal-500/5',
-      titleClassName: 'text-emerald-300',
+      titleClassName: 'text-[#D4AF37]',
     },
     {
       key: 'wolji',
       label: '월지',
       data: normalizeSajuDescription(saju?.wolji, '월지 정보', '월지 해석 정보가 없습니다.'),
       className: 'border-sky-400/25 bg-gradient-to-br from-sky-500/10 to-cyan-500/5',
-      titleClassName: 'text-sky-300',
+      titleClassName: 'text-[#D4AF37]',
     },
     {
       key: 'daeun',
@@ -2031,7 +2055,7 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
       label: '올해의 운세',
       data: normalizeSajuDescription(saju?.sewun, '세운 정보', '올해의 운세 정보가 없습니다.'),
       className: 'border-violet-400/30 bg-gradient-to-br from-violet-500/10 to-purple-500/5',
-      titleClassName: 'text-violet-300',
+      titleClassName: 'text-[#D4AF37]',
     },
   ];
 
@@ -2086,6 +2110,16 @@ function normalizeFiveElementDistribution(values: Record<FiveElementKey, number>
       (Math.max(value, 0) / total) * 100,
     ]),
   ) as Record<FiveElementKey, number>;
+}
+
+function getFiveElementEntries(values: Record<FiveElementKey, number>) {
+  const order: FiveElementKey[] = ['wood', 'fire', 'earth', 'metal', 'water'];
+  return order.map((key) => ({
+    key,
+    label: fiveElementLabelMap[key],
+    value: values[key],
+    color: fiveElementColorMap[key],
+  }));
 }
 
 function formatPercentage(value: number) {

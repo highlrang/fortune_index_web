@@ -17,12 +17,12 @@ export function LoginPage() {
         {/* Header */}
         <div className="mb-5 text-center max-[820px]:mb-4">
           <div className="mb-3 flex items-center justify-center max-[820px]:mb-2">
-            <div className="scale-[0.82] max-[820px]:scale-[0.68] sm:scale-[0.9]">
-              <VodaThemeLogo size={152} />
+            <div className="scale-[0.94] max-[820px]:scale-[0.82] sm:scale-100">
+              <VodaThemeLogo size={168} />
             </div>
           </div>
-          <p className="text-xs fi-text-muted">
-            사주와 타로로 풀어내는 나만의 투자 운세
+          <p className="text-sm leading-5 fi-text-muted">
+            사주, 타로, 별자리로 읽는 나만의 투자 운세
           </p>
         </div>
 
@@ -35,7 +35,7 @@ export function LoginPage() {
 
         {/* Title */}
         <div className="mb-4 space-y-2 max-[820px]:mb-3">
-          <h2 className="text-center text-lg fi-text-main sm:text-xl">로그인</h2>
+          <h2 className="text-center text-xl fi-text-main sm:text-2xl">로그인</h2>
           <div className="fi-top-divider mx-auto h-px w-24" />
         </div>
 
@@ -53,7 +53,7 @@ export function LoginPage() {
 
         {/* Footer */}
         <div className="mt-5 text-center max-[820px]:mt-4">
-          <p className="text-[11px] fi-text-subtle">
+          <p className="text-xs fi-text-subtle">
             © 2026 Voda. All rights reserved.
           </p>
         </div>

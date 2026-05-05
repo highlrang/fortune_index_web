@@ -1,7 +1,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-size: 16px;
+  --font-size: 17px;
   --native-safe-top: 0px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
@@ -392,6 +392,30 @@ html.is-native-webview.is-native-android {
       var(--tarot-ambient-end) 100%
     );
     color: var(--text-primary);
+  }
+
+  .fi-page .text-xs {
+    font-size: 0.8125rem;
+    line-height: 1.35rem;
+  }
+
+  .fi-page .text-sm {
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+  }
+
+  .fi-page .text-base {
+    line-height: 1.6rem;
+  }
+
+  .fi-page .text-\[11px\] {
+    font-size: 0.8125rem;
+    line-height: 1.35rem;
+  }
+
+  .fi-page .text-\[12px\] {
+    font-size: 0.875rem;
+    line-height: 1.4rem;
   }
 
   .fi-mobile-screen {

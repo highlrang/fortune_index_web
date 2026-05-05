@@ -79,11 +79,11 @@ export function SignupStageLayout({
         <div className={`fi-auth-shell ${isKeyboardOpen ? 'fi-auth-shell-keyboard-open' : ''}`}>
           <div className="mb-4 text-center max-[900px]:mb-3">
             <div className="mb-2 flex items-center justify-center">
-              <div className="origin-center scale-[0.74] max-[900px]:scale-[0.62] sm:scale-[0.84]">
-                <VodaThemeLogo size={152} />
+              <div className="origin-center scale-[0.86] max-[900px]:scale-[0.74] sm:scale-[0.94]">
+                <VodaThemeLogo size={168} />
               </div>
             </div>
-            <p className="text-[11px] fi-text-muted">사주와 타로로 풀어내는 나만의 투자 운세</p>
+            <p className="text-sm leading-5 fi-text-muted">사주, 타로, 별자리로 읽는 나만의 투자 운세</p>
           </div>
 
           <div className="mb-4 flex justify-center max-[900px]:mb-3">
@@ -93,8 +93,8 @@ export function SignupStageLayout({
           </div>
 
           <div className="mb-4 space-y-1.5 max-[900px]:mb-3">
-            <h2 className="text-center text-base fi-text-main sm:text-lg">{title}</h2>
-            <p className="text-center text-xs leading-5 fi-text-muted">{description}</p>
+            <h2 className="text-center text-lg fi-text-main sm:text-xl">{title}</h2>
+            <p className="text-center text-sm leading-5 fi-text-muted">{description}</p>
             <div className="fi-top-divider mx-auto h-px w-20" />
           </div>
 
@@ -115,7 +115,7 @@ export function SignupStageLayout({
             }`}
             aria-hidden={isKeyboardOpen}
           >
-            <p className="text-[11px] fi-text-subtle">© 2026 Voda. All rights reserved.</p>
+            <p className="text-xs fi-text-subtle">© 2026 Voda. All rights reserved.</p>
           </div>
         </div>
       </div>

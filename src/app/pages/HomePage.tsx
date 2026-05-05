@@ -70,8 +70,8 @@ export function HomePage() {
       <div className="relative mx-auto max-w-md px-5 pt-6">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <VodaThemeLogo size={118} />
-            <p className="text-xs fi-text-muted">오늘의 사주, 타로, 별자리 흐름</p>
+            <VodaThemeLogo size={136} />
+            <p className="text-sm fi-text-muted">오늘의 사주, 타로, 별자리 흐름</p>
           </div>
           <button
             onClick={() => navigate('/notifications')}
@@ -84,7 +84,7 @@ export function HomePage() {
 
         <section className="mb-8 rounded-3xl p-5 shadow-2xl" style={accentCardStyle}>
           <div className="mb-5">
-            <p className="text-[11px] uppercase tracking-[0.24em] fi-text-subtle">Daily Fortune</p>
+            <p className="text-xs uppercase tracking-[0.24em] fi-text-subtle">Daily Fortune</p>
             <h1 className="mt-2 text-2xl font-semibold fi-text-main">오늘의 흐름</h1>
             <p className="mt-2 text-sm leading-6 fi-text-muted">
               {summary?.summary ?? '사주, 타로, 별자리 세 축으로 오늘의 재운 분위기를 정리했습니다.'}
