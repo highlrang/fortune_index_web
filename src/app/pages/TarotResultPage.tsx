@@ -29,6 +29,25 @@ interface CardData {
   videoSrc?: string;
 }
 
+function fract(value: number) {
+  return value - Math.floor(value);
+}
+
+const STATIC_STARS = Array.from({ length: 80 }, (_, index) => ({
+  id: index,
+  left: `${fract(Math.sin(index * 12.9898) * 43758.5453) * 100}%`,
+  top: `${fract(Math.sin((index + 1) * 78.233) * 12345.6789) * 100}%`,
+  duration: 2 + fract(Math.sin((index + 5) * 23.173) * 6421.121) * 4,
+  delay: fract(Math.sin((index + 9) * 17.713) * 9132.411) * 3,
+}));
+
+const REVEAL_PARTICLES = Array.from({ length: 30 }, (_, index) => ({
+  id: index,
+  left: `${20 + fract(Math.sin((index + 1) * 14.237) * 6182.713) * 60}%`,
+  top: `${20 + fract(Math.sin((index + 1) * 91.113) * 3921.511) * 60}%`,
+  delay: index * 0.1,
+}));
+
 const CARD_WIDTH = 100;
 const CARD_HEIGHT = 150;
 const modeByType = {
@@ -112,18 +131,47 @@ function CardMedia({
   if (card.videoSrc) {
     return (
       <video
-        key={card.videoSrc}
         src={card.videoSrc}
         className={className}
         autoPlay
         muted
         playsInline
         loop
+        preload="auto"
       />
     );
   }
 
   return <img src={card.imageSrc || tarotCardImage} alt={alt} className={className} />;
+}
+
+function preloadCardMedia(card: CardData) {
+  if (card.videoSrc) {
+    return new Promise<void>((resolve) => {
+      const video = document.createElement('video');
+      const finalize = () => {
+        video.removeEventListener('loadeddata', finalize);
+        video.removeEventListener('error', finalize);
+        resolve();
+      };
+
+      video.preload = 'auto';
+      video.muted = true;
+      video.playsInline = true;
+      video.src = card.videoSrc;
+      video.addEventListener('loadeddata', finalize, { once: true });
+      video.addEventListener('error', finalize, { once: true });
+    });
+  }
+
+  return new Promise<void>((resolve) => {
+    const image = new Image();
+    const finalize = () => resolve();
+
+    image.onload = finalize;
+    image.onerror = finalize;
+    image.src = card.imageSrc || tarotCardImage;
+  });
 }
 
 export function TarotResultPage() {
@@ -160,6 +208,7 @@ export function TarotResultPage() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [isCardMediaPrepared, setIsCardMediaPrepared] = useState(false);
 
   useEffect(() => {
     setCards(
@@ -172,6 +221,7 @@ export function TarotResultPage() {
         imageSrc: tarotCardImage,
       })),
     );
+    setIsCardMediaPrepared(false);
   }, [selectedCards]);
 
   useEffect(() => {
@@ -179,28 +229,45 @@ export function TarotResultPage() {
 
     getTarotDeckCards(tarotDeckVersionId, selectedCards)
       .then((response) => {
-        if (!active || response.length === 0) return;
+        if (!active) return;
+        if (response.length === 0) {
+          setIsCardMediaPrepared(true);
+          return;
+        }
 
         const cardMap = new Map<number, TarotDeckCardResponse>();
         response.forEach((card) => {
           cardMap.set(card.selectedIndex, card);
         });
 
-        setCards((prev) =>
-          prev.map((card) => {
-            const metadata = cardMap.get(card.selectedIndex);
-            if (!metadata) return card;
+        const hydratedCards = selectedCards.map((selectedIndex, slotIndex) => {
+          const baseCard: CardData = {
+            id: slotIndex,
+            selectedIndex,
+            label: `${selectedIndex + 1}번 카드`,
+            meaning: '',
+            revealState: 'back',
+            imageSrc: tarotCardImage,
+          };
 
-            return {
-              ...card,
-              label: metadata.koreanName ?? metadata.name,
-              meaning: metadata.meaning,
-              description: metadata.description,
-              imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
-              videoSrc: resolveApiAssetUrl(metadata.videoUrl) || undefined,
-            };
-          }),
-        );
+          const metadata = cardMap.get(selectedIndex);
+          if (!metadata) return baseCard;
+
+          return {
+            ...baseCard,
+            label: metadata.koreanName ?? metadata.name,
+            meaning: metadata.meaning,
+            description: metadata.description,
+            imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
+            videoSrc: resolveApiAssetUrl(metadata.videoUrl) || undefined,
+          };
+        });
+
+        Promise.allSettled(hydratedCards.map((card) => preloadCardMedia(card))).finally(() => {
+          if (!active) return;
+          setCards(hydratedCards);
+          setIsCardMediaPrepared(true);
+        });
 
         if (!canSubmitConsult) {
           saveHomeTarotDraw({
@@ -226,6 +293,9 @@ export function TarotResultPage() {
         }
       })
       .catch(() => {
+        if (active) {
+          setIsCardMediaPrepared(true);
+        }
         // Keep the placeholder card presentation if the deck metadata API is unavailable.
       });
 
@@ -235,7 +305,7 @@ export function TarotResultPage() {
   }, [canSubmitConsult, selectedCards, selectedDeck.name, tarotDeckVersionId]);
 
   const handleCardClick = (cardId: number) => {
-    if (isAnimating) return;
+    if (isAnimating || !isCardMediaPrepared) return;
     
     const card = cards[cardId];
     
@@ -315,13 +385,13 @@ export function TarotResultPage() {
   return (
     <div className="fixed inset-0 overflow-hidden" style={pageGradientStyle}>
       <div className="absolute inset-0">
-        {Array.from({ length: 80 }).map((_, i) => (
+        {STATIC_STARS.map((star) => (
           <motion.div
-            key={i}
+            key={star.id}
             className="absolute h-0.5 w-0.5 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: star.left,
+              top: star.top,
               backgroundColor: 'var(--tarot-text-main)',
             }}
             animate={{
@@ -329,9 +399,9 @@ export function TarotResultPage() {
               scale: [1, 1.5, 1],
             }}
             transition={{
-              duration: 2 + Math.random() * 4,
+              duration: star.duration,
               repeat: Infinity,
-              delay: Math.random() * 3,
+              delay: star.delay,
             }}
           />
         ))}
@@ -645,14 +715,14 @@ export function TarotResultPage() {
                             })}
 
                             {/* Floating particles/sparkles */}
-                            {Array.from({ length: 30 }).map((_, i) => (
+                            {REVEAL_PARTICLES.map((particle) => (
                               <motion.div
-                                key={i}
+                                key={particle.id}
                                 className="absolute h-1 w-1 rounded-full"
                                 style={{
                                   backgroundColor: 'rgba(255,255,255,0.92)',
-                                  left: `${20 + Math.random() * 60}%`,
-                                  top: `${20 + Math.random() * 60}%`,
+                                  left: particle.left,
+                                  top: particle.top,
                                 }}
                                 animate={{
                                   opacity: [0, 1, 0],
@@ -662,7 +732,7 @@ export function TarotResultPage() {
                                 transition={{
                                   duration: 2,
                                   repeat: Infinity,
-                                  delay: i * 0.1,
+                                  delay: particle.delay,
                                 }}
                               />
                             ))}
@@ -706,7 +776,9 @@ export function TarotResultPage() {
       {/* Bottom hint text */}
       {!allCardsRevealed && !isAnimating && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-32 left-0 right-0 z-10 text-center">
-          <p className="text-sm" style={{ color: 'var(--app-text-subtle)' }}>카드를 터치하여 운세를 확인하세요</p>
+          <p className="text-sm" style={{ color: 'var(--app-text-subtle)' }}>
+            {isCardMediaPrepared ? '카드를 터치하여 운세를 확인하세요' : '카드 이미지를 준비하고 있습니다'}
+          </p>
         </motion.div>
       )}
 

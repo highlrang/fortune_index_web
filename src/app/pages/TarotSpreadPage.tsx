@@ -27,6 +27,18 @@ const CARD_HEIGHT = 128;
 const CARD_OVERLAP = 26; // Cards overlap 70% (30% visible)
 const DEFAULT_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
 
+function fract(value: number) {
+  return value - Math.floor(value);
+}
+
+const STATIC_STARS = Array.from({ length: 50 }, (_, index) => ({
+  id: index,
+  left: `${fract(Math.sin(index * 12.9898) * 43758.5453) * 100}%`,
+  top: `${fract(Math.sin((index + 1) * 78.233) * 12345.6789) * 100}%`,
+  duration: 2 + fract(Math.sin((index + 3) * 31.337) * 9157.114) * 3,
+  delay: fract(Math.sin((index + 7) * 19.113) * 7123.551) * 2,
+}));
+
 const pageGradientStyle = {
   background:
     'linear-gradient(180deg, var(--tarot-ambient-start) 0%, var(--tarot-ambient-mid) 52%, var(--tarot-ambient-end) 100%)',
@@ -205,22 +217,22 @@ export function TarotSpreadPage() {
   return (
     <div className="fixed inset-0 overflow-hidden" style={pageGradientStyle}>
       <div className="absolute inset-0">
-        {Array.from({ length: 50 }).map((_, i) => (
+        {STATIC_STARS.map((star) => (
           <motion.div
-            key={i}
+            key={star.id}
             className="absolute h-0.5 w-0.5 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: star.left,
+              top: star.top,
               backgroundColor: 'var(--tarot-text-main)',
             }}
             animate={{
               opacity: [0.2, 0.7, 0.2],
             }}
             transition={{
-              duration: 2 + Math.random() * 3,
+              duration: star.duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: star.delay,
             }}
           />
         ))}
@@ -470,7 +482,7 @@ export function TarotSpreadPage() {
       {/* Bottom Controls */}
       <div className="absolute bottom-10 left-0 right-0 z-50 flex items-center justify-center gap-3 px-4">
         {/* Confirm button */}
-        {selectedCards.length === MAX_SELECTIONS && (
+        {selectedCardIds.length === MAX_SELECTIONS && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
