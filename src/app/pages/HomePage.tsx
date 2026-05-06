@@ -1,6 +1,5 @@
-import { Bell, MoonStar, Sparkles, Sun } from 'lucide-react';
+import { MoonStar, Sparkles, Sun } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router';
 import {
   getHomeSummary,
   type HomeSummaryResponse,
@@ -30,7 +29,6 @@ const unavailableCardValue = '-';
 const unavailableCardMeta = '아직 준비되지 않았어요';
 
 export function HomePage() {
-  const navigate = useNavigate();
   const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,18 +66,11 @@ export function HomePage() {
       </div>
 
       <div className="relative mx-auto max-w-md px-5 pt-6">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8">
           <div>
             <VodaThemeLogo size={136} />
             <p className="text-sm fi-text-muted">오늘의 사주, 타로, 별자리 흐름</p>
           </div>
-          <button
-            onClick={() => navigate('/notifications')}
-            className="fi-icon-button relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:opacity-90"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full" style={{ backgroundColor: 'var(--point-gold)', boxShadow: '0 0 0 2px var(--bg-main)' }} />
-          </button>
         </div>
 
         <section className="mb-8 rounded-3xl p-5 shadow-2xl" style={accentCardStyle}>

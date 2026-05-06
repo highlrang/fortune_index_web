@@ -10,7 +10,6 @@ import { TarotResultPage } from './pages/TarotResultPage';
 import { InvestmentResultPage } from './pages/InvestmentResultPage';
 import { MyPage } from './pages/MyPage';
 import { LikedFortunesPage } from './pages/LikedFortunesPage';
-import { NotificationsPage } from './pages/NotificationsPage';
 import { TermsPage } from './pages/TermsPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { RefundPolicyPage } from './pages/RefundPolicyPage';
@@ -154,7 +153,9 @@ export const router = createBrowserRouter([
   },
   {
     path: '/notifications',
-    Component: NotificationsPage,
+    loader: () => {
+      throw redirect('/home');
+    },
   },
   {
     path: '/terms',
