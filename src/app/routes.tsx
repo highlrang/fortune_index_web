@@ -22,6 +22,7 @@ import { WealthLandingPage } from './pages/WealthLandingPage';
 import { SubscriptionLandingPage } from './pages/SubscriptionLandingPage';
 import { LogoShowcasePage } from './pages/LogoShowcasePage';
 import { savePasswordResetToken } from '@/lib/passwordReset';
+import { getSession } from '@/lib/session';
 import { captureSignupVerificationParams } from '@/lib/signupVerification';
 
 function captureSignupEmailVerificationToken({ request }: { request: Request }) {
@@ -58,11 +59,22 @@ function capturePasswordResetToken({ request }: { request: Request }) {
   throw redirect(`/password-reset?resetToken=${encodeURIComponent(resetToken)}`);
 }
 
+function redirectAuthenticatedUser() {
+  if (getSession()) {
+    throw redirect('/home');
+  }
+
+  return null;
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
     Component: LoginPage,
-    loader: (args) => capturePasswordResetToken(args) ?? captureSignupEmailVerificationToken(args),
+    loader: (args) =>
+      redirectAuthenticatedUser()
+      ?? capturePasswordResetToken(args)
+      ?? captureSignupEmailVerificationToken(args),
   },
   {
     path: '/signup',
@@ -92,7 +104,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     Component: LoginPage,
-    loader: (args) => capturePasswordResetToken(args) ?? captureSignupEmailVerificationToken(args),
+    loader: (args) =>
+      redirectAuthenticatedUser()
+      ?? capturePasswordResetToken(args)
+      ?? captureSignupEmailVerificationToken(args),
   },
   {
     path: '/password-reset',
