@@ -17,7 +17,6 @@ import {
   Shield,
   LogOut,
   Info,
-  Bell,
   X,
   Pencil,
 } from 'lucide-react';
@@ -185,7 +184,6 @@ export function MyPage() {
   const [inquiryError, setInquiryError] = useState('');
   const [inquirySuccessMessage, setInquirySuccessMessage] = useState('');
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileEditError, setProfileEditError] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -279,9 +277,6 @@ export function MyPage() {
   }, [userData]);
 
   useEffect(() => {
-    if (typeof user?.notificationEnabled === 'boolean') {
-      setNotificationEnabled(user.notificationEnabled);
-    }
     if (typeof user?.darkModeEnabled === 'boolean' && !hasStoredThemePreference()) {
       setIsDarkMode(user.darkModeEnabled);
     }
@@ -429,35 +424,6 @@ export function MyPage() {
         ? prev.preferredSectors.filter((item) => item !== sector)
         : [...prev.preferredSectors, sector],
     }));
-  };
-
-  const handleNotificationToggle = async () => {
-    if (!user || isSavingSettings) return;
-
-    const nextValue = !notificationEnabled;
-    const previousUser = user;
-    const optimisticUser = { ...user, notificationEnabled: nextValue };
-
-    setSettingsSaveError('');
-    setNotificationEnabled(nextValue);
-    setUser(optimisticUser);
-    updateSessionUser(optimisticUser);
-    setIsSavingSettings(true);
-
-    try {
-      const updatedUser = await updateMyProfile({ notificationEnabled: nextValue });
-      updateSessionUser(updatedUser);
-      setUser(updatedUser);
-    } catch (error) {
-      setNotificationEnabled(previousUser.notificationEnabled ?? false);
-      setUser(previousUser);
-      updateSessionUser(previousUser);
-      setSettingsSaveError(
-        error instanceof Error ? error.message : '알림 설정 저장 중 오류가 발생했습니다.',
-      );
-    } finally {
-      setIsSavingSettings(false);
-    }
   };
 
   const handleThemeChange = async (theme: ThemePreference) => {
@@ -1485,19 +1451,7 @@ export function MyPage() {
           className="mb-6 overflow-hidden rounded-3xl border backdrop-blur-xl"
           style={glassCardStyle}
         >
-          <div className="border-b px-5 py-4" style={{ borderColor: 'var(--app-surface-divider)' }}>
-            <h3 className="font-semibold" style={{ color: 'var(--tarot-text-main)' }}>상담 설정</h3>
-          </div>
-
           <div className="space-y-0 divide-y divide-white/5 p-4">
-            <SettingToggle
-              icon={Bell}
-              label="알림 설정"
-              enabled={notificationEnabled}
-              onToggle={handleNotificationToggle}
-              disabled={isSavingSettings}
-            />
-
             <ThemeModeSetting
               currentTheme={isDarkMode ? 'dark' : 'light'}
               onChange={handleThemeChange}
@@ -1639,7 +1593,7 @@ function ThemeModeSetting({
   ];
 
   return (
-    <div className="py-4">
+    <div>
       <div className="mb-3 flex items-center gap-3">
         <CurrentThemeIcon className="h-5 w-5" style={{ color: 'var(--app-icon-muted)' }} />
         <span className="text-sm font-medium" style={{ color: 'var(--app-text-soft)' }}>화면 모드</span>
