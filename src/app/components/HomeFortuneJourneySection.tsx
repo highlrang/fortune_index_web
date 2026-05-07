@@ -3,10 +3,16 @@ import { ArrowRight, Layers, MoonStar, Sparkles, Star } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { pickScenarioQuestion } from '@/lib/consultPrompts';
-import type { ConsultScenario } from '@/lib/api';
+import {
+  ApiError,
+  drawHomeDailyTarot,
+  getHomeDailyTarotDraw,
+  resolveApiAssetUrl,
+  type ConsultScenario,
+  type HomeDailyTarotDrawResponse,
+} from '@/lib/api';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
-import { getHomeTarotDraw, type HomeTarotDrawCard, type HomeTarotDrawState } from '@/lib/session';
 
 type ConsultationType = 'saju' | 'tarot' | 'zodiac' | 'comprehensive';
 
@@ -55,10 +61,53 @@ const tarotCardPositions = [
   'translate-y-4 rotate-[10deg]',
 ];
 
+type HomeTarotDisplayCard = {
+  index: number;
+  selectedIndex: number;
+  label: string;
+  meaning: string;
+  description?: string;
+  imageSrc: string;
+  videoSrc?: string;
+};
+
+function mapDailyDrawCards(draw: HomeDailyTarotDrawResponse | null): HomeTarotDisplayCard[] {
+  if (!draw?.cards.length) return [];
+
+  return [...draw.cards]
+    .sort((left, right) => left.index - right.index)
+    .map(({ index, card }) => ({
+      index,
+      selectedIndex: card.selectedIndex,
+      label: card.koreanName ?? card.name,
+      meaning: card.meaning,
+      description: card.description,
+      imageSrc: resolveApiAssetUrl(card.imageUrl) || tarotCardImage,
+      videoSrc: resolveApiAssetUrl(card.videoUrl) || undefined,
+    }));
+}
+
+function getDailyDrawErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    if (error.status === 401) return '로그인이 만료됐어요. 다시 로그인해주세요.';
+    if (error.status === 403) return '현재 계정에서는 홈 카드 뽑기를 이용할 수 없어요.';
+  }
+
+  return '카드를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+}
+
+function getDailyDrawErrorStatus(error: unknown) {
+  return error instanceof ApiError ? error.status : null;
+}
+
 export function HomeFortuneJourneySection() {
   const navigate = useNavigate();
-  const [homeTarotDraw, setHomeTarotDraw] = useState<HomeTarotDrawState | null>(null);
-  const [selectedCard, setSelectedCard] = useState<HomeTarotDrawCard | null>(null);
+  const [homeTarotDraw, setHomeTarotDraw] = useState<HomeDailyTarotDrawResponse | null>(null);
+  const [selectedCard, setSelectedCard] = useState<HomeTarotDisplayCard | null>(null);
+  const [isTarotDrawLoading, setIsTarotDrawLoading] = useState(true);
+  const [isTarotDrawSubmitting, setIsTarotDrawSubmitting] = useState(false);
+  const [tarotDrawError, setTarotDrawError] = useState('');
+  const [tarotDrawErrorStatus, setTarotDrawErrorStatus] = useState<number | null>(null);
   const quickPrompts = useMemo(
     () =>
       quickPromptTemplates.map((prompt) => ({
@@ -67,10 +116,83 @@ export function HomeFortuneJourneySection() {
       })),
     [],
   );
+  const drawnCards = useMemo(() => mapDailyDrawCards(homeTarotDraw), [homeTarotDraw]);
+  const canDrawTarot = Boolean(homeTarotDraw?.canDraw);
+  const canRetryTarotDraw = Boolean(tarotDrawError && tarotDrawErrorStatus !== 401 && tarotDrawErrorStatus !== 403);
+  const shouldPromptLogin = tarotDrawErrorStatus === 401;
+  const isTarotButtonDisabled =
+    isTarotDrawLoading ||
+    isTarotDrawSubmitting ||
+    (!canDrawTarot && !canRetryTarotDraw && !shouldPromptLogin);
 
   useEffect(() => {
-    setHomeTarotDraw(getHomeTarotDraw());
+    let active = true;
+
+    getHomeDailyTarotDraw()
+      .then((draw) => {
+        if (!active) return;
+        setHomeTarotDraw(draw);
+        setTarotDrawError('');
+        setTarotDrawErrorStatus(null);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setTarotDrawError(getDailyDrawErrorMessage(error));
+        setTarotDrawErrorStatus(getDailyDrawErrorStatus(error));
+      })
+      .finally(() => {
+        if (!active) return;
+        setIsTarotDrawLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const handleDailyTarotDraw = () => {
+    if (isTarotButtonDisabled) return;
+
+    if (shouldPromptLogin) {
+      navigate('/login');
+      return;
+    }
+
+    if (canRetryTarotDraw) {
+      setIsTarotDrawLoading(true);
+      setTarotDrawError('');
+      setTarotDrawErrorStatus(null);
+
+      getHomeDailyTarotDraw()
+        .then((draw) => {
+          setHomeTarotDraw(draw);
+        })
+        .catch((error) => {
+          setTarotDrawError(getDailyDrawErrorMessage(error));
+          setTarotDrawErrorStatus(getDailyDrawErrorStatus(error));
+        })
+        .finally(() => {
+          setIsTarotDrawLoading(false);
+        });
+      return;
+    }
+
+    setIsTarotDrawSubmitting(true);
+    setTarotDrawError('');
+    setTarotDrawErrorStatus(null);
+
+    drawHomeDailyTarot()
+      .then((draw) => {
+        setHomeTarotDraw(draw);
+      })
+      .catch((error) => {
+        setTarotDrawError(getDailyDrawErrorMessage(error));
+        setTarotDrawErrorStatus(getDailyDrawErrorStatus(error));
+      })
+      .finally(() => {
+        setIsTarotDrawSubmitting(false);
+      });
+  };
 
   return (
     <section className="fi-glass relative overflow-hidden rounded-3xl px-5 py-6 shadow-2xl">
@@ -168,20 +290,20 @@ export function HomeFortuneJourneySection() {
             </div>
           </div>
 
-          {homeTarotDraw?.cards.length ? (
+          {drawnCards.length ? (
             <div className="mb-5 py-3">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-xs fi-text-muted">
-                  {homeTarotDraw.deckName} · 카드를 눌러 의미와 설명을 확인하세요.
+                  {homeTarotDraw?.deckVersionId ?? 'Daily Tarot'} · 카드를 눌러 의미와 설명을 확인하세요.
                 </p>
                 <p className="text-[11px] fi-text-subtle">
-                  {new Date(homeTarotDraw.updatedAt).toLocaleDateString()}
+                  {homeTarotDraw?.drawDate}
                 </p>
               </div>
               <div className="flex items-start justify-center gap-3">
-                {homeTarotDraw.cards.map((card, index) => (
+                {drawnCards.map((card, index) => (
                   <motion.button
-                    key={`${card.selectedIndex}-${card.label}`}
+                    key={`${card.index}-${card.selectedIndex}-${card.label}`}
                     type="button"
                     onClick={() => setSelectedCard(card)}
                     className={`group relative w-24 text-center ${tarotCardPositions[index] ?? ''}`}
@@ -250,14 +372,23 @@ export function HomeFortuneJourneySection() {
             </div>
           )}
 
+          {tarotDrawError ? (
+            <div
+              className="mb-4 rounded-2xl border px-4 py-3 text-sm"
+              style={{
+                borderColor: 'var(--app-danger-border)',
+                backgroundColor: 'var(--app-danger-bg)',
+                color: 'var(--app-danger-text)',
+              }}
+            >
+              {tarotDrawError}
+            </div>
+          ) : null}
+
           <button
             type="button"
-            onClick={() =>
-              navigate('/tarot-picker', {
-                state: {
-                },
-              })
-            }
+            onClick={handleDailyTarotDraw}
+            disabled={isTarotButtonDisabled}
             className="w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90"
             style={{
               borderWidth: 'var(--app-hairline-border)',
@@ -265,9 +396,20 @@ export function HomeFortuneJourneySection() {
               borderColor: 'var(--app-accent-border-strong)',
               background: 'var(--app-accent-surface)',
               color: 'var(--tarot-text-main)',
+              opacity: isTarotButtonDisabled ? 0.58 : 1,
             }}
           >
-            {homeTarotDraw?.cards.length ? '다시 뽑으러 가기' : '카드 뽑으러 가기'}
+            {isTarotDrawLoading
+              ? '카드 확인 중'
+              : isTarotDrawSubmitting
+                ? '카드 뽑는 중'
+                : canDrawTarot
+                  ? '오늘의 카드 뽑기'
+                  : canRetryTarotDraw
+                    ? '다시 시도하기'
+                    : shouldPromptLogin
+                      ? '로그인하러 가기'
+                      : '오늘 카드 확인 완료'}
           </button>
         </motion.div>
       </div>

@@ -923,6 +923,20 @@ export interface TarotDeckCardResponse {
   cardNumber?: number;
 }
 
+export interface HomeDailyTarotDrawCardResponse {
+  index: number;
+  card: TarotDeckCardResponse;
+}
+
+export interface HomeDailyTarotDrawResponse {
+  drawDate: string;
+  drawn: boolean;
+  canDraw: boolean;
+  drawnAt?: string | null;
+  deckVersionId?: string | null;
+  cards: HomeDailyTarotDrawCardResponse[];
+}
+
 export interface BirthTarotProfileResponse {
   deckVersionId?: string;
   name?: string;
@@ -1059,6 +1073,16 @@ export async function confirmPasswordReset(payload: PasswordResetConfirmPayload)
 
 export async function getHomeSummary() {
   return request<HomeSummaryResponse>('/api/v1/home/summary');
+}
+
+export async function getHomeDailyTarotDraw() {
+  return request<HomeDailyTarotDrawResponse>('/api/v1/home/tarot/daily-draw');
+}
+
+export async function drawHomeDailyTarot() {
+  return request<HomeDailyTarotDrawResponse>('/api/v1/home/tarot/daily-draw', {
+    method: 'POST',
+  });
 }
 
 export async function getTodayZodiacFortune() {
