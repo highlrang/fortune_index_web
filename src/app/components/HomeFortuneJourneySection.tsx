@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router';
 import { pickScenarioQuestion } from '@/lib/consultPrompts';
 import {
   ApiError,
-  drawHomeDailyTarot,
   getHomeDailyTarotDraw,
   resolveApiAssetUrl,
   type ConsultScenario,
   type HomeDailyTarotDrawResponse,
 } from '@/lib/api';
+import { getSelectedTarotDeckId } from '@/lib/tarot';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 
@@ -105,7 +105,6 @@ export function HomeFortuneJourneySection() {
   const [homeTarotDraw, setHomeTarotDraw] = useState<HomeDailyTarotDrawResponse | null>(null);
   const [selectedCard, setSelectedCard] = useState<HomeTarotDisplayCard | null>(null);
   const [isTarotDrawLoading, setIsTarotDrawLoading] = useState(true);
-  const [isTarotDrawSubmitting, setIsTarotDrawSubmitting] = useState(false);
   const [tarotDrawError, setTarotDrawError] = useState('');
   const [tarotDrawErrorStatus, setTarotDrawErrorStatus] = useState<number | null>(null);
   const quickPrompts = useMemo(
@@ -122,7 +121,6 @@ export function HomeFortuneJourneySection() {
   const shouldPromptLogin = tarotDrawErrorStatus === 401;
   const isTarotButtonDisabled =
     isTarotDrawLoading ||
-    isTarotDrawSubmitting ||
     (!canDrawTarot && !canRetryTarotDraw && !shouldPromptLogin);
 
   useEffect(() => {
@@ -177,21 +175,12 @@ export function HomeFortuneJourneySection() {
       return;
     }
 
-    setIsTarotDrawSubmitting(true);
-    setTarotDrawError('');
-    setTarotDrawErrorStatus(null);
-
-    drawHomeDailyTarot()
-      .then((draw) => {
-        setHomeTarotDraw(draw);
-      })
-      .catch((error) => {
-        setTarotDrawError(getDailyDrawErrorMessage(error));
-        setTarotDrawErrorStatus(getDailyDrawErrorStatus(error));
-      })
-      .finally(() => {
-        setIsTarotDrawSubmitting(false);
-      });
+    navigate('/tarot-picker', {
+      state: {
+        homeDailyDraw: true,
+        tarotDeckVersionId: homeTarotDraw?.deckVersionId ?? getSelectedTarotDeckId(),
+      },
+    });
   };
 
   return (
@@ -292,14 +281,6 @@ export function HomeFortuneJourneySection() {
 
           {drawnCards.length ? (
             <div className="mb-5 py-3">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-xs fi-text-muted">
-                  {homeTarotDraw?.deckVersionId ?? 'Daily Tarot'} · 카드를 눌러 의미와 설명을 확인하세요.
-                </p>
-                <p className="text-[11px] fi-text-subtle">
-                  {homeTarotDraw?.drawDate}
-                </p>
-              </div>
               <div className="flex items-start justify-center gap-3">
                 {drawnCards.map((card, index) => (
                   <motion.button
@@ -318,23 +299,11 @@ export function HomeFortuneJourneySection() {
                         boxShadow: index === 1 ? '0 20px 45px -30px var(--app-accent-glow)' : '0 16px 36px -30px rgba(0,0,0,0.45)',
                       }}
                     >
-                      {card.videoSrc ? (
-                        <video
-                          key={card.videoSrc}
-                          src={card.videoSrc}
-                          className="h-full w-full object-cover"
-                          autoPlay
-                          muted
-                          playsInline
-                          loop
-                        />
-                      ) : (
-                        <img
-                          src={card.imageSrc || tarotCardImage}
-                          alt={card.label}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
+                      <img
+                        src={card.imageSrc || tarotCardImage}
+                        alt={card.label}
+                        className="h-full w-full object-cover"
+                      />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent px-2 py-3">
                         <p className="text-[11px] font-semibold text-white">{card.label}</p>
                       </div>
@@ -401,9 +370,7 @@ export function HomeFortuneJourneySection() {
           >
             {isTarotDrawLoading
               ? '카드 확인 중'
-              : isTarotDrawSubmitting
-                ? '카드 뽑는 중'
-                : canDrawTarot
+              : canDrawTarot
                   ? '오늘의 카드 뽑기'
                   : canRetryTarotDraw
                     ? '다시 시도하기'

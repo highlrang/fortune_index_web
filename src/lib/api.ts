@@ -937,6 +937,11 @@ export interface HomeDailyTarotDrawResponse {
   cards: HomeDailyTarotDrawCardResponse[];
 }
 
+export interface SaveHomeDailyTarotDrawPayload {
+  tarotDeckVersionId: string;
+  tarotIndices: number[];
+}
+
 export interface BirthTarotProfileResponse {
   deckVersionId?: string;
   name?: string;
@@ -1079,9 +1084,10 @@ export async function getHomeDailyTarotDraw() {
   return request<HomeDailyTarotDrawResponse>('/api/v1/home/tarot/daily-draw');
 }
 
-export async function drawHomeDailyTarot() {
+export async function saveHomeDailyTarotDraw(payload: SaveHomeDailyTarotDrawPayload) {
   return request<HomeDailyTarotDrawResponse>('/api/v1/home/tarot/daily-draw', {
     method: 'POST',
+    body: payload,
   });
 }
 

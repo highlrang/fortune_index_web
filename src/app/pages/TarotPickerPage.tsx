@@ -6,6 +6,7 @@ import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
 type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
 type ConsultationFlowState = {
+  homeDailyDraw?: boolean;
   selectedType?: ConsultationType;
   selectedScenario?: string;
   selectedScenarioTitle?: string;

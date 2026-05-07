@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
-import { consult, getTarotDeckCards, resolveApiAssetUrl, type TarotDeckCardResponse } from '@/lib/api';
+import { consult, getTarotDeckCards, resolveApiAssetUrl, saveHomeDailyTarotDraw, type TarotDeckCardResponse } from '@/lib/api';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 import { getCurrentUser, saveHomeTarotDraw, saveLastConsultResult } from '@/lib/session';
 
 type CardRevealState = 'back' | 'expanding' | 'revealing' | 'shrinking' | 'front';
 type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
 type TarotResultLocationState = {
+  homeDailyDraw?: boolean;
   selectedCards?: number[];
   selectedType?: ConsultationType;
   selectedScenario?: string;
@@ -187,6 +188,7 @@ export function TarotResultPage() {
   const selectedScenarioTitle = flowState?.selectedScenarioTitle;
   const question = flowState?.question;
   const trimmedQuestion = question?.trim() ?? '';
+  const isHomeDailyDraw = Boolean(flowState?.homeDailyDraw);
   const canSubmitConsult =
     Boolean(selectedType) &&
     Boolean(selectedScenario) &&
@@ -341,6 +343,24 @@ export function TarotResultPage() {
   };
 
   const handleConfirm = async () => {
+    if (isHomeDailyDraw) {
+      setSubmitError('');
+      setIsSubmitting(true);
+
+      try {
+        await saveHomeDailyTarotDraw({
+          tarotDeckVersionId,
+          tarotIndices: selectedCards,
+        });
+        navigate('/home');
+      } catch (err) {
+        setSubmitError(err instanceof Error ? err.message : '오늘의 카드 저장에 실패했습니다.');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     if (!canSubmitConsult) {
       navigate('/home');
       return;
@@ -832,7 +852,15 @@ export function TarotResultPage() {
                 <div className="relative flex items-center justify-center gap-2">
                   <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-text-main)' }} />
                   <span className="font-bold" style={{ color: 'var(--tarot-text-main)' }}>
-                    {isSubmitting ? '리딩 중...' : canSubmitConsult ? '운세 결과 보러 가기' : '홈으로 돌아가기'}
+                    {isSubmitting
+                      ? isHomeDailyDraw
+                        ? '저장 중...'
+                        : '리딩 중...'
+                      : isHomeDailyDraw
+                        ? '오늘의 카드 저장하기'
+                        : canSubmitConsult
+                          ? '운세 결과 보러 가기'
+                          : '홈으로 돌아가기'}
                   </span>
                 </div>
               </motion.button>
