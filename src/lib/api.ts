@@ -32,6 +32,7 @@ interface RequestOptions {
 }
 
 let refreshPromise: Promise<boolean> | null = null;
+const LAST_AUTH_FAILURE_KEY = 'fortune-index-last-auth-failure';
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response: Response;
@@ -143,11 +144,20 @@ async function refreshAccessToken() {
       const payload = await parseResponsePayload(response);
 
       if (response.status === 401) {
-        clearSessionAndRedirectToLogin();
+        clearSessionAfterAuthFailure({
+          reason: 'refresh_unauthorized',
+          status: response.status,
+          payload,
+        });
         return false;
       }
 
       if (!response.ok || !payload || typeof payload !== 'object' || !('tokens' in payload)) {
+        recordAuthFailure({
+          reason: 'refresh_failed',
+          status: response.status,
+          payload,
+        });
         return false;
       }
 
@@ -160,7 +170,11 @@ async function refreshAccessToken() {
       // including the newly issued refresh token.
       saveSession(refreshedSession);
       return true;
-    } catch {
+    } catch (error) {
+      recordAuthFailure({
+        reason: 'refresh_request_error',
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     } finally {
       refreshPromise = null;
@@ -287,13 +301,22 @@ function fallbackStatusMessage(status?: number) {
   return '요청 처리 중 오류가 발생했습니다.';
 }
 
-function clearSessionAndRedirectToLogin() {
+function clearSessionAfterAuthFailure(details: Record<string, unknown>) {
   clearSession();
+  recordAuthFailure(details);
+}
 
+function recordAuthFailure(details: Record<string, unknown>) {
   if (typeof window === 'undefined') return;
-  if (window.location.pathname === '/login') return;
 
-  window.location.replace('/login');
+  const failure = {
+    ...details,
+    path: window.location.pathname,
+    recordedAt: new Date().toISOString(),
+  };
+
+  window.localStorage.setItem(LAST_AUTH_FAILURE_KEY, JSON.stringify(failure));
+  console.warn('[auth] token refresh failed', failure);
 }
 
 function normalizeUnknownError(error: unknown) {
