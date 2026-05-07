@@ -900,19 +900,11 @@ export function TarotPickerPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.15] via-transparent to-white/[0.05]" />
               
-              <motion.div
+              <div
                 className="absolute inset-0 rounded-2xl"
-                animate={{
-                  boxShadow: [
-                    '0 0 20px var(--tarot-accent-glow-soft), inset 0 0 20px var(--tarot-accent-glow-soft)',
-                    '0 0 30px var(--tarot-accent-glow), inset 0 0 30px var(--tarot-accent-glow-soft)',
-                    '0 0 20px var(--tarot-accent-glow-soft), inset 0 0 20px var(--tarot-accent-glow-soft)',
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
+                style={{
+                  boxShadow:
+                    '0 0 22px var(--tarot-accent-glow-soft), inset 0 0 18px var(--tarot-accent-glow-soft)',
                 }}
               />
 
