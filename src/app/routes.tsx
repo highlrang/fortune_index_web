@@ -1,29 +1,11 @@
 import { createBrowserRouter, redirect } from 'react-router';
-import { SignupPage } from './pages/SignupPage';
-import { LoginPage } from './pages/LoginPage';
-import { HomePage } from './pages/HomePage';
-import { ConsultationPage } from './pages/ConsultationPage';
-import { ConsultationHistoryPage } from './pages/ConsultationHistoryPage';
-import { TarotPickerPage } from './pages/TarotPickerPage';
-import { TarotSpreadPage } from './pages/TarotSpreadPage';
-import { TarotResultPage } from './pages/TarotResultPage';
-import { InvestmentResultPage } from './pages/InvestmentResultPage';
-import { MyPage } from './pages/MyPage';
-import { LikedFortunesPage } from './pages/LikedFortunesPage';
-import { TermsPage } from './pages/TermsPage';
-import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
-import { RefundPolicyPage } from './pages/RefundPolicyPage';
-import { SignupEmailPendingPage } from './pages/SignupEmailPendingPage';
-import { SignupEmailVerifiedPage } from './pages/SignupEmailVerifiedPage';
-import { SignupProfilePage } from './pages/SignupProfilePage';
-import { AuthVerifiedPage } from './pages/AuthVerifiedPage';
-import { PasswordResetPage } from './pages/PasswordResetPage';
-import { WealthLandingPage } from './pages/WealthLandingPage';
-import { SubscriptionLandingPage } from './pages/SubscriptionLandingPage';
-import { LogoShowcasePage } from './pages/LogoShowcasePage';
 import { savePasswordResetToken } from '@/lib/passwordReset';
 import { getSession } from '@/lib/session';
 import { captureSignupVerificationParams } from '@/lib/signupVerification';
+
+const lazyPage = <T extends Record<string, unknown>>(loader: () => Promise<T>, exportName: keyof T) => async () => ({
+  Component: (await loader())[exportName],
+});
 
 function captureSignupEmailVerificationToken({ request }: { request: Request }) {
   const url = new URL(request.url);
@@ -70,7 +52,7 @@ function redirectAuthenticatedUser() {
 export const router = createBrowserRouter([
   {
     path: '/',
-    Component: LoginPage,
+    lazy: lazyPage(() => import('./pages/LoginPage'), 'LoginPage'),
     loader: (args) =>
       redirectAuthenticatedUser()
       ?? capturePasswordResetToken(args)
@@ -78,32 +60,32 @@ export const router = createBrowserRouter([
   },
   {
     path: '/signup',
-    Component: SignupPage,
+    lazy: lazyPage(() => import('./pages/SignupPage'), 'SignupPage'),
   },
   {
     path: '/signup/email-check',
-    Component: SignupEmailPendingPage,
+    lazy: lazyPage(() => import('./pages/SignupEmailPendingPage'), 'SignupEmailPendingPage'),
   },
   {
     path: '/signup/email/verified',
-    Component: SignupEmailVerifiedPage,
+    lazy: lazyPage(() => import('./pages/SignupEmailVerifiedPage'), 'SignupEmailVerifiedPage'),
   },
   {
     path: '/email/verify',
-    Component: LoginPage,
+    lazy: lazyPage(() => import('./pages/LoginPage'), 'LoginPage'),
     loader: (args) => capturePasswordResetToken(args) ?? captureSignupEmailVerificationToken(args),
   },
   {
     path: '/auth/verified',
-    Component: AuthVerifiedPage,
+    lazy: lazyPage(() => import('./pages/AuthVerifiedPage'), 'AuthVerifiedPage'),
   },
   {
     path: '/signup/profile',
-    Component: SignupProfilePage,
+    lazy: lazyPage(() => import('./pages/SignupProfilePage'), 'SignupProfilePage'),
   },
   {
     path: '/login',
-    Component: LoginPage,
+    lazy: lazyPage(() => import('./pages/LoginPage'), 'LoginPage'),
     loader: (args) =>
       redirectAuthenticatedUser()
       ?? capturePasswordResetToken(args)
@@ -111,60 +93,60 @@ export const router = createBrowserRouter([
   },
   {
     path: '/password-reset',
-    Component: PasswordResetPage,
+    lazy: lazyPage(() => import('./pages/PasswordResetPage'), 'PasswordResetPage'),
     loader: capturePasswordResetToken,
   },
   {
     path: '/web/wealth',
-    Component: WealthLandingPage,
+    lazy: lazyPage(() => import('./pages/WealthLandingPage'), 'WealthLandingPage'),
   },
   {
     path: '/web/subscription',
-    Component: SubscriptionLandingPage,
+    lazy: lazyPage(() => import('./pages/SubscriptionLandingPage'), 'SubscriptionLandingPage'),
   },
   {
     path: '/voda',
-    Component: LogoShowcasePage,
+    lazy: lazyPage(() => import('./pages/LogoShowcasePage'), 'LogoShowcasePage'),
   },
   {
     path: '/logo-showcase',
-    Component: LogoShowcasePage,
+    lazy: lazyPage(() => import('./pages/LogoShowcasePage'), 'LogoShowcasePage'),
   },
   {
     path: '/home',
-    Component: HomePage,
+    lazy: lazyPage(() => import('./pages/HomePage'), 'HomePage'),
   },
   {
     path: '/consultation',
-    Component: ConsultationPage,
+    lazy: lazyPage(() => import('./pages/ConsultationPage'), 'ConsultationPage'),
   },
   {
     path: '/consultation-history',
-    Component: ConsultationHistoryPage,
+    lazy: lazyPage(() => import('./pages/ConsultationHistoryPage'), 'ConsultationHistoryPage'),
   },
   {
     path: '/tarot-picker',
-    Component: TarotPickerPage,
+    lazy: lazyPage(() => import('./pages/TarotPickerPage'), 'TarotPickerPage'),
   },
   {
     path: '/tarot-spread',
-    Component: TarotSpreadPage,
+    lazy: lazyPage(() => import('./pages/TarotSpreadPage'), 'TarotSpreadPage'),
   },
   {
     path: '/tarot-result',
-    Component: TarotResultPage,
+    lazy: lazyPage(() => import('./pages/TarotResultPage'), 'TarotResultPage'),
   },
   {
     path: '/investment-result',
-    Component: InvestmentResultPage,
+    lazy: lazyPage(() => import('./pages/InvestmentResultPage'), 'InvestmentResultPage'),
   },
   {
     path: '/my',
-    Component: MyPage,
+    lazy: lazyPage(() => import('./pages/MyPage'), 'MyPage'),
   },
   {
     path: '/liked-fortunes',
-    Component: LikedFortunesPage,
+    lazy: lazyPage(() => import('./pages/LikedFortunesPage'), 'LikedFortunesPage'),
   },
   {
     path: '/notifications',
@@ -174,14 +156,14 @@ export const router = createBrowserRouter([
   },
   {
     path: '/terms',
-    Component: TermsPage,
+    lazy: lazyPage(() => import('./pages/TermsPage'), 'TermsPage'),
   },
   {
     path: '/privacy',
-    Component: PrivacyPolicyPage,
+    lazy: lazyPage(() => import('./pages/PrivacyPolicyPage'), 'PrivacyPolicyPage'),
   },
   {
     path: '/refund-policy',
-    Component: RefundPolicyPage,
+    lazy: lazyPage(() => import('./pages/RefundPolicyPage'), 'RefundPolicyPage'),
   },
 ]);

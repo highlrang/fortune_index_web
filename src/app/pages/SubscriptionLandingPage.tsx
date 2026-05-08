@@ -5,10 +5,13 @@ import { Link } from 'react-router';
 import { BenefitCard } from '../components/subscription/BenefitCard';
 import { ComparisonTable } from '../components/subscription/ComparisonTable';
 import { VodaLogoHybrid } from '../components/logos/VodaLogo';
+import { getOptionalEnv } from '@/lib/env';
 
-const PAYMENT_PAGE_URL = import.meta.env.VITE_PAYMENT_PAGE_URL ?? 'https://payment.example.com/checkout';
+const PAYMENT_PAGE_URL = getOptionalEnv('VITE_PAYMENT_PAGE_URL');
 
 function buildPaymentUrl() {
+  if (!PAYMENT_PAGE_URL) return null;
+
   const paymentUrl = new URL(PAYMENT_PAGE_URL);
   paymentUrl.searchParams.set('plan', 'premium_monthly');
   paymentUrl.searchParams.set('returnUrl', `${window.location.origin}/home`);
@@ -34,7 +37,10 @@ export function SubscriptionLandingPage() {
   }, []);
 
   const handleStartPayment = () => {
-    window.location.href = buildPaymentUrl();
+    const paymentUrl = buildPaymentUrl();
+    if (!paymentUrl) return;
+
+    window.location.href = paymentUrl;
   };
 
   const benefits = [
@@ -128,7 +134,8 @@ export function SubscriptionLandingPage() {
                 <button
                   type="button"
                   onClick={handleStartPayment}
-                  className="group relative w-full overflow-hidden rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-500/30 to-yellow-500/20 px-8 py-4 font-medium text-white shadow-lg shadow-amber-500/20 transition-all hover:bg-amber-500/40 hover:shadow-amber-500/30 md:w-auto"
+                  disabled={!PAYMENT_PAGE_URL}
+                  className="group relative w-full overflow-hidden rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-500/30 to-yellow-500/20 px-8 py-4 font-medium text-white shadow-lg shadow-amber-500/20 transition-all hover:bg-amber-500/40 hover:shadow-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
                 >
                   <span className="relative flex items-center justify-center gap-2">
                     지금 구독 시작하기

@@ -11,7 +11,6 @@ import {
   type HomeDailyTarotDrawResponse,
 } from '@/lib/api';
 import { getSelectedTarotDeckId } from '@/lib/tarot';
-import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 
 type ConsultationType = 'saju' | 'tarot' | 'zodiac' | 'comprehensive';
@@ -67,7 +66,7 @@ type HomeTarotDisplayCard = {
   label: string;
   meaning: string;
   description?: string;
-  imageSrc: string;
+  imageSrc?: string;
   videoSrc?: string;
 };
 
@@ -82,9 +81,27 @@ function mapDailyDrawCards(draw: HomeDailyTarotDrawResponse | null): HomeTarotDi
       label: card.koreanName ?? card.name,
       meaning: card.meaning,
       description: card.description,
-      imageSrc: resolveApiAssetUrl(card.imageUrl) || tarotCardImage,
+      imageSrc: resolveApiAssetUrl(card.imageUrl),
       videoSrc: resolveApiAssetUrl(card.videoUrl) || undefined,
     }));
+}
+
+function TarotCardFallbackFace({ className = '' }: { className?: string }) {
+  return (
+    <div
+      className={`relative overflow-hidden ${className}`}
+      style={{
+        background:
+          'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.18] via-transparent to-white/[0.05]" />
+      <div className="absolute inset-3 rounded-[18px] border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="h-12 w-12 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)', boxShadow: '0 0 24px color-mix(in srgb, var(--tarot-card-sigil) 35%, transparent)' }} />
+      </div>
+    </div>
+  );
 }
 
 function getDailyDrawErrorMessage(error: unknown) {
@@ -299,11 +316,15 @@ export function HomeFortuneJourneySection() {
                         boxShadow: index === 1 ? '0 20px 45px -30px var(--app-accent-glow)' : '0 16px 36px -30px rgba(0,0,0,0.45)',
                       }}
                     >
-                      <img
-                        src={card.imageSrc || tarotCardImage}
-                        alt={card.label}
-                        className="h-full w-full object-cover"
-                      />
+                      {card.imageSrc ? (
+                        <img
+                          src={card.imageSrc}
+                          alt={card.label}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <TarotCardFallbackFace className="h-full w-full" />
+                      )}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent px-2 py-3">
                         <p className="text-[11px] font-semibold text-white">{card.label}</p>
                       </div>
@@ -403,12 +424,14 @@ export function HomeFortuneJourneySection() {
                     playsInline
                     loop
                   />
-                ) : (
+                ) : selectedCard.imageSrc ? (
                   <img
-                    src={selectedCard.imageSrc || tarotCardImage}
+                    src={selectedCard.imageSrc}
                     alt={selectedCard.label}
                     className="h-56 w-full object-cover"
                   />
+                ) : (
+                  <TarotCardFallbackFace className="h-56 w-full" />
                 )}
               </div>
               <DialogHeader className="px-6 pb-6 pt-5 text-left">

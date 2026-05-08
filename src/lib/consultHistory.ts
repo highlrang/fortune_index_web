@@ -98,27 +98,5 @@ export function mapHistoryDetailToConsultResult(
     history: {
       ...detail,
     },
-    investmentEvidence: {
-      routing: {
-        requiresInvestmentData: false,
-        requiresFortuneFlowData: false,
-        requiresSymbolQuote: false,
-        requiresPositionData: false,
-        requiresWebSearch: false,
-        questionType: '',
-        reason: '',
-      },
-      priceFresh: false,
-      positionFresh: false,
-      newsFresh: false,
-      investmentDataUsed: false,
-      investmentFlowDataUsed: false,
-      symbolQuoteUsed: false,
-      positionDataUsed: false,
-      webSearchUsed: false,
-      grounded: false,
-      citations: [],
-      staleReasons: [],
-    },
   };
 }

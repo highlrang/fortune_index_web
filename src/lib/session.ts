@@ -41,7 +41,7 @@ export interface HomeTarotDrawCard {
   label: string;
   meaning: string;
   description?: string;
-  imageSrc: string;
+  imageSrc?: string;
   videoSrc?: string;
 }
 

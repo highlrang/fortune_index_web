@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
-import tarotCardImage from '../../assets/95ecdc96df1369e34bce1bef5997c6a6e85495db.png';
 import { consult, getTarotDeckCards, resolveApiAssetUrl, saveHomeDailyTarotDraw, type TarotDeckCardResponse } from '@/lib/api';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 import { getCurrentUser, saveHomeTarotDraw, saveLastConsultResult } from '@/lib/session';
@@ -26,7 +25,7 @@ interface CardData {
   meaning: string;
   description?: string;
   revealState: CardRevealState;
-  imageSrc: string;
+  imageSrc?: string;
   videoSrc?: string;
 }
 
@@ -120,6 +119,18 @@ function TarotCardBackPattern() {
   );
 }
 
+function TarotCardFallbackFace({ className }: { className: string }) {
+  return (
+    <div className={`relative overflow-hidden ${className}`} style={cardBackStyle}>
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.18] via-transparent to-white/[0.05]" />
+      <div className="absolute inset-4 rounded-xl border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 45%, transparent)' }} />
+      <div className="absolute inset-0 flex items-center justify-center p-10">
+        <TarotCardBackPattern />
+      </div>
+    </div>
+  );
+}
+
 function CardMedia({
   card,
   alt,
@@ -143,7 +154,11 @@ function CardMedia({
     );
   }
 
-  return <img src={card.imageSrc || tarotCardImage} alt={alt} className={className} />;
+  if (card.imageSrc) {
+    return <img src={card.imageSrc} alt={alt} className={className} />;
+  }
+
+  return <TarotCardFallbackFace className={className} />;
 }
 
 function preloadCardMedia(card: CardData) {
@@ -165,13 +180,15 @@ function preloadCardMedia(card: CardData) {
     });
   }
 
+  if (!card.imageSrc) return Promise.resolve();
+
   return new Promise<void>((resolve) => {
     const image = new Image();
     const finalize = () => resolve();
 
     image.onload = finalize;
     image.onerror = finalize;
-    image.src = card.imageSrc || tarotCardImage;
+    image.src = card.imageSrc;
   });
 }
 
@@ -203,7 +220,6 @@ export function TarotResultPage() {
       label: `${selectedIndex + 1}번 카드`,
       meaning: '',
       revealState: 'back',
-      imageSrc: tarotCardImage,
     })),
   );
   const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
@@ -220,7 +236,6 @@ export function TarotResultPage() {
         label: `${selectedIndex + 1}번 카드`,
         meaning: '',
         revealState: 'back',
-        imageSrc: tarotCardImage,
       })),
     );
     setIsCardMediaPrepared(false);
@@ -249,7 +264,6 @@ export function TarotResultPage() {
             label: `${selectedIndex + 1}번 카드`,
             meaning: '',
             revealState: 'back',
-            imageSrc: tarotCardImage,
           };
 
           const metadata = cardMap.get(selectedIndex);
@@ -260,7 +274,7 @@ export function TarotResultPage() {
             label: metadata.koreanName ?? metadata.name,
             meaning: metadata.meaning,
             description: metadata.description,
-            imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
+            imageSrc: resolveApiAssetUrl(metadata.imageUrl),
             videoSrc: resolveApiAssetUrl(metadata.videoUrl) || undefined,
           };
         });
@@ -285,7 +299,7 @@ export function TarotResultPage() {
                   label: metadata.koreanName ?? metadata.name,
                   meaning: metadata.meaning,
                   description: metadata.description,
-                  imageSrc: resolveApiAssetUrl(metadata.imageUrl) || tarotCardImage,
+                  imageSrc: resolveApiAssetUrl(metadata.imageUrl),
                   videoSrc: resolveApiAssetUrl(metadata.videoUrl) || undefined,
                 };
               })
