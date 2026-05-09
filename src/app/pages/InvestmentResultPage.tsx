@@ -155,8 +155,6 @@ export function InvestmentResultPage() {
 
   const resultTitle = titleByMode[consultResult.mode] ?? '오늘의 해석';
   const focusLabel = consultResult.focus?.label ?? '오늘의 흐름';
-  const focusValue = formatCurrentValue(consultResult.focus?.currentValue);
-  const changeRate = formatChangeRate(consultResult.focus?.changeRate);
   const finalAdvice =
     consultResult.ai?.finalAdvice ?? consultResult.history?.overallSummary ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
   const historyId = consultResult.history?.id;
@@ -236,10 +234,6 @@ export function InvestmentResultPage() {
                   <div className="text-center">
                     <p className="text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
                       {confidenceScore >= 80 ? '마음 편히 가도 좋은 흐름' : confidenceScore >= 60 ? '차분하게 가면 괜찮은 흐름' : '조금 천천히 보는 편이 좋아요'}
-                    </p>
-                    <p className="mt-2 text-sm" style={{ color: 'var(--app-accent-text-soft)' }}>
-                      {focusValue ? `${focusLabel} ${focusValue}` : focusLabel}
-                      {changeRate ? ` · ${changeRate}` : ''}
                     </p>
                   </div>
                 </div>
@@ -391,16 +385,4 @@ export function InvestmentResultPage() {
       <BottomNavigation />
     </div>
   );
-}
-
-function formatCurrentValue(value?: number | null) {
-  if (typeof value !== 'number') return null;
-  return new Intl.NumberFormat('ko-KR', {
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatChangeRate(value?: number | null) {
-  if (typeof value !== 'number') return null;
-  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
 }
