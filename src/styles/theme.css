@@ -436,6 +436,40 @@ html.is-native-webview.is-native-android {
     -webkit-overflow-scrolling: touch;
   }
 
+  .tarot-spread-page {
+    --tarot-spread-chrome-top: 7.75rem;
+    --tarot-spread-slots-top: 7.75rem;
+    --tarot-spread-slots-height: 10rem;
+    --tarot-spread-carousel-top: 16.75rem;
+    --tarot-spread-slot-width: 85px;
+    --tarot-spread-slot-height: 128px;
+  }
+
+  @media (orientation: landscape) and (max-height: 520px) {
+    .tarot-spread-page {
+      --tarot-spread-chrome-top: 5.25rem;
+      --tarot-spread-slots-top: 5.25rem;
+      --tarot-spread-slots-height: 5.75rem;
+      --tarot-spread-carousel-top: 10.75rem;
+      --tarot-spread-slot-width: 52px;
+      --tarot-spread-slot-height: 78px;
+    }
+
+    .tarot-spread-page .tarot-spread-header {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .tarot-spread-page .tarot-spread-orientation-tip {
+      display: none;
+    }
+
+    .tarot-spread-page .tarot-spread-slots {
+      gap: 0.5rem;
+      padding-top: 0.25rem;
+    }
+  }
+
   .fi-auth-shell {
     min-height: 100%;
     display: flex;

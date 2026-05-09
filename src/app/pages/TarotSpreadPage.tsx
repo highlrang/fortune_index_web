@@ -216,7 +216,7 @@ export function TarotSpreadPage() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={pageGradientStyle}>
+    <div className="tarot-spread-page fixed inset-0 overflow-hidden" style={pageGradientStyle}>
       <div className="absolute inset-0">
         {STATIC_STARS.map((star) => (
           <motion.div
@@ -240,7 +240,7 @@ export function TarotSpreadPage() {
       </div>
 
       <div
-        className="absolute left-0 right-0 top-0 z-50 px-4 py-3"
+        className="tarot-spread-header absolute left-0 right-0 top-0 z-50 px-4 py-3"
         style={{
           background:
             'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 92%, transparent) 0%, transparent 100%)',
@@ -295,14 +295,14 @@ export function TarotSpreadPage() {
           </div>
         </div>
 
-        <div className="mx-auto mt-2 max-w-7xl">
+        <div className="tarot-spread-orientation-tip mx-auto mt-2 max-w-7xl">
           <div className="inline-flex rounded-full border px-3 py-1 text-[11px]" style={{ ...glassCardStyle, color: 'var(--app-text-muted)' }}>
             가로로 돌려서 이용하시면 카드 선택이 더 편합니다
           </div>
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20" style={{ top: '7.75rem' }}>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20" style={{ top: 'var(--tarot-spread-chrome-top)' }}>
         <div
           className="absolute inset-0"
           style={{
@@ -323,12 +323,12 @@ export function TarotSpreadPage() {
       <div
         className="absolute left-0 right-0 z-40"
         style={{
-          top: '7.75rem',
-          height: '10rem',
+          top: 'var(--tarot-spread-slots-top)',
+          height: 'var(--tarot-spread-slots-height)',
         }}
       >
         {/* Card Slots */}
-        <div className="flex h-full items-center justify-center gap-3 px-4 pt-3">
+        <div className="tarot-spread-slots flex h-full items-center justify-center gap-3 px-4 pt-3">
           {Array.from({ length: MAX_SELECTIONS }).map((_, slotIndex) => {
             const cardIndex = selectedCards[slotIndex];
             const hasSelectedCard = cardIndex !== null && cardIndex !== undefined;
@@ -343,8 +343,8 @@ export function TarotSpreadPage() {
                 <div
                   className="overflow-hidden rounded-xl border border-dashed transition-all"
                   style={{
-                    width: `${CARD_WIDTH}px`,
-                    height: `${CARD_HEIGHT}px`,
+                    width: 'var(--tarot-spread-slot-width)',
+                    height: 'var(--tarot-spread-slot-height)',
                     borderColor: hasSelectedCard ? 'transparent' : 'var(--tarot-card-line-soft)',
                     backgroundColor: 'transparent',
                     boxShadow: 'none',
@@ -385,7 +385,7 @@ export function TarotSpreadPage() {
       </div>
 
       {/* BOTTOM SECTION - Ultra-Dense Horizontal Carousel (2/3 of screen) */}
-      <div className="absolute bottom-0 left-0 right-0 z-30" style={{ top: '16.75rem' }}>
+      <div className="absolute bottom-0 left-0 right-0 z-30" style={{ top: 'var(--tarot-spread-carousel-top)' }}>
         <div className="pointer-events-none absolute left-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(90deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
         <div className="pointer-events-none absolute right-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(270deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
 
