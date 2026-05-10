@@ -560,9 +560,20 @@ export interface ZodiacProfileResponse {
   englishName?: string;
   dateRange?: string;
   element?: string;
+  elementDescription?: string;
   keyword?: string;
+  keywordDescription?: string;
   summary?: string;
   traits?: string[];
+  traitDetails?: Array<{
+    name?: string;
+    description?: string;
+  }>;
+  strengths?: string[];
+  cautions?: string[];
+  moneyStyle?: string;
+  investmentTendency?: string;
+  careTip?: string;
 }
 
 export interface AstrologyProfileResponse {

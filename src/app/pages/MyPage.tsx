@@ -9,7 +9,6 @@ import {
   Sparkles,
   Star,
   ChevronRight,
-  ChevronLeft,
   Moon,
   Sun,
   MessageSquare,
@@ -171,6 +170,56 @@ const fiveElementColorMap: Record<FiveElementKey, string> = {
   metal: '#A0AEC0',
   water: '#111827',
 };
+
+const sajuCharacterElementMap = new Map<string, FiveElementKey>([
+  ['甲', 'wood'],
+  ['乙', 'wood'],
+  ['寅', 'wood'],
+  ['卯', 'wood'],
+  ['丙', 'fire'],
+  ['丁', 'fire'],
+  ['巳', 'fire'],
+  ['午', 'fire'],
+  ['戊', 'earth'],
+  ['己', 'earth'],
+  ['辰', 'earth'],
+  ['戌', 'earth'],
+  ['丑', 'earth'],
+  ['未', 'earth'],
+  ['庚', 'metal'],
+  ['辛', 'metal'],
+  ['申', 'metal'],
+  ['酉', 'metal'],
+  ['壬', 'water'],
+  ['癸', 'water'],
+  ['亥', 'water'],
+  ['子', 'water'],
+]);
+
+const sajuCharacterKoreanMap = new Map<string, string>([
+  ['甲', '갑'],
+  ['乙', '을'],
+  ['丙', '병'],
+  ['丁', '정'],
+  ['戊', '무'],
+  ['己', '기'],
+  ['庚', '경'],
+  ['辛', '신'],
+  ['壬', '임'],
+  ['癸', '계'],
+  ['子', '자'],
+  ['丑', '축'],
+  ['寅', '인'],
+  ['卯', '묘'],
+  ['辰', '진'],
+  ['巳', '사'],
+  ['午', '오'],
+  ['未', '미'],
+  ['申', '신'],
+  ['酉', '유'],
+  ['戌', '술'],
+  ['亥', '해'],
+]);
 
 const inquiryTypeOptions: Array<{ label: string; value: InquiryCategory }> = [
   { label: '서비스 이용 문의', value: 'SERVICE' },
@@ -915,26 +964,18 @@ export function MyPage() {
             className="fixed inset-0 z-50 overflow-y-auto"
             style={pageGradientStyle}
           >
-            <div className="mx-auto min-h-full w-full max-w-md px-5 pb-[max(3.5rem,calc(env(safe-area-inset-bottom)+2.5rem))] pt-[max(1.25rem,env(safe-area-inset-top))]">
+            <div className="mx-auto min-h-full w-full max-w-md px-4 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.25rem))] pt-[max(0.75rem,env(safe-area-inset-top))]">
               <div
-                className="sticky top-0 z-10 -mx-5 mb-6 border-b px-5 pb-4 backdrop-blur-xl"
+                className="sticky top-0 z-10 -mx-4 mb-3 border-b px-4 pb-3 backdrop-blur-xl"
                 style={{
                   borderColor: 'var(--app-surface-border)',
                   backgroundColor: 'color-mix(in srgb, var(--bg-main) 88%, transparent)',
                 }}
               >
-                <div className="flex items-center justify-between gap-3 pt-2">
+                <div className="flex items-center justify-end pt-1">
                   <button
                     onClick={() => setShowBirthTarot(false)}
-                    className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:opacity-90"
-                    style={glassButtonStyle}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    뒤로가기
-                  </button>
-                  <button
-                    onClick={() => setShowBirthTarot(false)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border transition-colors hover:opacity-90"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:opacity-90"
                     style={glassButtonStyle}
                     aria-label="생일 타로 카드 닫기"
                   >
@@ -944,7 +985,7 @@ export function MyPage() {
               </div>
 
               <div
-                className="relative overflow-hidden rounded-[2rem] border p-6 shadow-2xl"
+                className="relative overflow-hidden rounded-3xl border p-4 shadow-2xl"
                 style={{
                   ...glassCardStrongStyle,
                   borderColor: 'var(--app-accent-border-strong)',
@@ -953,7 +994,7 @@ export function MyPage() {
                 }}
               >
                 <motion.div
-                  className="absolute inset-0 rounded-[2rem]"
+                  className="absolute inset-0 rounded-3xl"
                   animate={{
                     boxShadow: [
                       '0 0 40px var(--app-accent-glow), inset 0 0 28px var(--tarot-accent-glow-soft)',
@@ -964,13 +1005,13 @@ export function MyPage() {
                   transition={{ duration: 2.4, repeat: Infinity }}
                 />
 
-                <div className="relative mb-6 text-center">
+                <div className="relative mb-3 text-center">
                   <div className="text-sm" style={{ color: 'var(--app-accent-text-soft)' }}>생일 타로 카드</div>
-                  <h2 className="mt-2 text-3xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{userData.birthTarot.koreanName}</h2>
-                  <p className="mt-1 text-lg" style={{ color: 'var(--app-text-muted)' }}>{userData.birthTarot.name}</p>
+                  <h2 className="mt-1 text-2xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{userData.birthTarot.koreanName}</h2>
+                  <p className="text-base" style={{ color: 'var(--app-text-muted)' }}>{userData.birthTarot.name}</p>
                 </div>
 
-                <div className="relative mb-6 aspect-[2/3] overflow-hidden rounded-[1.75rem] border-2" style={{ borderColor: 'var(--app-accent-border)' }}>
+                <div className="relative mx-auto mb-4 aspect-[2/3] max-h-[42dvh] w-full max-w-56 overflow-hidden rounded-3xl border-2" style={{ borderColor: 'var(--app-accent-border)' }}>
                   <img
                     src={userData.birthTarot.imageUrl}
                     alt={userData.birthTarot.name}
@@ -979,21 +1020,21 @@ export function MyPage() {
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
                 </div>
 
-                <div className="relative space-y-4">
+                <div className="relative space-y-3">
                   <div
-                    className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm"
+                    className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm"
                     style={{ ...accentIconStyle, backgroundColor: 'var(--app-accent-soft)' }}
                   >
                     <Sparkles className="h-4 w-4" />
                     {userData.birthTarot.number}번 카드
                   </div>
-                  <section className="rounded-2xl border px-4 py-4" style={glassCardStyle}>
-                    <div className="mb-2 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>MEANING</div>
+                  <section className="rounded-2xl border px-3.5 py-3" style={glassCardStyle}>
+                    <div className="mb-1.5 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>MEANING</div>
                     <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{userData.birthTarot.meaning}</p>
                   </section>
                   {userData.birthTarot.description ? (
-                    <section className="rounded-2xl border px-4 py-4" style={glassCardStyle}>
-                      <div className="mb-2 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
+                    <section className="rounded-2xl border px-3.5 py-3" style={glassCardStyle}>
+                      <div className="mb-1.5 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
                         DESCRIPTION
                       </div>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-muted)' }}>
@@ -1046,11 +1087,51 @@ export function MyPage() {
                     {userData.saju.palza.map((char, idx) => (
                       <div
                         key={idx}
-                        className="rounded-xl border p-3 text-center backdrop-blur-xl"
+                        className="rounded-xl border px-2 py-3 text-center backdrop-blur-xl"
                         style={glassCardStyle}
                       >
-                        <div className="text-2xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{char}</div>
-                        <div className="mt-1 text-xs" style={{ color: 'var(--app-text-muted)' }}>{['년주', '월주', '일주', '시주'][idx]}</div>
+                        <div
+                          className="text-[11px] font-semibold tracking-[0.12em]"
+                          style={{
+                            color: 'var(--app-accent-text-soft)',
+                          }}
+                        >
+                          {['년주', '월주', '일주', '시주'][idx]}
+                        </div>
+                        <div className="mt-2 flex justify-center text-2xl font-bold">
+                          {Array.from(char).map((sajuChar, charIndex) => {
+                            const element = getSajuCharacterElement(sajuChar);
+                            const color = element ? fiveElementColorMap[element] : 'var(--tarot-text-main)';
+
+                            return (
+                              <span
+                                key={`${sajuChar}-${charIndex}`}
+                                style={{
+                                  color,
+                                  textShadow: `0 0 18px color-mix(in srgb, ${color} 42%, transparent)`,
+                                }}
+                              >
+                                {sajuChar}
+                              </span>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-1 flex justify-center text-xs font-semibold">
+                          {Array.from(char).map((sajuChar, charIndex) => {
+                            const element = getSajuCharacterElement(sajuChar);
+                            const color = element ? fiveElementColorMap[element] : 'var(--app-text-soft)';
+                            const reading = sajuCharacterKoreanMap.get(sajuChar) ?? sajuChar;
+
+                            return (
+                              <span
+                                key={`${sajuChar}-${reading}-${charIndex}`}
+                                style={{ color: `color-mix(in srgb, ${color} 72%, var(--app-text-soft) 28%)` }}
+                              >
+                                {reading}
+                              </span>
+                            );
+                          })}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1098,13 +1179,10 @@ export function MyPage() {
                       <h4 className={`text-sm font-medium ${section.titleClassName}`}>{section.label}</h4>
                       <span className="text-xs" style={{ color: 'var(--app-text-muted)' }}>{section.title}</span>
                     </div>
+                    <p className="mb-2 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{section.description}</p>
                     <p className="text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>{section.summary}</p>
                   </div>
                 ))}
-
-                <p className="rounded-xl border px-4 py-3 text-xs leading-5" style={{ ...glassCardStyle, color: 'var(--app-text-muted)' }}>
-                  사주 해석 문구는 데이터 기준으로 수시로 달라질 수 있습니다.
-                </p>
               </div>
             </motion.div>
           </motion.div>
@@ -1169,10 +1247,16 @@ export function MyPage() {
                     <div className="rounded-2xl border px-4 py-3" style={glassCardStyle}>
                       <div className="text-xs" style={{ color: 'var(--app-text-muted)' }}>원소</div>
                       <div className="mt-1 text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{userData.zodiac.element}</div>
+                      {userData.zodiac.elementDescription ? (
+                        <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.elementDescription}</p>
+                      ) : null}
                     </div>
                     <div className="rounded-2xl border px-4 py-3" style={glassCardStyle}>
                       <div className="text-xs" style={{ color: 'var(--app-text-muted)' }}>키워드</div>
                       <div className="mt-1 text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{userData.zodiac.keyword}</div>
+                      {userData.zodiac.keywordDescription ? (
+                        <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.keywordDescription}</p>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -1183,7 +1267,7 @@ export function MyPage() {
                 </section>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {userData.zodiac.traits.map((trait) => (
+                  {(userData.zodiac.traits ?? []).map((trait) => (
                     <div key={trait} className="rounded-2xl border px-3 py-4 text-center" style={glassCardStyle}>
                       <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border" style={accentIconStyle}>
                         <Star className="h-4 w-4" strokeWidth={2.2} />
@@ -1510,7 +1594,7 @@ export function MyPage() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>v1.0.0</span>
-              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" style={{ color: 'var(--app-icon-soft)' }} />
+              {/* <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" style={{ color: 'var(--app-icon-soft)' }} /> */}
             </div>
           </button>
         </motion.div>
@@ -1537,7 +1621,7 @@ export function MyPage() {
               개인정보처리방침
             </button>
           </div>
-          <p>© 2024 Voda. All rights reserved.</p>
+          <p>© 2026 Voda. All rights reserved.</p>
         </div>
       </div>
 
@@ -1688,9 +1772,17 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
     englishName: 'Capricorn',
     dateRange: '12월 22일 - 1월 19일',
     element: '흙',
+    elementDescription: null as string | null,
     keyword: '현실감각',
+    keywordDescription: null as string | null,
     summary: '차분하게 방향을 잡고 꾸준히 쌓아가는 성향이 강합니다. 투자나 선택에서도 속도보다 구조와 안정성을 중시하는 편입니다.',
     traits: ['신중함', '꾸준함', '집중력'],
+    traitDetails: [] as Array<{ name: string; description: string }>,
+    strengths: [] as string[],
+    cautions: [] as string[],
+    moneyStyle: null as string | null,
+    investmentTendency: null as string | null,
+    careTip: null as string | null,
   };
 
   const zodiac = profileDetails?.zodiac;
@@ -1700,9 +1792,17 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       englishName: zodiac.englishName ?? fallback.englishName,
       dateRange: zodiac.dateRange ?? fallback.dateRange,
       element: zodiac.element ?? fallback.element,
+      elementDescription: zodiac.elementDescription?.trim() || fallback.elementDescription,
       keyword: zodiac.keyword ?? fallback.keyword,
+      keywordDescription: zodiac.keywordDescription?.trim() || fallback.keywordDescription,
       summary: zodiac.summary ?? fallback.summary,
       traits: zodiac.traits?.length ? zodiac.traits : fallback.traits,
+      traitDetails: normalizeZodiacTraitDetails(zodiac.traitDetails),
+      strengths: normalizeStringList(zodiac.strengths),
+      cautions: normalizeStringList(zodiac.cautions),
+      moneyStyle: zodiac.moneyStyle?.trim() || fallback.moneyStyle,
+      investmentTendency: zodiac.investmentTendency?.trim() || fallback.investmentTendency,
+      careTip: zodiac.careTip?.trim() || fallback.careTip,
     };
   }
 
@@ -1843,7 +1943,10 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
     return fallback;
   }
 
-  return zodiacSigns.find((item) => value >= item.start && value <= item.end) ?? fallback;
+  return {
+    ...fallback,
+    ...(zodiacSigns.find((item) => value >= item.start && value <= item.end) ?? fallback),
+  };
 }
 
 function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
@@ -1853,6 +1956,7 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
     {
       key: 'ilju',
       label: '일주',
+      description: '내 성향과 판단 방식의 중심이 되는 기둥입니다.',
       data: normalizeSajuDescription(saju?.ilju, '일주 정보', '일주 해석 정보가 없습니다.'),
       className: 'border-emerald-400/25 bg-gradient-to-br from-emerald-500/10 to-teal-500/5',
       titleClassName: 'text-[#D4AF37]',
@@ -1860,6 +1964,7 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
     {
       key: 'wolji',
       label: '월지',
+      description: '태어난 계절의 기운으로 사회적 성향과 환경 감각을 봅니다.',
       data: normalizeSajuDescription(saju?.wolji, '월지 정보', '월지 해석 정보가 없습니다.'),
       className: 'border-sky-400/25 bg-gradient-to-br from-sky-500/10 to-cyan-500/5',
       titleClassName: 'text-[#D4AF37]',
@@ -1867,6 +1972,7 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
     {
       key: 'daeun',
       label: '현재 대운',
+      description: '약 10년 단위로 크게 흐르는 운의 방향을 나타냅니다.',
       data: normalizeSajuDescription(saju?.daeun, '대운 정보', '대운 정보가 없습니다.'),
       className: 'border-[#D4AF37]/30 bg-gradient-to-br from-[#D4AF37]/10 to-amber-500/5',
       titleClassName: 'text-[#D4AF37]',
@@ -1874,6 +1980,7 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
     {
       key: 'sewun',
       label: '올해의 운세',
+      description: '올해 들어오는 기운이 현재 선택에 어떤 분위기를 만드는지 봅니다.',
       data: normalizeSajuDescription(saju?.sewun, '세운 정보', '올해의 운세 정보가 없습니다.'),
       className: 'border-violet-400/30 bg-gradient-to-br from-violet-500/10 to-purple-500/5',
       titleClassName: 'text-[#D4AF37]',
@@ -1895,6 +2002,21 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
       summary: section.data.summary,
     })),
   };
+}
+
+function normalizeStringList(values: string[] | null | undefined) {
+  return values?.map((value) => value.trim()).filter(Boolean) ?? [];
+}
+
+function normalizeZodiacTraitDetails(
+  values: Array<{ name?: string; description?: string }> | null | undefined,
+) {
+  return values
+    ?.map((value) => ({
+      name: value.name?.trim() ?? '',
+      description: value.description?.trim() ?? '',
+    }))
+    .filter((value) => value.name && value.description) ?? [];
 }
 
 function normalizeSajuDescription(
@@ -1941,6 +2063,16 @@ function getFiveElementEntries(values: Record<FiveElementKey, number>) {
     value: values[key],
     color: fiveElementColorMap[key],
   }));
+}
+
+function getSajuCharacterElement(char: string) {
+  return sajuCharacterElementMap.get(char);
+}
+
+function getSajuKoreanReading(value: string) {
+  return Array.from(value)
+    .map((char) => sajuCharacterKoreanMap.get(char) ?? char)
+    .join('');
 }
 
 function formatPercentage(value: number) {
