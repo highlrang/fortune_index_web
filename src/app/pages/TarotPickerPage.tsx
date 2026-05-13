@@ -45,6 +45,7 @@ type DeckCardFaceProps = {
   isBottomCard: boolean;
   isTopCard: boolean;
   isVisible: boolean;
+  reduceEffects?: boolean;
 };
 
 const deckCardFaceStyle = {
@@ -63,6 +64,10 @@ const glassPanelStyle = {
   backdropFilter: 'var(--app-card-blur)',
   WebkitBackdropFilter: 'var(--app-card-blur)',
 };
+
+function isNativeWebViewRuntime() {
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('is-native-webview');
+}
 
 function getCutShuffledOrder(order: number[], cutIndex: number) {
   return [...order.slice(cutIndex), ...order.slice(0, cutIndex)];
@@ -168,7 +173,10 @@ const DeckCardFace = memo(function DeckCardFace({
   isBottomCard,
   isTopCard,
   isVisible,
+  reduceEffects = false,
 }: DeckCardFaceProps) {
+  const shouldRenderDetailedFace = isVisible || isTopCard || isBottomCard;
+
   return (
     <div
       className="relative h-full w-full overflow-hidden rounded-2xl border"
@@ -179,23 +187,27 @@ const DeckCardFace = memo(function DeckCardFace({
           'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
         borderColor: 'var(--tarot-card-cover-border)',
         boxShadow: isTopCard || isBottomCard
-          ? '0 10px 28px var(--tarot-card-cover-glow)'
+          ? reduceEffects
+            ? '0 6px 16px rgba(0, 0, 0, 0.22)'
+            : '0 10px 28px var(--tarot-card-cover-glow)'
           : '0 1px 2px rgba(0, 0, 0, 0.1)',
       }}
     >
       <div className="absolute inset-0 rounded-2xl border" style={{ borderColor: 'var(--tarot-card-line-soft)' }} />
-      {isTopCard && (
+      {shouldRenderDetailedFace && isTopCard && (
         <>
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
-          <motion.div
-            className="absolute inset-0 rounded-2xl"
-            style={{
-              background:
-                'radial-gradient(circle at center, var(--tarot-accent-glow-soft) 0%, transparent 74%)',
-            }}
-            animate={{ opacity: [0.16, 0.34, 0.16] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          />
+          {!reduceEffects && (
+            <motion.div
+              className="absolute inset-0 rounded-2xl"
+              style={{
+                background:
+                  'radial-gradient(circle at center, var(--tarot-accent-glow-soft) 0%, transparent 74%)',
+              }}
+              animate={{ opacity: [0.16, 0.34, 0.16] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          )}
           <div className="absolute inset-0 flex items-center justify-center p-10">
             <svg className="h-full w-full" viewBox="0 0 100 140">
               <polygon
@@ -233,18 +245,20 @@ const DeckCardFace = memo(function DeckCardFace({
         </>
       )}
 
-      {isBottomCard && (
+      {shouldRenderDetailedFace && isBottomCard && (
         <>
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
-          <motion.div
-            className="absolute inset-0 rounded-2xl"
-            style={{
-              background:
-                'radial-gradient(circle at center, var(--tarot-accent-glow-soft) 0%, transparent 76%)',
-            }}
-            animate={{ opacity: [0.14, 0.3, 0.14] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-          />
+          {!reduceEffects && (
+            <motion.div
+              className="absolute inset-0 rounded-2xl"
+              style={{
+                background:
+                  'radial-gradient(circle at center, var(--tarot-accent-glow-soft) 0%, transparent 76%)',
+              }}
+              animate={{ opacity: [0.14, 0.3, 0.14] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+            />
+          )}
           <div className="absolute inset-0 flex items-center justify-center p-8">
             <svg className="h-full w-full" viewBox="0 0 100 140">
               <rect x="8" y="8" width="84" height="124" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.34" rx="4" />
@@ -308,6 +322,7 @@ export function TarotPickerPage() {
   const [hasShuffled, setHasShuffled] = useState(false); // Track if user has shuffled at least once
   const [isMergedStack, setIsMergedStack] = useState(false);
   const [isRandomShuffleAnimating, setIsRandomShuffleAnimating] = useState(false);
+  const reduceWebViewEffects = isNativeWebViewRuntime();
 
   const isDraggingRotation = useRef(false);
   const shuffleCommitTimeoutRef = useRef<number | null>(null);
@@ -448,7 +463,7 @@ export function TarotPickerPage() {
   const lowerDeckZ = splitPointZ + compensatedDistance / 2;
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ ...tarotPageVars, backgroundColor: 'var(--tarot-bg-color)' }}>
+    <div className="tarot-picker-page relative min-h-screen overflow-hidden" style={{ ...tarotPageVars, backgroundColor: 'var(--tarot-bg-color)' }}>
       {/* Mystic purple gradient background */}
       <div className="fixed inset-0">
         <div
@@ -460,7 +475,7 @@ export function TarotPickerPage() {
         />
         
         {/* Star dust particles */}
-        {STATIC_STARS.map((star) => (
+        {(reduceWebViewEffects ? STATIC_STARS.slice(0, 24) : STATIC_STARS).map((star) => (
           <div
             key={star.id}
             className="absolute h-1 w-1 rounded-full"
@@ -633,6 +648,7 @@ export function TarotPickerPage() {
                 transformStyle: 'preserve-3d',
                 rotateY: rotation,
                 willChange: 'transform',
+                touchAction: 'none',
               }}
               animate={{
                 rotateZ: isRandomShuffleAnimating ? [0, -1.6, 1.2, -0.7, 0.2, 0] : 0,
@@ -677,6 +693,7 @@ export function TarotPickerPage() {
                         isBottomCard={isBottomCard}
                         isTopCard={isTopCard}
                         isVisible={isVisible}
+                        reduceEffects={reduceWebViewEffects}
                       />
 
                       {!isBottomCard && (
@@ -761,6 +778,7 @@ export function TarotPickerPage() {
                         isBottomCard={isBottomCard}
                         isTopCard={isTopCard}
                         isVisible={isVisible}
+                        reduceEffects={reduceWebViewEffects}
                       />
                     </motion.div>
                   );
@@ -820,6 +838,7 @@ export function TarotPickerPage() {
                         isBottomCard={isBottomCard}
                         isTopCard={isTopCard}
                         isVisible={isVisible}
+                        reduceEffects={reduceWebViewEffects}
                       />
                     </motion.div>
                   );

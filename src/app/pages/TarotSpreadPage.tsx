@@ -72,6 +72,10 @@ const cardBackStyle = {
     'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
 };
 
+function isNativeWebViewRuntime() {
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('is-native-webview');
+}
+
 function TarotCardBackPattern() {
   return (
     <svg className="h-full w-full" viewBox="0 0 100 140">
@@ -105,6 +109,7 @@ export function TarotSpreadPage() {
     Record<number, { imageSrc?: string; label: string }>
   >({});
   const [isDragging, setIsDragging] = useState(false);
+  const reduceWebViewEffects = isNativeWebViewRuntime();
   const scrollX = useMotionValue(0);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
@@ -218,7 +223,7 @@ export function TarotSpreadPage() {
   return (
     <div className="tarot-spread-page fixed inset-0 overflow-hidden" style={pageGradientStyle}>
       <div className="absolute inset-0">
-        {STATIC_STARS.map((star) => (
+        {(reduceWebViewEffects ? STATIC_STARS.slice(0, 20) : STATIC_STARS).map((star) => (
           <motion.div
             key={star.id}
             className="absolute h-0.5 w-0.5 rounded-full"
@@ -227,10 +232,8 @@ export function TarotSpreadPage() {
               top: star.top,
               backgroundColor: 'var(--tarot-text-main)',
             }}
-            animate={{
-              opacity: [0.2, 0.7, 0.2],
-            }}
-            transition={{
+            animate={reduceWebViewEffects ? { opacity: 0.36 } : { opacity: [0.2, 0.7, 0.2] }}
+            transition={reduceWebViewEffects ? { duration: 0 } : {
               duration: star.duration,
               repeat: Infinity,
               delay: star.delay,
@@ -404,7 +407,7 @@ export function TarotSpreadPage() {
             dragMomentum={true}
             onDragStart={() => setIsDragging(true)}
             onDragEnd={handleDragEnd}
-            style={{ x: scrollX }}
+            style={{ x: scrollX, touchAction: 'none' }}
             className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
           >
             {deckOrder.map((cardId, index) => {
@@ -435,7 +438,7 @@ export function TarotSpreadPage() {
                     opacity: isSelected ? 0 : 1,
                     rotate: rotationAngle,
                   }}
-                  transition={{
+                  transition={reduceWebViewEffects ? { duration: 0.12 } : {
                     type: 'spring',
                     stiffness: 300,
                     damping: 25,
@@ -497,14 +500,14 @@ export function TarotSpreadPage() {
             
             <motion.div
               className="absolute inset-0 rounded-full"
-              animate={{
+              animate={reduceWebViewEffects ? undefined : {
                 boxShadow: [
                   '0 0 18px var(--tarot-card-cover-glow), inset 0 0 18px var(--tarot-card-cover-glow)',
                   '0 0 28px var(--tarot-card-cover-glow), inset 0 0 28px var(--tarot-card-cover-glow)',
                   '0 0 18px var(--tarot-card-cover-glow), inset 0 0 18px var(--tarot-card-cover-glow)',
                 ],
               }}
-              transition={{
+              transition={reduceWebViewEffects ? undefined : {
                 duration: 2,
                 repeat: Infinity,
                 ease: 'easeInOut',

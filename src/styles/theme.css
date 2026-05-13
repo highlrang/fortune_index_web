@@ -129,6 +129,14 @@ html.is-native-webview.is-native-ios {
   --native-safe-top: env(safe-area-inset-top, 0px);
 }
 
+html.is-native-webview {
+  --card-blur: blur(8px);
+  --app-card-blur: blur(8px);
+  --tarot-accent-glow: rgba(173, 136, 255, 0.28);
+  --tarot-accent-glow-soft: rgba(173, 136, 255, 0.16);
+  --tarot-card-cover-glow: rgba(168, 85, 247, 0.22);
+}
+
 html.is-native-webview.is-native-android {
   --native-safe-top: 56px;
 }
@@ -329,6 +337,7 @@ html.is-native-webview.is-native-android {
 
   body.is-native-webview {
     padding-top: var(--native-safe-top);
+    touch-action: manipulation;
   }
 
   /**
@@ -496,6 +505,19 @@ html.is-native-webview.is-native-android {
   body.is-native-webview .fi-page > .fixed.inset-0,
   body.is-native-webview #root > .fixed.inset-0 {
     top: var(--native-safe-top);
+  }
+
+  body.is-native-webview .tarot-picker-page .blur-3xl,
+  body.is-native-webview .tarot-spread-page .blur-3xl,
+  body.is-native-webview .tarot-spread-page .blur-\[84px\] {
+    filter: blur(18px);
+    opacity: 0.18;
+  }
+
+  body.is-native-webview .tarot-picker-page .backdrop-blur-xl,
+  body.is-native-webview .tarot-spread-page .backdrop-blur-xl {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .fi-glass {

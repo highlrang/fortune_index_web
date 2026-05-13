@@ -124,7 +124,8 @@ async function refreshAccessToken() {
 
   refreshPromise = (async () => {
     const session = getSession();
-    if (!session?.tokens.refreshToken) return false;
+    const refreshToken = normalizeTokenValue(session?.tokens.refreshToken);
+    if (!session || !refreshToken) return false;
 
     try {
       const headers: Record<string, string> = {
@@ -139,7 +140,7 @@ async function refreshAccessToken() {
       const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ refreshToken: session.tokens.refreshToken }),
+        body: JSON.stringify({ refreshToken }),
       });
 
       const payload = await parseResponsePayload(response);
@@ -164,6 +165,14 @@ async function refreshAccessToken() {
 
       const refreshedSession = toRefreshedSessionState(session, payload);
       if (!refreshedSession) {
+        return false;
+      }
+
+      if (normalizeTokenValue(getSession()?.tokens.refreshToken) !== refreshToken) {
+        recordAuthFailure({
+          reason: 'refresh_session_changed',
+          status: response.status,
+        });
         return false;
       }
 
@@ -318,6 +327,10 @@ function recordAuthFailure(details: Record<string, unknown>) {
   console.warn('[auth] token refresh failed', failure);
 }
 
+function normalizeTokenValue(token?: string | null) {
+  return typeof token === 'string' ? token.trim() : '';
+}
+
 function normalizeUnknownError(error: unknown) {
   if (error instanceof ApiError) {
     return error;
@@ -388,9 +401,20 @@ function toRefreshedSessionState(currentSession: SessionState, payload: unknown)
   }
 
   const partialAuth = payload as Partial<SessionState>;
+  const partialTokens = partialAuth.tokens;
 
   return {
     user: partialAuth.user ?? currentSession.user,
-    tokens: partialAuth.tokens ?? currentSession.tokens,
+    tokens: {
+      ...currentSession.tokens,
+      ...partialTokens,
+      accessToken: normalizeTokenValue(partialTokens?.accessToken ?? currentSession.tokens.accessToken),
+      refreshToken: normalizeTokenValue(partialTokens?.refreshToken ?? currentSession.tokens.refreshToken),
+      tokenType: partialTokens?.tokenType ?? currentSession.tokens.tokenType,
+      accessTokenExpiresAt:
+        partialTokens?.accessTokenExpiresAt ?? currentSession.tokens.accessTokenExpiresAt,
+      refreshTokenExpiresAt:
+        partialTokens?.refreshTokenExpiresAt ?? currentSession.tokens.refreshTokenExpiresAt,
+    },
   };
 }

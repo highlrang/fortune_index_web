@@ -155,7 +155,32 @@ function CardMedia({
   }
 
   if (card.imageSrc) {
-    return <img src={card.imageSrc} alt={alt} className={className} />;
+    return (
+      <>
+        <motion.img
+          src={card.imageSrc}
+          alt={alt}
+          className={className}
+          animate={{ scale: [1, 1.03, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(135deg, transparent 20%, color-mix(in srgb, var(--tarot-point-color) 20%, transparent) 50%, transparent 80%)',
+            mixBlendMode: 'overlay',
+          }}
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.14] to-transparent"
+          animate={{ x: ['-100%', '200%'] }}
+          transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 4.5, ease: 'easeInOut' }}
+        />
+      </>
+    );
   }
 
   return <TarotCardFallbackFace className={className} />;
