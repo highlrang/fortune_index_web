@@ -454,7 +454,21 @@ html.is-native-webview.is-native-android {
     --tarot-spread-slot-height: 128px;
   }
 
+  .tarot-result-fullscreen-card {
+    width: min(80vw, 320px);
+    height: min(120vw, 480px);
+  }
+
   @media (orientation: landscape) and (max-height: 520px) {
+    .tarot-result-page .tarot-result-bottom-hint {
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 4.5rem);
+    }
+
+    .tarot-result-fullscreen-card {
+      width: min(52vw, calc((100dvh - 6.5rem) * 0.6667));
+      height: min(78vw, calc(100dvh - 6.5rem));
+    }
+
     .tarot-spread-page {
       --tarot-spread-chrome-top: 5.25rem;
       --tarot-spread-slots-top: 5.25rem;

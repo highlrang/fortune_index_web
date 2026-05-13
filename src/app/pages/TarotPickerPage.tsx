@@ -22,13 +22,13 @@ const SPLIT_DEPTH_MULTIPLIER = 0.65;
 const ROTATION_ANGLE = 65; // degrees - card deck rotation on X axis
 const SHUFFLE_ANIMATION_DURATION = 1.2;
 const SHUFFLE_ANIMATION_MS = SHUFFLE_ANIMATION_DURATION * 1000;
-const POST_SHUFFLE_UI_DELAY_MS = 220;
 const SHUFFLE_VERTICAL_TRAVEL = 180;
 const RANDOM_SHUFFLE_ANIMATION_MS = 980;
 const RANDOM_SHUFFLE_CHUNK_COUNT = 4;
 const INITIAL_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
 const CARD_WIDTH = 220;
 const CARD_HEIGHT = 340;
+const MERGED_TOP_CARD_Z = TOTAL_CARDS * CARD_THICKNESS;
 
 function fract(value: number) {
   return value - Math.floor(value);
@@ -326,7 +326,6 @@ export function TarotPickerPage() {
 
   const isDraggingRotation = useRef(false);
   const shuffleCommitTimeoutRef = useRef<number | null>(null);
-  const shuffledUiTimeoutRef = useRef<number | null>(null);
   const randomShuffleTimeoutRef = useRef<number | null>(null);
   const rotation = useSpring(0, {
     stiffness: 200,
@@ -337,10 +336,6 @@ export function TarotPickerPage() {
     if (shuffleCommitTimeoutRef.current !== null) {
       window.clearTimeout(shuffleCommitTimeoutRef.current);
       shuffleCommitTimeoutRef.current = null;
-    }
-    if (shuffledUiTimeoutRef.current !== null) {
-      window.clearTimeout(shuffledUiTimeoutRef.current);
-      shuffledUiTimeoutRef.current = null;
     }
     if (randomShuffleTimeoutRef.current !== null) {
       window.clearTimeout(randomShuffleTimeoutRef.current);
@@ -405,10 +400,7 @@ export function TarotPickerPage() {
       setSwappedOrder(false);
       setIsShuffling(false);
       setIsMergedStack(true);
-
-      shuffledUiTimeoutRef.current = window.setTimeout(() => {
-        setHasShuffled(true);
-      }, POST_SHUFFLE_UI_DELAY_MS);
+      setHasShuffled(true);
     }, SHUFFLE_ANIMATION_MS);
   };
 
@@ -456,6 +448,7 @@ export function TarotPickerPage() {
 
   const upperDeckCards = visualDeckOrder.slice(0, splitIndex);
   const lowerDeckCards = visualDeckOrder.slice(splitIndex);
+  const canProceedToSpread = hasShuffled && !isShuffling;
   const splitPointZ = (splitIndex - 1) * CARD_THICKNESS;
   const depthFactor = splitIndex / TOTAL_CARDS;
   const compensatedDistance = SPLIT_DISTANCE * (1 + depthFactor * SPLIT_DEPTH_MULTIPLIER);
@@ -847,6 +840,26 @@ export function TarotPickerPage() {
 
               {isMergedStack && (
                 <div
+                  className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    width: `${CARD_WIDTH}px`,
+                    height: `${CARD_HEIGHT}px`,
+                    transform: `translateZ(${MERGED_TOP_CARD_Z}px)`,
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                  }}
+                >
+                  <DeckCardFace
+                    isBottomCard={false}
+                    isTopCard
+                    isVisible
+                    reduceEffects={reduceWebViewEffects}
+                  />
+                </div>
+              )}
+
+              {isMergedStack && (
+                <div
                   className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                   style={{
                     transformStyle: 'preserve-3d',
@@ -901,11 +914,11 @@ export function TarotPickerPage() {
           <motion.div
             initial={false}
             animate={{
-              opacity: hasShuffled ? 1 : 0,
-              y: hasShuffled ? 0 : 20,
+              opacity: canProceedToSpread ? 1 : 0,
+              y: canProceedToSpread ? 0 : 20,
             }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={hasShuffled ? '' : 'pointer-events-none'}
+            className={canProceedToSpread ? '' : 'pointer-events-none'}
           >
             <motion.button
               onClick={handleConfirm}

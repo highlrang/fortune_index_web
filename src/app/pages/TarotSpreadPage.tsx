@@ -122,11 +122,14 @@ export function TarotSpreadPage() {
   });
 
   const [currentCenterIndex, setCurrentCenterIndex] = useState(0);
+  const currentCenterIndexRef = useRef(0);
 
   const selectedCardIds = selectedCards.filter((cardId): cardId is number => cardId !== null);
 
   useEffect(() => {
     const unsubscribe = centerCardIndex.on('change', (latest) => {
+      if (latest === currentCenterIndexRef.current) return;
+      currentCenterIndexRef.current = latest;
       setCurrentCenterIndex(latest);
     });
     return () => unsubscribe();
@@ -217,6 +220,8 @@ export function TarotSpreadPage() {
     
     // Snap to card
     const targetScroll = -(clampedIndex / TOTAL_CARDS) * totalWidth;
+    currentCenterIndexRef.current = clampedIndex;
+    setCurrentCenterIndex(clampedIndex);
     scrollX.set(targetScroll);
   };
 
@@ -403,11 +408,11 @@ export function TarotSpreadPage() {
               left: -(TOTAL_CARDS - 1) * CARD_OVERLAP,
               right: 0,
             }}
-            dragElastic={0.05}
-            dragMomentum={true}
+            dragElastic={reduceWebViewEffects ? 0 : 0.05}
+            dragMomentum={!reduceWebViewEffects}
             onDragStart={() => setIsDragging(true)}
             onDragEnd={handleDragEnd}
-            style={{ x: scrollX, touchAction: 'none' }}
+            style={{ x: scrollX, touchAction: 'none', willChange: 'transform' }}
             className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
           >
             {deckOrder.map((cardId, index) => {
@@ -447,6 +452,7 @@ export function TarotSpreadPage() {
                     if (!isDragging && !isSelected) {
                       // If card is not active, make it active
                       if (!isCentered) {
+                        currentCenterIndexRef.current = index;
                         setCurrentCenterIndex(index);
                       } else {
                         // If card is already active, select it
@@ -470,9 +476,21 @@ export function TarotSpreadPage() {
                     whileTap={!isDragging && !isSelected ? { scale: 0.97 } : {}}
                   >
                     {/* Card back pattern */}
-                    <div className="absolute inset-0 flex items-center justify-center p-3">
-                      <TarotCardBackPattern />
-                    </div>
+                    {reduceWebViewEffects ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div
+                          className="h-9 w-9 rounded-full border"
+                          style={{
+                            borderColor: 'var(--tarot-card-sigil)',
+                            boxShadow: '0 0 18px color-mix(in srgb, var(--tarot-card-sigil) 28%, transparent)',
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center p-3">
+                        <TarotCardBackPattern />
+                      </div>
+                    )}
 
                     <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
                   </motion.div>

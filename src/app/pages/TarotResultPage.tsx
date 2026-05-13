@@ -389,7 +389,10 @@ export function TarotResultPage() {
       try {
         await saveHomeDailyTarotDraw({
           tarotDeckVersionId,
-          tarotIndices: selectedCards,
+          tarotIndices: cards
+            .slice()
+            .sort((left, right) => left.id - right.id)
+            .map((card) => card.selectedIndex),
         });
         navigate('/home');
       } catch (err) {
@@ -442,7 +445,7 @@ export function TarotResultPage() {
   const allCardsRevealed = cards.every(c => c.revealState === 'front');
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={pageGradientStyle}>
+    <div className="tarot-result-page fixed inset-0 overflow-hidden" style={pageGradientStyle}>
       <div className="absolute inset-0">
         {STATIC_STARS.map((star) => (
           <motion.div
@@ -619,12 +622,8 @@ export function TarotResultPage() {
                 {/* Fullscreen card (expanding or revealing state) */}
                 {isFullscreen && (
                   <motion.div
-                    className="fixed left-1/2 top-1/2 z-[100] cursor-pointer"
+                    className="tarot-result-fullscreen-card fixed left-1/2 top-1/2 z-[100] cursor-pointer"
                     style={{
-                      width: '80vw',
-                      height: '120vw',
-                      maxWidth: '320px',
-                      maxHeight: '480px',
                       x: '-50%',
                       y: '-50%',
                     }}
@@ -834,7 +833,7 @@ export function TarotResultPage() {
 
       {/* Bottom hint text */}
       {!allCardsRevealed && !isAnimating && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-32 left-0 right-0 z-10 text-center">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="tarot-result-bottom-hint absolute bottom-32 left-0 right-0 z-10 text-center">
           <p className="text-sm" style={{ color: 'var(--app-text-subtle)' }}>
             {isCardMediaPrepared ? '카드를 터치하여 운세를 확인하세요' : '카드 이미지를 준비하고 있습니다'}
           </p>
