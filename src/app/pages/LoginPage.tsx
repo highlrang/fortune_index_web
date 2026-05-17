@@ -22,7 +22,7 @@ export function LoginPage() {
             </div>
           </div>
           <p className="text-sm leading-5 fi-text-muted">
-            사주, 타로, 별자리로 읽는 나만의 투자 운세
+            사주, 타로, 별자리로 읽는 나만의 재물 흐름
           </p>
         </div>
 

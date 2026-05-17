@@ -13,11 +13,11 @@ import { mapHistoryDetailToConsultResult } from '@/lib/consultHistory';
 import { getCurrentUser } from '@/lib/session';
 
 export type ConsultationType =
-  | '투자 운세'
-  | '투자 타로 운세'
-  | '투자 사주 운세'
-  | '투자 별자리 운세'
-  | '투자 종합 운세';
+  | '재물 흐름'
+  | '타로 재물 흐름'
+  | '사주 재물 흐름'
+  | '별자리 재물 흐름'
+  | '종합 재물 흐름';
 type LikeFilter = 'all' | 'liked';
 
 export function ConsultationHistoryPage() {
@@ -87,11 +87,11 @@ export function ConsultationHistoryPage() {
 
   const consultationTypes: Array<ConsultationType | 'all'> = [
     'all',
-    '투자 운세',
-    '투자 타로 운세',
-    '투자 사주 운세',
-    '투자 별자리 운세',
-    '투자 종합 운세',
+    '재물 흐름',
+    '타로 재물 흐름',
+    '사주 재물 흐름',
+    '별자리 재물 흐름',
+    '종합 재물 흐름',
   ];
 
   const filteredItems = useMemo(() => {
@@ -470,11 +470,11 @@ function formatDate(dateStr: string) {
 }
 
 function mapModeToLabel(mode: ConsultingHistoryListItemResponse['mode']): ConsultationType {
-  if (mode === 'INVESTMENT_TAROT') return '투자 타로 운세';
-  if (mode === 'INVESTMENT_SAJU') return '투자 사주 운세';
-  if (mode === 'INVESTMENT_ZODIAC') return '투자 별자리 운세';
-  if (mode === 'INVESTMENT_ALL') return '투자 종합 운세';
-  return '투자 운세';
+  if (mode === 'INVESTMENT_TAROT') return '타로 재물 흐름';
+  if (mode === 'INVESTMENT_SAJU') return '사주 재물 흐름';
+  if (mode === 'INVESTMENT_ZODIAC') return '별자리 재물 흐름';
+  if (mode === 'INVESTMENT_ALL') return '종합 재물 흐름';
+  return '재물 흐름';
 }
 
 function getTypeIcon(mode: ConsultingHistoryListItemResponse['mode']) {

@@ -83,7 +83,7 @@ export function SignupStageLayout({
                 <VodaThemeLogo size={168} />
               </div>
             </div>
-            <p className="text-sm leading-5 fi-text-muted">사주, 타로, 별자리로 읽는 나만의 투자 운세</p>
+            <p className="text-sm leading-5 fi-text-muted">사주, 타로, 별자리로 읽는 나만의 재물 흐름</p>
           </div>
 
           <div className="mb-4 flex justify-center max-[900px]:mb-3">

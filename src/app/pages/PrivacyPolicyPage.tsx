@@ -38,7 +38,7 @@ export function PrivacyPolicyPage() {
               <h2 className="text-base font-semibold fi-text-main">수집하는 개인정보</h2>
             </div>
             <div className="space-y-3 text-sm leading-7 fi-text-muted">
-              <p>회사는 회원가입, 본인 확인, 서비스 제공을 위해 이름, 이메일, 비밀번호, 생년월일, 출생시간, 성별, 투자 성향, 관심 섹터 정보를 수집할 수 있습니다.</p>
+              <p>회사는 회원가입, 본인 확인, 서비스 제공을 위해 이름, 이메일, 비밀번호, 생년월일, 출생시간, 성별, 자산 운용 성향, 관심 섹터 정보를 수집할 수 있습니다.</p>
               <p>서비스 이용 과정에서 접속 로그, 기기 정보, 이용 기록, 알림 설정 여부 등 서비스 운영에 필요한 정보가 자동으로 생성되어 수집될 수 있습니다.</p>
             </div>
           </section>
@@ -49,7 +49,7 @@ export function PrivacyPolicyPage() {
               <h2 className="text-base font-semibold fi-text-main">이용 목적</h2>
             </div>
             <div className="space-y-3 text-sm leading-7 fi-text-muted">
-              <p>수집한 개인정보는 회원 식별, 계정 관리, 맞춤형 투자 성향 분석, 상담 이력 제공, 공지 및 안내, 고객 문의 대응을 위해 이용됩니다.</p>
+              <p>수집한 개인정보는 회원 식별, 계정 관리, 맞춤형 자산 운용 성향 해석, 상담 이력 제공, 공지 및 안내, 고객 문의 대응을 위해 이용됩니다.</p>
               <p>회사는 서비스 품질 개선, 오류 분석, 부정 이용 방지, 보안 강화를 위해 필요한 범위에서 개인정보를 활용할 수 있습니다.</p>
             </div>
           </section>

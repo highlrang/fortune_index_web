@@ -36,10 +36,10 @@ export function ConsultationPage() {
 
   const questionPlaceholder = useMemo(() => {
     if (!selectedScenario) {
-      return `편하게 질문해주세요\n예: ${pickConsultationQuestion('MENTAL_GUIDE', selectedType)}`;
+      return `지금 마음속에 있는 자산 흐름 고민을 자유롭게 적어주세요\n예: ${pickConsultationQuestion('MENTAL_GUIDE', selectedType)}`;
     }
 
-    return `편하게 질문해주세요\n예: ${pickConsultationQuestion(
+    return `지금 마음속에 있는 자산 흐름 고민을 자유롭게 적어주세요\n예: ${pickConsultationQuestion(
       selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE',
       selectedType,
     )}`;
@@ -56,7 +56,7 @@ export function ConsultationPage() {
       })
       .catch((err) => {
         if (!active) return;
-        setError(err instanceof Error ? err.message : '시나리오를 불러오지 못했습니다.');
+        setError(err instanceof Error ? err.message : '흐름 항목을 불러오지 못했습니다.');
       })
       .finally(() => {
         if (!active) return;
@@ -83,7 +83,7 @@ export function ConsultationPage() {
     }
 
     if (!selectedScenario) {
-      setError('시나리오를 선택해주세요.');
+      setError('궁금한 흐름을 선택해주세요.');
       return;
     }
 
@@ -237,7 +237,7 @@ export function ConsultationPage() {
                   );
                 })}
               </div>
-              {loadingScenarios ? <p className="mt-3 text-xs fi-text-subtle">시나리오 불러오는 중...</p> : null}
+              {loadingScenarios ? <p className="mt-3 text-xs fi-text-subtle">흐름 항목을 불러오는 중...</p> : null}
             </div>
 
             <div>

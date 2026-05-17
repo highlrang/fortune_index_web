@@ -847,7 +847,7 @@ export function MyPage() {
                   </div>
                 </ProfileField>
 
-                <ProfileField label="투자 성향">
+                <ProfileField label="자산 운용 성향">
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { label: '안정형', value: 'STABLE' as const },
@@ -1459,7 +1459,7 @@ export function MyPage() {
             </div>
             <div className="flex items-center gap-3 py-3">
               <TrendingUp className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
-              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>투자 성향</span>
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>자산 운용 성향</span>
               <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>
                 {investmentStyle === 'aggressive' ? '공격형' : '안정형'}
               </span>
@@ -1775,7 +1775,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
     elementDescription: null as string | null,
     keyword: '현실감각',
     keywordDescription: null as string | null,
-    summary: '차분하게 방향을 잡고 꾸준히 쌓아가는 성향이 강합니다. 투자나 선택에서도 속도보다 구조와 안정성을 중시하는 편입니다.',
+    summary: '차분하게 방향을 잡고 꾸준히 쌓아가는 성향이 강합니다. 자산 운용이나 선택에서도 속도보다 구조와 안정성을 중시하는 편입니다.',
     traits: ['신중함', '꾸준함', '집중력'],
     traitDetails: [] as Array<{ name: string; description: string }>,
     strengths: [] as string[],

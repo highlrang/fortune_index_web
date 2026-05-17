@@ -12,7 +12,7 @@ import {
 import { mapHistoryDetailToConsultResult } from '@/lib/consultHistory';
 import { getCurrentUser } from '@/lib/session';
 
-type FortuneType = '투자 운세' | '투자 타로 운세' | '투자 사주 운세' | '투자 별자리 운세' | '투자 종합 운세';
+type FortuneType = '재물 흐름' | '타로 재물 흐름' | '사주 재물 흐름' | '별자리 재물 흐름' | '종합 재물 흐름';
 
 export function LikedFortunesPage() {
   const navigate = useNavigate();
@@ -61,11 +61,11 @@ export function LikedFortunesPage() {
 
   const getTypeIcon = (type: FortuneType) => {
     switch (type) {
-      case '투자 타로 운세':
+      case '타로 재물 흐름':
         return <Eye className="h-5 w-5" />;
-      case '투자 사주 운세':
+      case '사주 재물 흐름':
         return <Sparkles className="h-5 w-5" />;
-      case '투자 별자리 운세':
+      case '별자리 재물 흐름':
         return <MoonStar className="h-5 w-5" />;
       default:
         return <TrendingUp className="h-5 w-5" />;
@@ -74,11 +74,11 @@ export function LikedFortunesPage() {
 
   const getTypeColor = (type: FortuneType) => {
     switch (type) {
-      case '투자 타로 운세':
+      case '타로 재물 흐름':
         return 'from-purple-500/20 to-violet-600/20 border-purple-500/30 fi-status-text-info';
-      case '투자 사주 운세':
+      case '사주 재물 흐름':
         return 'from-amber-500/20 to-orange-600/20 border-amber-500/30 fi-status-text-warning';
-      case '투자 별자리 운세':
+      case '별자리 재물 흐름':
         return 'from-sky-500/20 to-blue-600/20 border-sky-500/30 text-sky-300';
       default:
         return 'from-emerald-500/20 to-green-600/20 border-emerald-500/30 fi-status-text-success';
@@ -206,11 +206,9 @@ export function LikedFortunesPage() {
                           </div>
                         </div>
 
-                        {typeof fortune.currentValue === 'number' ? (
-                          <div className="fi-badge flex items-center gap-2 rounded-full px-3 py-1">
-                            <span className="text-sm font-bold fi-text-accent">{formatCurrentValue(fortune.currentValue)}</span>
-                          </div>
-                        ) : null}
+                        <div className="fi-badge flex items-center gap-2 rounded-full px-3 py-1">
+                          <span className="text-xs font-medium fi-text-accent">저장한 흐름</span>
+                        </div>
                       </div>
 
                       <p className="mb-4 text-sm leading-relaxed fi-text-muted">
@@ -249,12 +247,12 @@ export function LikedFortunesPage() {
 
 function mapModeToFortuneType(fortune: ConsultingHistorySummaryResponse): FortuneType {
   if (fortune.tarotCardNames.length > 0 && fortune.scenario === 'SAJU_MATCH') {
-    return '투자 종합 운세';
+    return '종합 재물 흐름';
   }
-  if (fortune.mode === 'INVESTMENT_ZODIAC') return '투자 별자리 운세';
-  if (fortune.scenario === 'SAJU_MATCH') return '투자 사주 운세';
-  if (fortune.tarotCardNames.length > 0) return '투자 타로 운세';
-  return '투자 운세';
+  if (fortune.mode === 'INVESTMENT_ZODIAC') return '별자리 재물 흐름';
+  if (fortune.scenario === 'SAJU_MATCH') return '사주 재물 흐름';
+  if (fortune.tarotCardNames.length > 0) return '타로 재물 흐름';
+  return '재물 흐름';
 }
 
 function formatDateTime(value: string) {
@@ -263,21 +261,9 @@ function formatDateTime(value: string) {
   return date.toLocaleString();
 }
 
-function formatCurrentValue(value: number) {
-  return new Intl.NumberFormat('ko-KR', {
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatChangeRate(value?: number | null) {
-  if (typeof value !== 'number') return null;
-  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
-}
-
 function buildSummary(fortune: ConsultingHistorySummaryResponse) {
   const parts = [
-    fortune.selectedFocusLabel ? `대상: ${fortune.selectedFocusLabel}` : null,
-    formatChangeRate(fortune.changeRate) ? `변동률: ${formatChangeRate(fortune.changeRate)}` : null,
+    fortune.selectedFocusLabel ? `흐름: ${fortune.selectedFocusLabel}` : null,
     fortune.tarotCardNames.length ? `카드: ${fortune.tarotCardNames.join(', ')}` : null,
   ].filter(Boolean);
 

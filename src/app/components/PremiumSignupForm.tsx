@@ -364,7 +364,7 @@ export function PremiumSignupForm({
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm fi-text-accent">투자 성향</label>
+        <label className="block text-sm fi-text-accent">자산 운용 성향</label>
         <div className="grid grid-cols-2 gap-4">
           {[
             { label: '안정형', value: 'STABLE' as const },

@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { BenefitCard } from '../components/subscription/BenefitCard';
 import { ComparisonTable } from '../components/subscription/ComparisonTable';
 import { VodaLogoHybrid } from '../components/logos/VodaLogo';
+import { InvestmentDisclaimer } from '../components/InvestmentDisclaimer';
 import { getOptionalEnv } from '@/lib/env';
 
 const PAYMENT_PAGE_URL = getOptionalEnv('VITE_PAYMENT_PAGE_URL');
@@ -267,7 +268,10 @@ export function SubscriptionLandingPage() {
                 <p className="text-sm text-white/60">첫 결제 후 7일 이내 전액 환불 가능합니다. 서비스 이용 전 환불 요청 시 처리됩니다.</p>
               </div>
             </div>
-            <div className="border-t border-white/10 pt-8 text-center text-sm text-white/40">© 2026 Voda. All rights reserved.</div>
+            <div className="border-t border-white/10 pt-8">
+              <InvestmentDisclaimer variant="dark" className="mb-6" />
+              <p className="text-center text-sm text-white/40">© 2026 Voda. All rights reserved.</p>
+            </div>
           </div>
         </footer>
       </div>
@@ -276,7 +280,7 @@ export function SubscriptionLandingPage() {
         initial={{ y: 100 }}
         animate={{ y: isSticky ? 0 : 100 }}
         transition={{ duration: 0.3 }}
-        className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-indigo-950/95 p-4 backdrop-blur-xl lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-indigo-950/95 px-4 pb-6 pt-4 backdrop-blur-xl lg:hidden"
       >
         <button
           type="button"
@@ -285,6 +289,7 @@ export function SubscriptionLandingPage() {
         >
           구독 시작하기 - 월 5,000원
         </button>
+        <InvestmentDisclaimer variant="dark" className="mt-3" />
       </motion.div>
     </div>
   );

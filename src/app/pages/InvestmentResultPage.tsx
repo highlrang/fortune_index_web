@@ -13,7 +13,9 @@ import {
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { InvestmentDisclaimer } from '../components/InvestmentDisclaimer';
 import {
+  getDailyRiskIndex,
   likeConsultingHistory,
   unlikeConsultingHistory,
   type ConsultResponse,
@@ -75,6 +77,13 @@ const iconByKey = {
   zodiac_analysis: MoonStar,
 } as const;
 
+function getRiskGaugeColor(score: number): string {
+  if (score < 30) return '#3B82F6';
+  if (score < 50) return '#22C55E';
+  if (score < 70) return '#F97316';
+  return '#EF4444';
+}
+
 const titleByMode = {
   INVESTMENT_SAJU: '사주 해석',
   INVESTMENT_TAROT: '타로 해석',
@@ -104,11 +113,12 @@ export function InvestmentResultPage() {
       }));
   }, [consultResult]);
 
-  const confidenceScore = useMemo(() => {
+  const riskScore = useMemo(() => {
     if (!consultResult || typeof consultResult.ai?.riskScore !== 'number') return null;
-    return Math.max(0, 100 - consultResult.ai.riskScore);
+    return Math.min(100, Math.max(0, consultResult.ai.riskScore));
   }, [consultResult]);
 
+  const [energyLabel, setEnergyLabel] = useState('');
   const [isLiked, setIsLiked] = useState(Boolean(navigationState?.initialLiked));
   const [likePending, setLikePending] = useState(false);
   const [likeError, setLikeError] = useState('');
@@ -117,6 +127,13 @@ export function InvestmentResultPage() {
   useEffect(() => {
     setIsLiked(Boolean(navigationState?.initialLiked));
   }, [navigationState?.initialLiked, consultResult?.history?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    getDailyRiskIndex(currentUser.id)
+      .then((data) => setEnergyLabel(data.energyLabel))
+      .catch(() => {});
+  }, [currentUser?.id]);
 
   const handleLikeToggle = async () => {
     if (!currentUser?.id || !consultResult?.history?.id || likePending) return;
@@ -197,45 +214,42 @@ export function InvestmentResultPage() {
         </div>
 
         <div className="fi-mobile-scroll px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-4">
-          {typeof confidenceScore === 'number' ? (
+          {typeof riskScore === 'number' ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="mb-8"
             >
-              <div className="relative overflow-hidden rounded-3xl p-8" style={accentCardStyle}>
+              <div className="relative overflow-hidden rounded-3xl p-6" style={accentCardStyle}>
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
                 <div className="relative">
                   <div className="mb-4 flex items-center justify-center gap-2">
                     <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-point-color)' }} />
                     <h2 className="text-center text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--app-accent-text-soft)' }}>
-                      오늘의 자신감
+                      오늘의 자산 운용 에너지 긴장도
                     </h2>
                   </div>
 
-                  <div className="mb-3 flex items-center justify-center">
-                    <div
-                      className="relative flex h-40 w-40 items-center justify-center rounded-full border-4"
-                      style={{
-                        borderColor: 'var(--app-accent-border-strong)',
-                        background:
-                          'linear-gradient(135deg, var(--app-accent-soft) 0%, color-mix(in srgb, var(--app-accent-glow) 35%, transparent) 100%)',
-                      }}
-                    >
-                      <div className="text-center">
-                        <span className="text-6xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{confidenceScore}</span>
-                        <span className="ml-2 text-2xl" style={{ color: 'var(--app-text-muted)' }}>점</span>
-                      </div>
-                    </div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-4xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{riskScore}</span>
+                    <span className="text-sm" style={{ color: 'var(--app-text-muted)' }}>/ 100</span>
                   </div>
 
-                  <div className="text-center">
-                    <p className="text-base font-medium" style={{ color: 'var(--app-text-soft)' }}>
-                      {confidenceScore >= 80 ? '마음 편히 가도 좋은 흐름' : confidenceScore >= 60 ? '차분하게 가면 괜찮은 흐름' : '조금 천천히 보는 편이 좋아요'}
-                    </p>
+                  <div className="mb-3 h-3 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${riskScore}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                      style={{ backgroundColor: getRiskGaugeColor(riskScore) }}
+                    />
                   </div>
+
+                  {energyLabel ? (
+                    <p className="text-xs" style={{ color: 'var(--app-text-muted)' }}>{energyLabel}</p>
+                  ) : null}
                 </div>
               </div>
             </motion.div>
@@ -348,6 +362,8 @@ export function InvestmentResultPage() {
               </button>
             </div>
           </div>
+
+          <InvestmentDisclaimer className="mt-8" text={consultResult.disclaimer} />
 
           {showDeleteConfirm ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'var(--app-modal-backdrop)' }}>

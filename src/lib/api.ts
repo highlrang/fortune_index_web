@@ -295,6 +295,16 @@ export interface ConsultResponse {
   tarot?: TarotConsultResponse;
   ai: HybridConsultingAiResponse;
   history: SharedConsultingHistoryResponse;
+  disclaimer?: string;
+}
+
+export interface DailyRiskIndexResponse {
+  userId: number;
+  date: string;
+  riskScore: number;
+  energyLabel: string;
+  riskFlags: string[];
+  disclaimer: string;
 }
 
 export interface TokenRefreshPayload {
@@ -684,6 +694,10 @@ export async function saveHomeDailyTarotDraw(payload: SaveHomeDailyTarotDrawPayl
 
 export async function getScenarios() {
   return request<ScenarioOptionResponse[]>('/api/scenarios');
+}
+
+export async function getDailyRiskIndex(userId: number) {
+  return request<DailyRiskIndexResponse>(`/api/daily-risk-index${buildQuery({ userId })}`);
 }
 
 export async function getTarotDeckVersions() {

@@ -3,6 +3,7 @@ import { AlertCircle, ArrowRight, Lock, Sparkles, Star, TrendingUp } from 'lucid
 import { Link, useNavigate } from 'react-router';
 import { ValueCard } from '../components/wealth/ValueCard';
 import { VodaLogoHybrid } from '../components/logos/VodaLogo';
+import { InvestmentDisclaimer } from '../components/InvestmentDisclaimer';
 
 export function WealthLandingPage() {
   const navigate = useNavigate();
@@ -11,19 +12,19 @@ export function WealthLandingPage() {
     {
       icon: TrendingUp,
       title: '돈의 흐름 분석',
-      description: '들어오는 돈과 나가는 돈의 흐름을 파악하고 금전 운세를 확인하세요',
+      description: '들어오고 나가는 재물 흐름을 살피고 오늘의 금전 운세를 점검하세요',
       gradient: 'from-amber-500/20 to-yellow-600/10',
     },
     {
       icon: Star,
-      title: '기회 타이밍 예측',
-      description: '투자, 소비, 중요한 금전 결정을 위한 최적의 타이밍을 제안합니다',
+      title: '기회 흐름 해석',
+      description: '자산 운용, 소비, 중요한 금전 선택 앞에서 마음의 기준을 정리합니다',
       gradient: 'from-violet-500/20 to-purple-600/10',
     },
     {
       icon: AlertCircle,
-      title: '리스크 신호 감지',
-      description: '손실 가능성이 높은 시점과 주의가 필요한 순간을 미리 알려드립니다',
+      title: '리스크 민감도 점검',
+      description: '불안이 커지기 쉬운 순간과 차분히 살펴볼 기준을 짚어드립니다',
       gradient: 'from-rose-500/20 to-red-600/10',
     },
   ];
@@ -67,7 +68,7 @@ export function WealthLandingPage() {
                 </h1>
 
                 <p className="text-lg leading-relaxed text-white/70 md:text-xl">
-                  타로와 사주로 재물운과 기회 타이밍을 분석합니다.
+                  타로와 사주로 재물운과 기회 흐름을 해석합니다.
                   <br />
                   당신의 금전 흐름을 미리 확인하세요.
                 </p>
@@ -132,7 +133,7 @@ export function WealthLandingPage() {
             className="mb-16 text-center"
           >
             <h2 className="mb-4 text-4xl font-medium text-white md:text-5xl">재물 운세로 얻을 수 있는 것</h2>
-            <p className="text-lg text-white/60">돈과 관련된 명확한 인사이트를 제공합니다</p>
+            <p className="text-lg text-white/60">재물 흐름과 마음의 기준을 함께 정리합니다</p>
           </motion.div>
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -157,8 +158,8 @@ export function WealthLandingPage() {
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/30 to-violet-500/30">
                 <Lock className="h-8 w-8 text-amber-300" />
               </div>
-              <h2 className="text-3xl font-medium text-white md:text-4xl">더 정확한 재물 흐름을 알고 싶다면</h2>
-              <p className="text-lg text-white/70">프리미엄으로 더 깊은 분석과 예측을 경험하세요</p>
+              <h2 className="text-3xl font-medium text-white md:text-4xl">더 깊은 재물 흐름을 알고 싶다면</h2>
+              <p className="text-lg text-white/70">프리미엄으로 더 깊은 해석과 마음 점검을 경험하세요</p>
 
               <div className="mx-auto max-w-2xl space-y-3 pt-4">
                 {['다양한 타로 덱 + 보조 오라클 카드', '월별 / 연별 재물 운세 상세 분석', '상담기록 무제한 저장'].map((benefit, i) => (
@@ -217,13 +218,16 @@ export function WealthLandingPage() {
             <div className="mb-4 flex justify-center">
               <VodaLogoHybrid size={138} theme="dark" />
             </div>
-            <p className="mb-6 text-base text-white/60">타로와 사주로 재물운을 분석하는 프리미엄 플랫폼</p>
+            <p className="mb-6 text-base text-white/60">타로와 사주로 재물 흐름을 해석하는 프리미엄 플랫폼</p>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-white/60">
               <Link to="/terms" className="hover:text-white/80">서비스 약관</Link>
               <Link to="/privacy" className="hover:text-white/80">개인정보 처리 약관</Link>
               <Link to="/refund-policy" className="hover:text-white/80">환불 정책</Link>
             </div>
-            <div className="mt-8 border-t border-white/10 pt-8 text-sm text-white/40">© 2026 Voda. All rights reserved.</div>
+            <div className="mt-8 border-t border-white/10 pt-8">
+            <InvestmentDisclaimer variant="dark" className="mb-6" />
+            <p className="text-sm text-white/40">© 2026 Voda. All rights reserved.</p>
+          </div>
           </div>
         </footer>
       </div>
