@@ -18,6 +18,18 @@ import {
 
 export default function App() {
   useEffect(() => {
+    if (!document.documentElement.classList.contains('is-native-webview')) return;
+
+    window.__FORTUNE_NATIVE_TAROT_COMPLETE__ = (payload) => {
+      router.navigate('/tarot-result', { state: payload });
+    };
+
+    return () => {
+      delete window.__FORTUNE_NATIVE_TAROT_COMPLETE__;
+    };
+  }, []);
+
+  useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const {
       email,
