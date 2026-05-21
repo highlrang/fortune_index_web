@@ -375,26 +375,17 @@ export function TarotPickerPage() {
     setIsSplit(true);
   };
 
-  const handleMergedDeckHotspotClick = (physicalIndex: number) => (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isMergedStack || isShuffling) return;
-
-    setHasShuffled(false);
-    setIsMergedStack(false);
-    setVisualDeckOrder(deckOrder);
-    setSplitIndex(physicalIndex + 1);
-  };
-
   const startShuffle = () => {
     if (isShuffling) return;
 
     clearShuffleTimers();
 
+    const nextDeckOrder = getSinglePassInterleavedOrder(visualDeckOrder, splitIndex);
+
     setIsShuffling(true);
     setSwappedOrder(true);
 
     shuffleCommitTimeoutRef.current = window.setTimeout(() => {
-      const nextDeckOrder = getSinglePassInterleavedOrder(visualDeckOrder, splitIndex);
       setDeckOrder(nextDeckOrder);
       setVisualDeckOrder(nextDeckOrder);
       setSwappedOrder(false);
@@ -845,6 +836,9 @@ export function TarotPickerPage() {
                     width: `${CARD_WIDTH}px`,
                     height: `${CARD_HEIGHT}px`,
                     transform: `translateZ(${MERGED_TOP_CARD_Z}px)`,
+                    transformStyle: 'preserve-3d',
+                    zIndex: 5,
+                    willChange: 'transform',
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
                   }}
@@ -855,54 +849,6 @@ export function TarotPickerPage() {
                     isVisible
                     reduceEffects={reduceWebViewEffects}
                   />
-                </div>
-              )}
-
-              {isMergedStack && (
-                <div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                  style={{
-                    transformStyle: 'preserve-3d',
-                  }}
-                >
-                  {visualDeckOrder.map((cardIndex, i) => {
-                    const zOffset = i * CARD_THICKNESS;
-                    const isBottomCard = i === TOTAL_CARDS - 1;
-
-                    if (isBottomCard) {
-                      return null;
-                    }
-
-                    return (
-                    <motion.div
-                      key={`merged-hotspot-${cardIndex}`}
-                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                      style={{
-                        width: `${CARD_WIDTH}px`,
-                        height: `${CARD_HEIGHT}px`,
-                          z: zOffset,
-                          pointerEvents: 'none',
-                        }}
-                      >
-                        <div
-                          onClick={handleMergedDeckHotspotClick(i)}
-                          className="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors"
-                          style={{
-                            height: '10px',
-                            zIndex: 1000,
-                            pointerEvents: 'auto',
-                          }}
-                        >
-                          <div
-                            className="h-full w-full border-b-2 transition-colors"
-                            style={{
-                              borderColor: 'transparent',
-                            }}
-                          />
-                        </div>
-                      </motion.div>
-                    );
-                  })}
                 </div>
               )}
             </div>
