@@ -376,7 +376,7 @@ export function TarotPickerPage() {
   };
 
   const startShuffle = () => {
-    if (isShuffling) return;
+    if (isShuffling || isMergedStack) return;
 
     clearShuffleTimers();
 
@@ -715,6 +715,7 @@ export function TarotPickerPage() {
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
                 style={{
                   transformStyle: 'preserve-3d',
+                  pointerEvents: isMergedStack ? 'none' : 'auto',
                 }}
                 animate={{
                   z: isShuffling
@@ -736,7 +737,6 @@ export function TarotPickerPage() {
                     times: [0, 0.35, 0.72, 1],
                   },
                 }}
-                pointerEvents={isMergedStack ? 'none' : 'auto'}
                 whileHover={{ scale: isShuffling ? 1 : 1.02 }}
                 whileTap={{ scale: isShuffling ? 1 : 0.98 }}
               >
@@ -774,6 +774,7 @@ export function TarotPickerPage() {
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
                 style={{
                   transformStyle: 'preserve-3d',
+                  pointerEvents: isMergedStack ? 'none' : 'auto',
                 }}
                 animate={{
                   z: isShuffling
@@ -795,7 +796,6 @@ export function TarotPickerPage() {
                     times: [0, 0.35, 0.72, 1],
                   },
                 }}
-                pointerEvents={isMergedStack ? 'none' : 'auto'}
                 whileHover={{ scale: isShuffling ? 1 : 1.02 }}
                 whileTap={{ scale: isShuffling ? 1 : 0.98 }}
               >
