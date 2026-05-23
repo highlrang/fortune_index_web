@@ -313,6 +313,7 @@ export function TarotPickerPage() {
   const tarotDeckVersionId =
     (flowState?.tarotDeckVersionId ?? getSelectedTarotDeckId()) as string;
   const selectedDeck = getTarotDeckById(tarotDeckVersionId);
+  const backPath = flowState?.homeDailyDraw ? '/home' : '/consultation';
   const [isSplit, setIsSplit] = useState(false);
   const [splitIndex, setSplitIndex] = useState(39);
   const [deckOrder, setDeckOrder] = useState<number[]>(INITIAL_DECK_ORDER);
@@ -485,7 +486,7 @@ export function TarotPickerPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={() =>
-                navigate('/consultation', {
+                navigate(backPath, {
                   state: {
                     ...flowState,
                     tarotDeckVersionId,

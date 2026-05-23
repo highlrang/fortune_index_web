@@ -13,14 +13,16 @@ import {
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { InvestmentDisclaimer } from '../components/InvestmentDisclaimer';
+import { TarotCardDetailDialog } from '../components/TarotCardDetailDialog';
 import {
-  getDailyRiskIndex,
   likeConsultingHistory,
   unlikeConsultingHistory,
+  resolveApiAssetUrl,
   type ConsultResponse,
 } from '@/lib/api';
 import { getCurrentUser, getLastConsultResult } from '@/lib/session';
+
+type TarotResultCard = NonNullable<ConsultResponse['tarot']>['cards'][number];
 
 const pageGradientStyle = {
   background:
@@ -45,12 +47,6 @@ const iconButtonStyle = {
   color: 'var(--app-icon-muted)',
 };
 
-const accentCardStyle = {
-  ...glassLayerStyle,
-  borderColor: 'var(--app-accent-border)',
-  background:
-    'linear-gradient(135deg, var(--app-accent-soft) 0%, color-mix(in srgb, var(--app-accent-glow) 45%, transparent) 100%)',
-};
 
 const accentButtonStyle = {
   ...glassLayerStyle,
@@ -77,12 +73,14 @@ const iconByKey = {
   zodiac_analysis: MoonStar,
 } as const;
 
-function getRiskGaugeColor(score: number): string {
-  if (score < 30) return '#3B82F6';
-  if (score < 50) return '#22C55E';
-  if (score < 70) return '#F97316';
-  return '#EF4444';
+
+function getRiskToneLabel(score: number): string {
+  if (score < 30) return "차분";
+  if (score < 50) return "안정";
+  if (score < 70) return "주의";
+  return "긴장";
 }
+
 
 const titleByMode = {
   INVESTMENT_SAJU: '사주 해석',
@@ -114,26 +112,20 @@ export function InvestmentResultPage() {
   }, [consultResult]);
 
   const riskScore = useMemo(() => {
-    if (!consultResult || typeof consultResult.ai?.riskScore !== 'number') return null;
+    if (!consultResult || typeof consultResult.ai?.riskScore !== "number") return null;
     return Math.min(100, Math.max(0, consultResult.ai.riskScore));
   }, [consultResult]);
 
-  const [energyLabel, setEnergyLabel] = useState('');
   const [isLiked, setIsLiked] = useState(Boolean(navigationState?.initialLiked));
   const [likePending, setLikePending] = useState(false);
   const [likeError, setLikeError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedTarotCard, setSelectedTarotCard] = useState<TarotResultCard | null>(null);
 
   useEffect(() => {
     setIsLiked(Boolean(navigationState?.initialLiked));
   }, [navigationState?.initialLiked, consultResult?.history?.id]);
 
-  useEffect(() => {
-    if (!currentUser?.id) return;
-    getDailyRiskIndex(currentUser.id)
-      .then((data) => setEnergyLabel(data.energyLabel))
-      .catch(() => {});
-  }, [currentUser?.id]);
 
   const handleLikeToggle = async () => {
     if (!currentUser?.id || !consultResult?.history?.id || likePending) return;
@@ -175,6 +167,14 @@ export function InvestmentResultPage() {
   const finalAdvice =
     consultResult.ai?.finalAdvice ?? consultResult.history?.overallSummary ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
   const historyId = consultResult.history?.id;
+  const selectedTarotCardDetail = selectedTarotCard
+    ? {
+        label: selectedTarotCard.name,
+        meaning: selectedTarotCard.meaning,
+        imageSrc: resolveApiAssetUrl(selectedTarotCard.imageUrl),
+        videoSrc: resolveApiAssetUrl(selectedTarotCard.videoUrl) || undefined,
+      }
+    : null;
 
   return (
     <div className="fi-mobile-screen" style={pageGradientStyle}>
@@ -214,42 +214,24 @@ export function InvestmentResultPage() {
         </div>
 
         <div className="fi-mobile-scroll px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-4">
-          {typeof riskScore === 'number' ? (
+          {typeof riskScore === "number" ? (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="mb-8"
+              transition={{ duration: 0.45 }}
+              className="mb-4"
             >
-              <div className="relative overflow-hidden rounded-3xl p-6" style={accentCardStyle}>
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
-
-                <div className="relative">
-                  <div className="mb-4 flex items-center justify-center gap-2">
-                    <Sparkles className="h-5 w-5" style={{ color: 'var(--tarot-point-color)' }} />
-                    <h2 className="text-center text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--app-accent-text-soft)' }}>
-                      오늘의 자산 운용 에너지 긴장도
-                    </h2>
+              <div className="relative overflow-hidden rounded-2xl px-5 py-4" style={glassCardStyle}>
+                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)" }} />
+                <div className="relative flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-medium" style={{ color: "var(--app-accent-text-soft)" }}>자산 운용 긴장도</p>
+                    <p className="mt-1 text-xs" style={{ color: "var(--app-text-muted)" }}>해석을 읽을 때 참고하는 보조 지표입니다</p>
                   </div>
-
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="text-4xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{riskScore}</span>
-                    <span className="text-sm" style={{ color: 'var(--app-text-muted)' }}>/ 100</span>
+                  <div className="flex shrink-0 items-baseline gap-1 rounded-full border px-3 py-2" style={accentButtonStyle}>
+                    <span className="text-lg font-semibold" style={{ color: "var(--tarot-text-main)" }}>{riskScore}</span>
+                    <span className="text-xs" style={{ color: "var(--app-text-muted)" }}>/100 · {getRiskToneLabel(riskScore)}</span>
                   </div>
-
-                  <div className="mb-3 h-3 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                    <motion.div
-                      className="h-full rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${riskScore}%` }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                      style={{ backgroundColor: getRiskGaugeColor(riskScore) }}
-                    />
-                  </div>
-
-                  {energyLabel ? (
-                    <p className="text-xs" style={{ color: 'var(--app-text-muted)' }}>{energyLabel}</p>
-                  ) : null}
                 </div>
               </div>
             </motion.div>
@@ -309,18 +291,41 @@ export function InvestmentResultPage() {
           </div>
 
           {consultResult.tarot?.cards?.length ? (
-            <div className="mt-8 rounded-2xl p-6" style={glassCardStyle}>
-              <h3 className="mb-4 text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>선택된 타로 카드</h3>
-              <div className="flex flex-wrap gap-2">
-                {consultResult.tarot.cards.map((card) => (
-                  <span
-                    key={`${card.code}-${card.selectedIndex}`}
-                    className="rounded-full border px-3 py-2 text-xs"
-                    style={accentButtonStyle}
-                  >
-                    {card.name}
-                  </span>
-                ))}
+            <div className="mt-8 rounded-2xl p-5" style={glassCardStyle}>
+              <h3 className="mb-4 text-base font-semibold" style={{ color: "var(--tarot-text-main)" }}>선택된 타로 카드</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {consultResult.tarot.cards.map((card) => {
+                  const imageSrc = resolveApiAssetUrl(card.imageUrl);
+
+                  return (
+                    <button
+                      key={`${card.code}-${card.selectedIndex}`}
+                      type="button"
+                      onClick={() => setSelectedTarotCard(card)}
+                      className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
+                      aria-label={`${card.name} 상세 정보 보기`}
+                    >
+                      <div
+                        className="relative aspect-[2/3] overflow-hidden rounded-xl border"
+                        style={{
+                          borderColor: "var(--tarot-card-cover-border)",
+                          background:
+                            "linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)",
+                          boxShadow: "0 8px 18px rgba(0, 0, 0, 0.22)",
+                        }}
+                      >
+                        {imageSrc ? (
+                          <img src={imageSrc} alt={card.name} className="h-full w-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: "var(--tarot-card-sigil)" }}>
+                            {card.name}
+                          </div>
+                        )}
+                        <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: "color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)" }} />
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -363,7 +368,6 @@ export function InvestmentResultPage() {
             </div>
           </div>
 
-          <InvestmentDisclaimer className="mt-8" text={consultResult.disclaimer} />
 
           {showDeleteConfirm ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'var(--app-modal-backdrop)' }}>
@@ -395,6 +399,15 @@ export function InvestmentResultPage() {
               </div>
             </div>
           ) : null}
+
+          <TarotCardDetailDialog
+            card={selectedTarotCardDetail}
+            eyebrow="Selected Tarot Card"
+            open={selectedTarotCard !== null}
+            onOpenChange={(open) => {
+              if (!open) setSelectedTarotCard(null);
+            }}
+          />
         </div>
       </div>
 
