@@ -390,7 +390,8 @@ export function TarotPickerPage() {
       setVisualDeckOrder(nextDeckOrder);
       setSwappedOrder(false);
       setIsShuffling(false);
-      setIsMergedStack(true);
+      setIsMergedStack(false);
+      setIsSplit(false);
       setHasShuffled(true);
     }, SHUFFLE_ANIMATION_MS);
   };
