@@ -75,10 +75,36 @@ const iconByKey = {
 
 
 function getRiskToneLabel(score: number): string {
-  if (score < 30) return "차분";
-  if (score < 50) return "안정";
-  if (score < 70) return "주의";
-  return "긴장";
+  if (score < 50) return "좋음";
+  if (score < 70) return "중간";
+  return "안 좋음";
+}
+
+function getRiskToneStyle(score: number) {
+  if (score < 50) {
+    return {
+      backgroundColor: 'rgba(244, 114, 182, 0.12)',
+      borderColor: 'rgba(251, 113, 133, 0.34)',
+      color: 'rgb(253, 164, 175)',
+      glowColor: 'rgba(244, 114, 182, 0.18)',
+    };
+  }
+
+  if (score < 70) {
+    return {
+      backgroundColor: 'rgba(16, 185, 129, 0.14)',
+      borderColor: 'rgba(52, 211, 153, 0.42)',
+      color: 'rgb(110, 231, 183)',
+      glowColor: 'rgba(16, 185, 129, 0.22)',
+    };
+  }
+
+  return {
+    backgroundColor: 'rgba(59, 130, 246, 0.14)',
+    borderColor: 'rgba(96, 165, 250, 0.42)',
+    color: 'rgb(147, 197, 253)',
+    glowColor: 'rgba(59, 130, 246, 0.22)',
+  };
 }
 
 
@@ -167,6 +193,7 @@ export function InvestmentResultPage() {
   const finalAdvice =
     consultResult.ai?.finalAdvice ?? consultResult.history?.overallSummary ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
   const historyId = consultResult.history?.id;
+  const riskToneStyle = typeof riskScore === 'number' ? getRiskToneStyle(riskScore) : null;
   const selectedTarotCardDetail = selectedTarotCard
     ? {
         label: selectedTarotCard.name,
@@ -214,24 +241,44 @@ export function InvestmentResultPage() {
         </div>
 
         <div className="fi-mobile-scroll px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-4">
-          {typeof riskScore === "number" ? (
+          {typeof riskScore === "number" && riskToneStyle ? (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
               className="mb-4"
             >
-              <div className="relative overflow-hidden rounded-2xl px-5 py-4" style={glassCardStyle}>
-                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)" }} />
+              <div
+                className="relative overflow-hidden rounded-2xl px-5 py-4"
+                style={{
+                  ...glassCardStyle,
+                  boxShadow: `0 14px 36px ${riskToneStyle.glowColor}`,
+                }}
+              >
+                <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${riskToneStyle.glowColor} 0%, transparent 72%)` }} />
                 <div className="relative flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-medium" style={{ color: "var(--app-accent-text-soft)" }}>자산 운용 긴장도</p>
-                    <p className="mt-1 text-xs" style={{ color: "var(--app-text-muted)" }}>해석을 읽을 때 참고하는 보조 지표입니다</p>
+                    <p className="text-sm font-semibold" style={{ color: riskToneStyle.color }}>투자 컨디션</p>
                   </div>
-                  <div className="flex shrink-0 items-baseline gap-1 rounded-full border px-3 py-2" style={accentButtonStyle}>
-                    <span className="text-lg font-semibold" style={{ color: "var(--tarot-text-main)" }}>{riskScore}</span>
+                  <div
+                    className="flex shrink-0 items-baseline gap-1 rounded-full border px-3 py-2"
+                    style={{
+                      backgroundColor: riskToneStyle.backgroundColor,
+                      borderColor: riskToneStyle.borderColor,
+                    }}
+                  >
+                    <span className="text-lg font-semibold" style={{ color: riskToneStyle.color }}>{riskScore}</span>
                     <span className="text-xs" style={{ color: "var(--app-text-muted)" }}>/100 · {getRiskToneLabel(riskScore)}</span>
                   </div>
+                </div>
+                <div className="relative mt-4 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.14)' }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${riskScore}%`,
+                      backgroundColor: riskToneStyle.color,
+                    }}
+                  />
                 </div>
               </div>
             </motion.div>
