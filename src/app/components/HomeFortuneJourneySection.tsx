@@ -302,12 +302,12 @@ export function HomeFortuneJourneySection() {
                         <img
                           src={card.imageSrc}
                           alt={card.label}
-                          className="h-full w-full object-cover"
+                          className="block h-full w-full object-cover opacity-100"
                         />
                       ) : (
                         <TarotCardFallbackFace className="h-full w-full" />
                       )}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent px-2 py-3">
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/58 via-black/10 to-transparent px-2 py-3">
                         <p className="text-[11px] font-semibold text-white">{card.label}</p>
                       </div>
                     </div>

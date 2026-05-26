@@ -179,12 +179,14 @@ export interface TarotCardConsultResponse {
   deckVersionId: string;
   cardSetId: string;
   name: string;
+  koreanName?: string;
   sortOrder: number;
-  arcanaType?: string;
-  suit?: string;
+  arcanaType?: string | null;
+  suit?: string | null;
   meaning: string;
-  imageUrl?: string;
-  videoUrl?: string;
+  description?: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
 }
 
 export interface TarotDeckConsultResponse {
@@ -212,11 +214,12 @@ export interface TarotCardHistoryResponse {
   koreanName?: string;
   cardNumber: number;
   sortOrder: number;
-  arcanaType?: string;
-  suit?: string;
+  arcanaType?: string | null;
+  suit?: string | null;
   meaning: string;
-  imageUrl?: string;
-  videoUrl?: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
 }
 
 export interface TarotDeckHistoryResponse {

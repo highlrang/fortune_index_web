@@ -24,21 +24,29 @@ export function TarotCardDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="border-none p-0 text-white"
+        className="border p-0 text-white"
         style={{
           maxWidth: 'min(26rem, calc(100% - 2rem))',
+          borderColor: 'var(--tarot-card-cover-border)',
           background:
-            'linear-gradient(180deg, color-mix(in srgb, var(--tarot-ambient-start) 94%, transparent) 0%, color-mix(in srgb, var(--tarot-ambient-mid) 92%, transparent) 100%)',
+            'linear-gradient(180deg, color-mix(in srgb, var(--tarot-ambient-start) 98%, black) 0%, color-mix(in srgb, var(--tarot-ambient-mid) 96%, black) 100%)',
+          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.42)',
         }}
       >
         {card ? (
           <div className="overflow-hidden rounded-[24px]">
-            <div className="mx-auto mt-6 w-40 overflow-hidden rounded-[22px] border" style={{ borderColor: 'var(--tarot-card-cover-border)' }}>
+            <div
+              className="mx-auto mt-6 w-48 overflow-hidden rounded-[22px] border"
+              style={{
+                borderColor: 'var(--tarot-card-cover-border)',
+                boxShadow: '0 18px 42px rgba(0, 0, 0, 0.34)',
+              }}
+            >
               {card.videoSrc ? (
                 <video
                   key={card.videoSrc}
                   src={card.videoSrc}
-                  className="h-56 w-full object-cover"
+                  className="block h-72 w-full object-cover opacity-100"
                   autoPlay
                   muted
                   playsInline
@@ -48,10 +56,10 @@ export function TarotCardDetailDialog({
                 <img
                   src={card.imageSrc}
                   alt={card.label}
-                  className="h-56 w-full object-cover"
+                  className="block h-72 w-full object-cover opacity-100"
                 />
               ) : (
-                <TarotCardFallbackFace className="h-56 w-full" />
+                <TarotCardFallbackFace className="h-72 w-full" />
               )}
             </div>
             <DialogHeader className="px-6 pb-6 pt-5 text-left">
@@ -62,12 +70,12 @@ export function TarotCardDetailDialog({
                 {card.label}
               </DialogTitle>
               {card.meaning ? (
-                <DialogDescription className="text-sm leading-6 text-white/72">
+                <DialogDescription className="text-sm leading-6 text-white/86">
                   {card.meaning}
                 </DialogDescription>
               ) : null}
               {card.description ? (
-                <p className="mt-3 text-sm leading-6 text-white/80">{card.description}</p>
+                <p className="mt-3 text-sm leading-6 text-white/86">{card.description}</p>
               ) : null}
             </DialogHeader>
           </div>

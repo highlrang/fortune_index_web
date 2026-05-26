@@ -15,10 +15,12 @@ import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { TarotCardDetailDialog } from '../components/TarotCardDetailDialog';
 import {
+  getTarotDeckCards,
   likeConsultingHistory,
   unlikeConsultingHistory,
   resolveApiAssetUrl,
   type ConsultResponse,
+  type TarotDeckCardResponse,
 } from '@/lib/api';
 import { getCurrentUser, getLastConsultResult } from '@/lib/session';
 
@@ -141,16 +143,47 @@ export function InvestmentResultPage() {
     if (!consultResult || typeof consultResult.ai?.riskScore !== "number") return null;
     return Math.min(100, Math.max(0, consultResult.ai.riskScore));
   }, [consultResult]);
+  const tarotCards = consultResult?.tarot?.cards ?? [];
+  const tarotDeckVersionId = tarotCards[0]?.deckVersionId;
+  const tarotSelectedIndicesKey = tarotCards.map((card) => card.selectedIndex).join(',');
 
   const [isLiked, setIsLiked] = useState(Boolean(navigationState?.initialLiked));
   const [likePending, setLikePending] = useState(false);
   const [likeError, setLikeError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedTarotCard, setSelectedTarotCard] = useState<TarotResultCard | null>(null);
+  const [tarotCardMetadata, setTarotCardMetadata] = useState<Map<number, TarotDeckCardResponse>>(new Map());
 
   useEffect(() => {
     setIsLiked(Boolean(navigationState?.initialLiked));
   }, [navigationState?.initialLiked, consultResult?.history?.id]);
+
+  useEffect(() => {
+    if (!tarotDeckVersionId || tarotCards.length === 0) {
+      setTarotCardMetadata(new Map());
+      return;
+    }
+
+    let active = true;
+    const selectedIndices = tarotCards.map((card) => card.selectedIndex);
+
+    getTarotDeckCards(tarotDeckVersionId, selectedIndices)
+      .then((response) => {
+        if (!active) return;
+
+        setTarotCardMetadata(
+          new Map(response.map((card) => [card.selectedIndex, card])),
+        );
+      })
+      .catch(() => {
+        if (!active) return;
+        setTarotCardMetadata(new Map());
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [tarotDeckVersionId, tarotSelectedIndicesKey]);
 
 
   const handleLikeToggle = async () => {
@@ -194,12 +227,15 @@ export function InvestmentResultPage() {
     consultResult.ai?.finalAdvice ?? consultResult.history?.overallSummary ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
   const historyId = consultResult.history?.id;
   const riskToneStyle = typeof riskScore === 'number' ? getRiskToneStyle(riskScore) : null;
+  const selectedTarotCardMetadata =
+    selectedTarotCard ? tarotCardMetadata.get(selectedTarotCard.selectedIndex) : undefined;
   const selectedTarotCardDetail = selectedTarotCard
     ? {
-        label: selectedTarotCard.name,
-        meaning: selectedTarotCard.meaning,
-        imageSrc: resolveApiAssetUrl(selectedTarotCard.imageUrl),
-        videoSrc: resolveApiAssetUrl(selectedTarotCard.videoUrl) || undefined,
+        label: selectedTarotCard.koreanName ?? selectedTarotCardMetadata?.koreanName ?? selectedTarotCardMetadata?.name ?? selectedTarotCard.name,
+        meaning: selectedTarotCardMetadata?.meaning ?? selectedTarotCard.meaning,
+        description: selectedTarotCardMetadata?.description ?? selectedTarotCard.description,
+        imageSrc: resolveApiAssetUrl(selectedTarotCardMetadata?.imageUrl) || resolveApiAssetUrl(selectedTarotCard.imageUrl),
+        videoSrc: resolveApiAssetUrl(selectedTarotCardMetadata?.videoUrl) || resolveApiAssetUrl(selectedTarotCard.videoUrl) || undefined,
       }
     : null;
 
@@ -342,7 +378,9 @@ export function InvestmentResultPage() {
               <h3 className="mb-4 text-base font-semibold" style={{ color: "var(--tarot-text-main)" }}>선택된 타로 카드</h3>
               <div className="grid grid-cols-3 gap-3">
                 {consultResult.tarot.cards.map((card) => {
-                  const imageSrc = resolveApiAssetUrl(card.imageUrl);
+                  const metadata = tarotCardMetadata.get(card.selectedIndex);
+                  const imageSrc = resolveApiAssetUrl(metadata?.imageUrl) || resolveApiAssetUrl(card.imageUrl);
+                  const cardLabel = card.koreanName ?? metadata?.koreanName ?? metadata?.name ?? card.name;
 
                   return (
                     <button
@@ -350,7 +388,7 @@ export function InvestmentResultPage() {
                       type="button"
                       onClick={() => setSelectedTarotCard(card)}
                       className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
-                      aria-label={`${card.name} 상세 정보 보기`}
+                      aria-label={`${cardLabel} 상세 정보 보기`}
                     >
                       <div
                         className="relative aspect-[2/3] overflow-hidden rounded-xl border"
@@ -362,10 +400,10 @@ export function InvestmentResultPage() {
                         }}
                       >
                         {imageSrc ? (
-                          <img src={imageSrc} alt={card.name} className="h-full w-full object-cover" loading="lazy" />
+                          <img src={imageSrc} alt={cardLabel} className="block h-full w-full object-cover opacity-100" loading="lazy" />
                         ) : (
                           <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: "var(--tarot-card-sigil)" }}>
-                            {card.name}
+                            {cardLabel}
                           </div>
                         )}
                         <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: "color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)" }} />
