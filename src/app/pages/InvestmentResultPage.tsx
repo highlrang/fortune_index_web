@@ -75,18 +75,18 @@ const iconByKey = {
 
 
 function getRiskToneLabel(score: number): string {
-  if (score < 50) return "좋음";
+  if (score < 50) return "안 좋음";
   if (score < 70) return "중간";
-  return "안 좋음";
+  return "좋음";
 }
 
 function getRiskToneStyle(score: number) {
   if (score < 50) {
     return {
-      backgroundColor: 'rgba(244, 114, 182, 0.12)',
-      borderColor: 'rgba(251, 113, 133, 0.34)',
-      color: 'rgb(253, 164, 175)',
-      glowColor: 'rgba(244, 114, 182, 0.18)',
+      backgroundColor: 'rgba(59, 130, 246, 0.14)',
+      borderColor: 'rgba(96, 165, 250, 0.42)',
+      color: 'rgb(147, 197, 253)',
+      glowColor: 'rgba(59, 130, 246, 0.22)',
     };
   }
 
@@ -100,10 +100,10 @@ function getRiskToneStyle(score: number) {
   }
 
   return {
-    backgroundColor: 'rgba(59, 130, 246, 0.14)',
-    borderColor: 'rgba(96, 165, 250, 0.42)',
-    color: 'rgb(147, 197, 253)',
-    glowColor: 'rgba(59, 130, 246, 0.22)',
+    backgroundColor: 'rgba(244, 114, 182, 0.12)',
+    borderColor: 'rgba(251, 113, 133, 0.34)',
+    color: 'rgb(253, 164, 175)',
+    glowColor: 'rgba(244, 114, 182, 0.18)',
   };
 }
 
