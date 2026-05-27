@@ -4,7 +4,7 @@ import { VodaThemeLogo } from '../components/logos/VodaLogo';
 
 export function LoginPage() {
   return (
-    <div className="fi-page fi-mobile-screen">
+    <div className="fi-page fi-mobile-screen-scrollable overflow-y-auto">
       {/* Ambient background effects */}
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
@@ -12,7 +12,7 @@ export function LoginPage() {
       </div>
 
       {/* Main container */}
-      <div className="relative mx-auto flex h-full max-w-md flex-col px-5">
+      <div className="relative mx-auto flex min-h-[100dvh] max-w-md flex-col px-5">
         <div className="fi-auth-shell">
         {/* Header */}
         <div className="mb-5 text-center max-[820px]:mb-4">
