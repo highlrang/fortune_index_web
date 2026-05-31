@@ -22,6 +22,8 @@ const SPLIT_DEPTH_MULTIPLIER = 0.65;
 const ROTATION_ANGLE = 65; // degrees - card deck rotation on X axis
 const SHUFFLE_ANIMATION_DURATION = 1.2;
 const SHUFFLE_ANIMATION_MS = SHUFFLE_ANIMATION_DURATION * 1000;
+const SHUFFLE_HANDOFF_OVERLAY_MS = 180;
+const SHUFFLE_HANDOFF_SETTLE_MS = 80;
 const SHUFFLE_VERTICAL_TRAVEL = 180;
 const RANDOM_SHUFFLE_ANIMATION_MS = 980;
 const RANDOM_SHUFFLE_CHUNK_COUNT = 4;
@@ -338,18 +340,21 @@ export function TarotPickerPage() {
   const [isMergedStack, setIsMergedStack] = useState(false);
   const [isRandomShuffleAnimating, setIsRandomShuffleAnimating] = useState(false);
   const [isDeckDragging, setIsDeckDragging] = useState(false);
+  const [handoffDeckOrder, setHandoffDeckOrder] = useState<number[] | null>(null);
   const reduceWebViewEffects = isNativeWebViewRuntime();
 
   const isDraggingRotation = useRef(false);
   const shuffleCommitTimeoutRef = useRef<number | null>(null);
   const randomShuffleTimeoutRef = useRef<number | null>(null);
+  const shuffleHandoffTimeoutRef = useRef<number | null>(null);
+  const shuffleHandoffOverlayTimeoutRef = useRef<number | null>(null);
   const pendingRandomDeckOrderRef = useRef<number[] | null>(null);
   const rotation = useSpring(0, {
     stiffness: 200,
     damping: 20,
   });
 
-  const clearShuffleTimers = () => {
+  const clearShuffleTimers = (resetHandoff = true) => {
     if (shuffleCommitTimeoutRef.current !== null) {
       window.clearTimeout(shuffleCommitTimeoutRef.current);
       shuffleCommitTimeoutRef.current = null;
@@ -358,10 +363,21 @@ export function TarotPickerPage() {
       window.clearTimeout(randomShuffleTimeoutRef.current);
       randomShuffleTimeoutRef.current = null;
     }
+    if (shuffleHandoffTimeoutRef.current !== null) {
+      window.clearTimeout(shuffleHandoffTimeoutRef.current);
+      shuffleHandoffTimeoutRef.current = null;
+    }
+    if (shuffleHandoffOverlayTimeoutRef.current !== null) {
+      window.clearTimeout(shuffleHandoffOverlayTimeoutRef.current);
+      shuffleHandoffOverlayTimeoutRef.current = null;
+    }
     pendingRandomDeckOrderRef.current = null;
+    if (resetHandoff) {
+      setHandoffDeckOrder(null);
+    }
   };
 
-  useEffect(() => clearShuffleTimers, []);
+  useEffect(() => () => clearShuffleTimers(false), []);
 
   // Rotation drag (unified deck only, horizontal drag)
   const handleRotationDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -408,11 +424,23 @@ export function TarotPickerPage() {
     shuffleCommitTimeoutRef.current = window.setTimeout(() => {
       setDeckOrder(nextDeckOrder);
       setVisualDeckOrder(nextDeckOrder);
+      setHandoffDeckOrder(nextDeckOrder);
       setSwappedOrder(false);
       setIsShuffling(false);
-      setIsMergedStack(false);
-      setIsSplit(false);
+      setIsMergedStack(true);
       setHasShuffled(true);
+      shuffleCommitTimeoutRef.current = null;
+
+      shuffleHandoffTimeoutRef.current = window.setTimeout(() => {
+        setIsSplit(false);
+        shuffleHandoffTimeoutRef.current = null;
+
+        shuffleHandoffOverlayTimeoutRef.current = window.setTimeout(() => {
+          setHandoffDeckOrder(null);
+          setIsMergedStack(false);
+          shuffleHandoffOverlayTimeoutRef.current = null;
+        }, SHUFFLE_HANDOFF_OVERLAY_MS);
+      }, SHUFFLE_HANDOFF_SETTLE_MS);
     }, SHUFFLE_ANIMATION_MS);
   };
 
@@ -446,6 +474,7 @@ export function TarotPickerPage() {
     const nextDeckOrder = getRandomShuffledOrder(deckOrder);
     pendingRandomDeckOrderRef.current = nextDeckOrder;
     setIsMergedStack(false);
+    setHandoffDeckOrder(null);
     setIsSplit(false);
     setSwappedOrder(false);
     setIsRandomShuffleAnimating(true);
@@ -885,6 +914,52 @@ export function TarotPickerPage() {
                 </div>
               )}
             </div>
+          )}
+          {handoffDeckOrder && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: SHUFFLE_HANDOFF_OVERLAY_MS / 1000, ease: 'easeOut' }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div
+                className="relative"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transform: `rotateX(${ROTATION_ANGLE}deg)`,
+                }}
+              >
+                {handoffDeckOrder.map((cardIndex, i) => {
+                  const zOffset = i * CARD_THICKNESS;
+                  const isVisible = i % 2 === 0 || i < 5 || i > TOTAL_CARDS - 6;
+                  const isTopCard = i === TOTAL_CARDS - 1;
+                  const isBottomCard = i === 0;
+
+                  return (
+                    <motion.div
+                      key={`handoff-${cardIndex}`}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{
+                        width: `${CARD_WIDTH}px`,
+                        height: `${CARD_HEIGHT}px`,
+                        z: zOffset,
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                      }}
+                    >
+                      <DeckCardFace
+                        isBottomCard={isBottomCard}
+                        isTopCard={isTopCard}
+                        isVisible={isVisible}
+                        reduceEffects={reduceWebViewEffects}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
           )}
         </div>
 

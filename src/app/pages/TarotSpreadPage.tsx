@@ -26,6 +26,10 @@ const MAX_SELECTIONS = 3;
 const CARD_WIDTH = 85;
 const CARD_HEIGHT = 128;
 const CARD_OVERLAP = 26; // Cards overlap 70% (30% visible)
+const SPREAD_MAX_ROTATION = 15;
+const REDUCED_SPREAD_MAX_ROTATION = 8;
+const SPREAD_VERTICAL_CURVE = 0.15;
+const REDUCED_SPREAD_VERTICAL_CURVE = 0.08;
 const DEFAULT_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
 
 function fract(value: number) {
@@ -435,11 +439,12 @@ export function TarotSpreadPage() {
               // Calculate fan spread effect
               const centerIndex = TOTAL_CARDS / 2;
               const distanceFromCenter = index - centerIndex;
-              const maxRotation = 15; // Maximum rotation angle in degrees
+              const maxRotation = reduceWebViewEffects ? REDUCED_SPREAD_MAX_ROTATION : SPREAD_MAX_ROTATION;
               const rotationAngle = (distanceFromCenter / centerIndex) * maxRotation;
               
               // Subtle vertical curve (arc)
-              const verticalOffset = Math.abs(distanceFromCenter) * 0.15;
+              const verticalCurve = reduceWebViewEffects ? REDUCED_SPREAD_VERTICAL_CURVE : SPREAD_VERTICAL_CURVE;
+              const verticalOffset = Math.abs(distanceFromCenter) * verticalCurve;
 
               return (
                 <motion.div
@@ -451,13 +456,9 @@ export function TarotSpreadPage() {
                     zIndex: index,
                   }}
                   animate={{
-                    y: reduceWebViewEffects
-                      ? isCentered && !isSelected
-                        ? -8
-                        : 0
-                      : (isCentered && !isSelected ? -12 : 0) + verticalOffset,
+                    y: (isCentered && !isSelected ? (reduceWebViewEffects ? -8 : -12) : 0) + verticalOffset,
                     opacity: isSelected ? 0 : 1,
-                    rotate: reduceWebViewEffects ? 0 : rotationAngle,
+                    rotate: rotationAngle,
                   }}
                   transition={reduceWebViewEffects ? { duration: 0.08 } : {
                     type: 'spring',
@@ -496,21 +497,9 @@ export function TarotSpreadPage() {
                     whileTap={!reduceWebViewEffects && !isDragging && !isSelected ? { scale: 0.97 } : {}}
                   >
                     {/* Card back pattern */}
-                    {reduceWebViewEffects ? (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div
-                          className="h-9 w-9 rounded-full border"
-                          style={{
-                            borderColor: 'var(--tarot-card-sigil)',
-                            boxShadow: '0 0 18px color-mix(in srgb, var(--tarot-card-sigil) 28%, transparent)',
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center p-3">
-                        <TarotCardBackPattern />
-                      </div>
-                    )}
+                    <div className="absolute inset-0 flex items-center justify-center p-3">
+                      <TarotCardBackPattern />
+                    </div>
 
                     <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
                   </motion.div>
