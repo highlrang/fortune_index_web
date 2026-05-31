@@ -343,6 +343,7 @@ export function TarotPickerPage() {
   const isDraggingRotation = useRef(false);
   const shuffleCommitTimeoutRef = useRef<number | null>(null);
   const randomShuffleTimeoutRef = useRef<number | null>(null);
+  const pendingRandomDeckOrderRef = useRef<number[] | null>(null);
   const rotation = useSpring(0, {
     stiffness: 200,
     damping: 20,
@@ -357,6 +358,7 @@ export function TarotPickerPage() {
       window.clearTimeout(randomShuffleTimeoutRef.current);
       randomShuffleTimeoutRef.current = null;
     }
+    pendingRandomDeckOrderRef.current = null;
   };
 
   useEffect(() => clearShuffleTimers, []);
@@ -380,7 +382,7 @@ export function TarotPickerPage() {
   // Split deck at specific card index when hotspot is clicked
   const handleCardHotspotClick = (physicalIndex: number) => (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering deck click
-    if (isDraggingRotation.current || isSplit) return;
+    if (isDraggingRotation.current || isSplit || isRandomShuffleAnimating) return;
     
     // physicalIndex is the physical rendering position (i), not the logical card index
     // Split right after this physical position
@@ -394,7 +396,7 @@ export function TarotPickerPage() {
   };
 
   const startShuffle = () => {
-    if (isShuffling || isMergedStack) return;
+    if (isShuffling || isMergedStack || isRandomShuffleAnimating) return;
 
     clearShuffleTimers();
 
@@ -437,14 +439,12 @@ export function TarotPickerPage() {
   };
 
   const handleRandomShuffle = () => {
-    if (isShuffling) return;
+    if (isShuffling || isRandomShuffleAnimating) return;
 
     clearShuffleTimers();
 
     const nextDeckOrder = getRandomShuffledOrder(deckOrder);
-    setDeckOrder(nextDeckOrder);
-    setVisualDeckOrder(nextDeckOrder);
-    setHasShuffled(true);
+    pendingRandomDeckOrderRef.current = nextDeckOrder;
     setIsMergedStack(false);
     setIsSplit(false);
     setSwappedOrder(false);
@@ -452,13 +452,22 @@ export function TarotPickerPage() {
     rotation.set(0);
 
     randomShuffleTimeoutRef.current = window.setTimeout(() => {
+      const pendingOrder = pendingRandomDeckOrderRef.current;
+
+      if (pendingOrder) {
+        setDeckOrder(pendingOrder);
+        setVisualDeckOrder(pendingOrder);
+        setHasShuffled(true);
+        pendingRandomDeckOrderRef.current = null;
+      }
+
       setIsRandomShuffleAnimating(false);
     }, RANDOM_SHUFFLE_ANIMATION_MS);
   };
 
   const upperDeckCards = visualDeckOrder.slice(0, splitIndex);
   const lowerDeckCards = visualDeckOrder.slice(splitIndex);
-  const canProceedToSpread = hasShuffled && !isShuffling;
+  const canProceedToSpread = hasShuffled && !isShuffling && !isRandomShuffleAnimating;
   const splitPointZ = (splitIndex - 1) * CARD_THICKNESS;
   const depthFactor = splitIndex / TOTAL_CARDS;
   const compensatedDistance = SPLIT_DISTANCE * (1 + depthFactor * SPLIT_DEPTH_MULTIPLIER);
@@ -501,7 +510,7 @@ export function TarotPickerPage() {
       </div>
 
       {/* Main content */}
-      <div className="relative mx-auto max-w-md px-5 pt-6">
+      <div className="tarot-picker-content relative mx-auto max-w-md px-5 pt-6">
         {/* Top Header */}
         <div className="mb-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -621,7 +630,7 @@ export function TarotPickerPage() {
         </div>
 
         {/* Card deck - horizontal lying stack */}
-        <div className="relative mb-4 flex min-h-[450px] items-center justify-center" style={{ perspective: '1200px' }}>
+        <div className="tarot-picker-deck relative mb-4 flex min-h-[450px] items-center justify-center" style={{ perspective: '1200px' }}>
           <AnimatePresence>
             {isRandomShuffleAnimating ? (
               <motion.div
@@ -880,7 +889,7 @@ export function TarotPickerPage() {
         </div>
 
         {/* Keep button area mounted to avoid repainting the whole content stack after shuffle */}
-        <div className="-mt-3 pb-2 pt-0" style={{ minHeight: '68px' }}>
+        <div className="tarot-picker-cta-wrap -mt-3 pb-2 pt-0" style={{ minHeight: '68px' }}>
           <div
             className={canProceedToSpread ? '' : 'pointer-events-none'}
             style={{

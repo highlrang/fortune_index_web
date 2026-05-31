@@ -534,6 +534,34 @@ html.is-native-webview.is-native-android {
     -webkit-backdrop-filter: blur(6px);
   }
 
+  body.is-native-webview .tarot-picker-page {
+    min-height: 100dvh;
+  }
+
+  body.is-native-webview .tarot-picker-content {
+    min-height: 100dvh;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6.25rem);
+  }
+
+  body.is-native-webview .tarot-picker-deck {
+    min-height: clamp(19rem, 54dvh, 28rem);
+  }
+
+  body.is-native-webview .tarot-picker-cta-wrap {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+    z-index: 80;
+    width: min(calc(100vw - 2.5rem), 28rem);
+    transform: translate3d(-50%, 0, 0);
+    padding-bottom: 0;
+  }
+
+  body.is-native-webview .tarot-picker-cta-wrap > div {
+    transform: translateZ(0);
+  }
+
   body.is-native-webview .tarot-stable-cta {
     position: relative;
     z-index: 60;
