@@ -238,6 +238,14 @@ export function InvestmentResultPage() {
         videoSrc: resolveApiAssetUrl(selectedTarotCardMetadata?.videoUrl) || resolveApiAssetUrl(selectedTarotCard.videoUrl) || undefined,
       }
     : null;
+  const handleBack = () => {
+    if (location.key === 'default') {
+      navigate('/home');
+      return;
+    }
+
+    navigate(-1);
+  };
 
   return (
     <div className="fi-mobile-screen" style={pageGradientStyle}>
@@ -258,7 +266,7 @@ export function InvestmentResultPage() {
         >
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate('/home')}
+              onClick={handleBack}
               className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90"
               style={iconButtonStyle}
             >

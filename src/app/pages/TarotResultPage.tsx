@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
+import { TarotCardDetailDialog } from '../components/TarotCardDetailDialog';
 import { consult, getTarotDeckCards, resolveApiAssetUrl, saveHomeDailyTarotDraw, type TarotDeckCardResponse } from '@/lib/api';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 import { getCurrentUser, saveHomeTarotDraw, saveLastConsultResult } from '@/lib/session';
@@ -278,6 +279,7 @@ export function TarotResultPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [isCardMediaPrepared, setIsCardMediaPrepared] = useState(false);
+  const [selectedDetailCard, setSelectedDetailCard] = useState<CardData | null>(null);
   const reduceWebViewEffects = isNativeWebViewRuntime();
 
   useEffect(() => {
@@ -291,6 +293,7 @@ export function TarotResultPage() {
       })),
     );
     setIsCardMediaPrepared(false);
+    setSelectedDetailCard(null);
   }, [selectedCards]);
 
   useEffect(() => {
@@ -375,10 +378,15 @@ export function TarotResultPage() {
   const handleCardClick = (cardId: number) => {
     if (isAnimating || !isCardMediaPrepared) return;
     
-    const card = cards[cardId];
+    const card = cards.find((candidate) => candidate.id === cardId);
+    if (!card) return;
     
-    // If card is already revealed (front state), do nothing
-    if (card.revealState === 'front') return;
+    if (card.revealState === 'front') {
+      if (cards.every((candidate) => candidate.revealState === 'front')) {
+        setSelectedDetailCard(card);
+      }
+      return;
+    }
     
     // If card is still back, start the reveal sequence
     if (card.revealState === 'back') {
@@ -579,8 +587,8 @@ export function TarotResultPage() {
                     }}
                     transition={{ delay: index * 0.15, duration: 0.3 }}
                     onClick={() => handleCardClick(card.id)}
-                    whileHover={!isAnimating && isBack ? { scale: 1.05, y: -5 } : {}}
-                    whileTap={!isAnimating && isBack ? { scale: 0.95 } : {}}
+                    whileHover={!isAnimating && (isBack || (isFront && allCardsRevealed)) ? { scale: 1.05, y: -5 } : {}}
+                    whileTap={!isAnimating && (isBack || (isFront && allCardsRevealed)) ? { scale: 0.95 } : {}}
                   >
                     {/* Card Back */}
                     {isBack && (
@@ -949,6 +957,25 @@ export function TarotResultPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      <TarotCardDetailDialog
+        card={
+          selectedDetailCard
+            ? {
+                label: selectedDetailCard.label,
+                meaning: selectedDetailCard.meaning,
+                description: selectedDetailCard.description,
+                imageSrc: selectedDetailCard.imageSrc,
+                videoSrc: selectedDetailCard.videoSrc,
+              }
+            : null
+        }
+        eyebrow="Selected Tarot Card"
+        open={Boolean(selectedDetailCard)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedDetailCard(null);
+        }}
+      />
     </div>
   );
 }

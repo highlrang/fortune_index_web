@@ -25,8 +25,8 @@ const SHUFFLE_ANIMATION_MS = SHUFFLE_ANIMATION_DURATION * 1000;
 const SHUFFLE_HANDOFF_OVERLAY_MS = 180;
 const SHUFFLE_HANDOFF_SETTLE_MS = 80;
 const SHUFFLE_VERTICAL_TRAVEL = 180;
-const RANDOM_SHUFFLE_ANIMATION_MS = 980;
-const RANDOM_SHUFFLE_CHUNK_COUNT = 4;
+const RANDOM_SHUFFLE_ANIMATION_MS = 1380;
+const RANDOM_SHUFFLE_VISUAL_CHUNK_COUNT = 3;
 const DECK_LAYER_STRIDE = 3;
 const REDUCED_DECK_LAYER_STRIDE = 6;
 const INITIAL_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
@@ -44,6 +44,21 @@ const STATIC_STARS = Array.from({ length: 60 }, (_, index) => ({
   top: `${fract(Math.sin((index + 1) * 78.233) * 12345.6789) * 100}%`,
   opacity: 0.14 + fract(Math.sin((index + 1) * 4.123) * 2468.1357) * 0.38,
 }));
+
+const RANDOM_SHUFFLE_VISUAL_CHUNKS = Array.from({ length: RANDOM_SHUFFLE_VISUAL_CHUNK_COUNT }, (_, index) => {
+  const direction = index % 2 === 0 ? -1 : 1;
+  const edgeWeight = index === 1 ? 0.72 : 1;
+
+  return {
+    id: index,
+    delay: 0,
+    x: direction * 24 * edgeWeight,
+    y: -direction * 10 * edgeWeight,
+    rotate: direction * 3 * edgeWeight,
+    scale: 0.997,
+    z: 90 + index,
+  };
+});
 
 type DeckCardFaceProps = {
   isBottomCard: boolean;
@@ -147,60 +162,31 @@ function getDeckLayerEntries(order: number[], reduceEffects: boolean) {
     .filter(({ physicalIndex }) => shouldRenderDeckLayer(physicalIndex, order.length, reduceEffects));
 }
 
-function getRandomShuffleChunkMotion(index: number, isAnimating: boolean, reduceEffects: boolean) {
-  if (!isAnimating) {
-    return {
-      animate: {
-        x: 0,
-        y: 0,
-        rotateZ: 0,
-        scale: 1,
-      },
-      transition: {
-        duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000,
-        ease: [0.22, 1, 0.36, 1] as const,
-      },
-    };
-  }
+function getDeckLayerGroups(order: number[], reduceEffects: boolean) {
+  const groupSize = Math.ceil(order.length / RANDOM_SHUFFLE_VISUAL_CHUNK_COUNT);
+  const groups = Array.from({ length: RANDOM_SHUFFLE_VISUAL_CHUNK_COUNT }, () => [] as ReturnType<typeof getDeckLayerEntries>);
 
-  if (reduceEffects && index !== 0 && index !== TOTAL_CARDS - 1 && index % 13 !== 0) {
-    return {
-      animate: {
-        x: 0,
-        y: 0,
-        rotateZ: 0,
-        scale: 1,
-      },
-      transition: {
-        duration: 0.08,
-      },
-    };
-  }
+  getDeckLayerEntries(order, reduceEffects).forEach((entry) => {
+    const groupIndex = Math.min(
+      RANDOM_SHUFFLE_VISUAL_CHUNK_COUNT - 1,
+      Math.floor(entry.physicalIndex / groupSize),
+    );
+    groups[groupIndex].push(entry);
+  });
 
-  const chunkSize = Math.ceil(TOTAL_CARDS / RANDOM_SHUFFLE_CHUNK_COUNT);
-  const chunkIndex = Math.floor(index / chunkSize);
-  const cardIndexInChunk = index % chunkSize;
-  const chunkCenter = chunkIndex - (RANDOM_SHUFFLE_CHUNK_COUNT - 1) / 2;
-  const direction = chunkCenter === 0 ? 1 : Math.sign(chunkCenter);
-  const depthWeight = 1 - index / TOTAL_CARDS;
-  const chunkStrength = 0.9 + Math.abs(chunkCenter) * 0.28;
-  const intraChunkOffset = cardIndexInChunk - (chunkSize - 1) / 2;
-  const spreadX = chunkCenter * 14 * chunkStrength + intraChunkOffset * 2;
-  const spreadY = -(18 + Math.abs(chunkCenter) * 9) * (0.72 + depthWeight * 0.28) + intraChunkOffset * 2.4;
-  const rotation = direction * (7 + Math.abs(chunkCenter) * 3.5) + intraChunkOffset * 1.4;
-  const settleX = spreadX * -0.24;
-  const settleY = spreadY * 0.22;
+  return groups;
+}
 
+function getRandomShuffleChunkMotion(_index: number, isAnimating: boolean, reduceEffects: boolean) {
   return {
     animate: {
-      x: [0, spreadX * 0.5, spreadX, settleX, 0],
-      y: [0, spreadY * 0.46, spreadY, settleY, 0],
-      rotateZ: [0, rotation * 0.58, rotation, rotation * -0.18, 0],
-      scale: [1, 1.016 + depthWeight * 0.008, 0.994, 1.004, 1],
+      x: 0,
+      y: 0,
+      rotateZ: 0,
+      scale: 1,
     },
     transition: {
-      duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000,
-      delay: chunkIndex * 0.04 + cardIndexInChunk * 0.012,
+      duration: isAnimating && reduceEffects ? 0.08 : RANDOM_SHUFFLE_ANIMATION_MS / 1000,
       ease: [0.22, 1, 0.36, 1] as const,
     },
   };
@@ -741,51 +727,89 @@ export function TarotPickerPage() {
                   transform: `rotateX(${ROTATION_ANGLE}deg)`,
                 }}
               >
-                {getDeckLayerEntries(visualDeckOrder, reduceWebViewEffects).map(({ cardIndex, physicalIndex: i }) => {
-                  const zOffset = i * CARD_THICKNESS;
-                  const isTopCard = i === TOTAL_CARDS - 1;
-                  const isBottomCard = i === 0;
-                  const isVisible = isTopCard || isBottomCard || i < 5 || i > TOTAL_CARDS - 6;
-                  const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating, reduceWebViewEffects);
+                {(isRandomShuffleAnimating
+                  ? getDeckLayerGroups(visualDeckOrder, reduceWebViewEffects)
+                  : [getDeckLayerEntries(visualDeckOrder, reduceWebViewEffects)]
+                ).map((group, groupIndex) => {
+                  const chunk = RANDOM_SHUFFLE_VISUAL_CHUNKS[groupIndex];
+                  const groupMotion = isRandomShuffleAnimating && chunk
+                    ? {
+                        x: [0, chunk.x, -chunk.x * 0.58, chunk.x * 0.74, -chunk.x * 0.28, chunk.x * 0.12, 0],
+                        y: [0, chunk.y, -chunk.y * 0.52, chunk.y * 0.62, -chunk.y * 0.24, chunk.y * 0.1, 0],
+                        rotateZ: [0, chunk.rotate, -chunk.rotate * 0.62, chunk.rotate * 0.72, -chunk.rotate * 0.26, chunk.rotate * 0.1, 0],
+                        scale: [1, chunk.scale, 1.006, 0.994, 1.003, 0.998, 1],
+                      }
+                    : { x: 0, y: 0, rotateZ: 0, scale: 1 };
 
                   return (
                     <motion.div
-                      key={cardIndex}
-                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      key={isRandomShuffleAnimating ? `random-visible-group-${groupIndex}` : 'visible-deck'}
+                      className="absolute inset-0 rounded-2xl"
                       style={{
-                        width: `${CARD_WIDTH}px`,
-                        height: `${CARD_HEIGHT}px`,
-                        z: zOffset,
-                        backfaceVisibility: 'hidden',
-                        WebkitBackfaceVisibility: 'hidden',
+                        transformStyle: 'preserve-3d',
+                        willChange: isRandomShuffleAnimating ? 'transform' : 'auto',
+                        border: isRandomShuffleAnimating && groupIndex === 1
+                          ? '1px solid color-mix(in srgb, var(--tarot-card-cover-border) 72%, transparent)'
+                          : '1px solid transparent',
+                        boxShadow: isRandomShuffleAnimating && groupIndex === 1 && !reduceWebViewEffects
+                          ? '0 0 18px color-mix(in srgb, var(--tarot-card-cover-glow) 42%, transparent)'
+                          : 'none',
                       }}
-                      animate={shuffleCardMotion.animate}
-                      transition={shuffleCardMotion.transition}
+                      animate={groupMotion}
+                      transition={{
+                        duration: reduceWebViewEffects ? 0.62 : RANDOM_SHUFFLE_ANIMATION_MS / 1000,
+                        delay: isRandomShuffleAnimating && chunk ? chunk.delay : 0,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
                     >
-                      <DeckCardFace
-                        isBottomCard={isBottomCard}
-                        isTopCard={isTopCard}
-                        isVisible={isVisible}
-                        reduceEffects={reduceWebViewEffects}
-                      />
+                      {group.map(({ cardIndex, physicalIndex: i }) => {
+                        const zOffset = i * CARD_THICKNESS;
+                        const isTopCard = i === TOTAL_CARDS - 1;
+                        const isBottomCard = i === 0;
+                        const isVisible = isTopCard || isBottomCard || i < 5 || i > TOTAL_CARDS - 6;
+                        const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating, reduceWebViewEffects);
 
-                      {!isBottomCard && (
-                        <div
-                          onClick={handleCardHotspotClick(i)}
-                          className="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors"
-                          style={{
-                            height: '10px',
-                            zIndex: 1000,
-                          }}
-                        >
-                          <div
-                            className="h-full w-full border-b-2 transition-colors"
+                        return (
+                          <motion.div
+                            key={cardIndex}
+                            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                             style={{
-                              borderColor: 'transparent',
+                              width: `${CARD_WIDTH}px`,
+                              height: `${CARD_HEIGHT}px`,
+                              z: zOffset,
+                              backfaceVisibility: 'hidden',
+                              WebkitBackfaceVisibility: 'hidden',
                             }}
-                          />
-                        </div>
-                      )}
+                            animate={shuffleCardMotion.animate}
+                            transition={shuffleCardMotion.transition}
+                          >
+                            <DeckCardFace
+                              isBottomCard={isBottomCard}
+                              isTopCard={isTopCard}
+                              isVisible={isVisible}
+                              reduceEffects={reduceWebViewEffects}
+                            />
+
+                            {!isBottomCard && !isRandomShuffleAnimating && (
+                              <div
+                                onClick={handleCardHotspotClick(i)}
+                                className="absolute bottom-0 left-0 right-0 cursor-pointer transition-colors"
+                                style={{
+                                  height: '10px',
+                                  zIndex: 1000,
+                                }}
+                              >
+                                <div
+                                  className="h-full w-full border-b-2 transition-colors"
+                                  style={{
+                                    borderColor: 'transparent',
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
                     </motion.div>
                   );
                 })}
