@@ -27,6 +27,8 @@ const SHUFFLE_HANDOFF_SETTLE_MS = 80;
 const SHUFFLE_VERTICAL_TRAVEL = 180;
 const RANDOM_SHUFFLE_ANIMATION_MS = 980;
 const RANDOM_SHUFFLE_CHUNK_COUNT = 4;
+const DECK_LAYER_STRIDE = 3;
+const REDUCED_DECK_LAYER_STRIDE = 6;
 const INITIAL_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
 const CARD_WIDTH = 220;
 const CARD_HEIGHT = 340;
@@ -126,6 +128,25 @@ function getRandomShuffledOrder(order: number[]) {
   return next;
 }
 
+function shouldRenderDeckLayer(index: number, deckSize: number, reduceEffects: boolean) {
+  const edgeCount = reduceEffects ? 3 : 5;
+  const stride = reduceEffects ? REDUCED_DECK_LAYER_STRIDE : DECK_LAYER_STRIDE;
+
+  return (
+    index === 0 ||
+    index === deckSize - 1 ||
+    index < edgeCount ||
+    index >= deckSize - edgeCount ||
+    index % stride === 0
+  );
+}
+
+function getDeckLayerEntries(order: number[], reduceEffects: boolean) {
+  return order
+    .map((cardIndex, physicalIndex) => ({ cardIndex, physicalIndex }))
+    .filter(({ physicalIndex }) => shouldRenderDeckLayer(physicalIndex, order.length, reduceEffects));
+}
+
 function getRandomShuffleChunkMotion(index: number, isAnimating: boolean, reduceEffects: boolean) {
   if (!isAnimating) {
     return {
@@ -210,6 +231,12 @@ const DeckCardFace = memo(function DeckCardFace({
       }}
     >
       <div className="absolute inset-0 rounded-2xl border" style={{ borderColor: 'var(--tarot-card-line-soft)' }} />
+      {!shouldRenderDetailedFace && (
+        <div
+          className="absolute inset-x-3 top-1/2 h-px -translate-y-1/2"
+          style={{ backgroundColor: 'var(--tarot-card-line-soft)', opacity: 0.44 }}
+        />
+      )}
       {shouldRenderDetailedFace && isTopCard && (
         <>
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
@@ -714,11 +741,11 @@ export function TarotPickerPage() {
                   transform: `rotateX(${ROTATION_ANGLE}deg)`,
                 }}
               >
-                {visualDeckOrder.map((cardIndex, i) => {
+                {getDeckLayerEntries(visualDeckOrder, reduceWebViewEffects).map(({ cardIndex, physicalIndex: i }) => {
                   const zOffset = i * CARD_THICKNESS;
-                  const isVisible = i % 2 === 0 || i < 5 || i > TOTAL_CARDS - 6;
                   const isTopCard = i === TOTAL_CARDS - 1;
                   const isBottomCard = i === 0;
+                  const isVisible = isTopCard || isBottomCard || i < 5 || i > TOTAL_CARDS - 6;
                   const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating, reduceWebViewEffects);
 
                   return (
@@ -802,11 +829,11 @@ export function TarotPickerPage() {
                 whileHover={{ scale: isShuffling ? 1 : 1.02 }}
                 whileTap={{ scale: isShuffling ? 1 : 0.98 }}
               >
-                {upperDeckCards.map((cardIndex, i) => {
+                {getDeckLayerEntries(upperDeckCards, reduceWebViewEffects).map(({ cardIndex, physicalIndex: i }) => {
                   const zOffset = i * CARD_THICKNESS - splitPointZ;
-                  const isVisible = i % 2 === 0 || i < 5 || i > upperDeckCards.length - 6;
                   const isTopCard = i === upperDeckCards.length - 1;
                   const isBottomCard = !isMergedStack && i === 0;
+                  const isVisible = isTopCard || isBottomCard || i < 5 || i > upperDeckCards.length - 6;
 
                   return (
                     <motion.div
@@ -861,12 +888,12 @@ export function TarotPickerPage() {
                 whileHover={{ scale: isShuffling ? 1 : 1.02 }}
                 whileTap={{ scale: isShuffling ? 1 : 0.98 }}
               >
-                {lowerDeckCards.map((cardIndex, i) => {
+                {getDeckLayerEntries(lowerDeckCards, reduceWebViewEffects).map(({ cardIndex, physicalIndex: i }) => {
                   const zOffset = i * CARD_THICKNESS;
                   const deckSize = lowerDeckCards.length;
-                  const isVisible = i % 2 === 0 || i < 5 || i > deckSize - 6;
                   const isTopCard = i === deckSize - 1;
                   const isBottomCard = i === 0;
+                  const isVisible = isTopCard || isBottomCard || i < 5 || i > deckSize - 6;
 
                   return (
                     <motion.div
@@ -931,11 +958,11 @@ export function TarotPickerPage() {
                   transform: `rotateX(${ROTATION_ANGLE}deg)`,
                 }}
               >
-                {handoffDeckOrder.map((cardIndex, i) => {
+                {getDeckLayerEntries(handoffDeckOrder, reduceWebViewEffects).map(({ cardIndex, physicalIndex: i }) => {
                   const zOffset = i * CARD_THICKNESS;
-                  const isVisible = i % 2 === 0 || i < 5 || i > TOTAL_CARDS - 6;
                   const isTopCard = i === TOTAL_CARDS - 1;
                   const isBottomCard = i === 0;
+                  const isVisible = isTopCard || isBottomCard || i < 5 || i > TOTAL_CARDS - 6;
 
                   return (
                     <motion.div

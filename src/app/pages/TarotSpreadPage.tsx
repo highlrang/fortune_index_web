@@ -1,13 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
+import { memo, useState, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import {
-  getTarotDeckCards,
-  resolveApiAssetUrl,
-  type TarotDeckCardResponse,
-} from '@/lib/api';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 
 type ConsultationType = 'saju' | 'tarot' | 'comprehensive' | null;
@@ -31,6 +26,11 @@ const REDUCED_SPREAD_MAX_ROTATION = 8;
 const SPREAD_VERTICAL_CURVE = 0.15;
 const REDUCED_SPREAD_VERTICAL_CURVE = 0.08;
 const DEFAULT_DECK_ORDER = Array.from({ length: TOTAL_CARDS }, (_, index) => index);
+const CENTER_SNAP_TRANSITION = {
+  type: 'spring',
+  stiffness: 360,
+  damping: 32,
+} as const;
 
 function fract(value: number) {
   return value - Math.floor(value);
@@ -106,6 +106,86 @@ function TarotCardBackPattern() {
   );
 }
 
+type SpreadCardProps = {
+  cardId: number;
+  index: number;
+  isSelected: boolean;
+  isCentered: boolean;
+  isDragging: boolean;
+  reduceEffects: boolean;
+  onActivate: (index: number, cardId: number) => void;
+};
+
+const SpreadCard = memo(function SpreadCard({
+  cardId,
+  index,
+  isSelected,
+  isCentered,
+  isDragging,
+  reduceEffects,
+  onActivate,
+}: SpreadCardProps) {
+  const centerIndex = TOTAL_CARDS / 2;
+  const distanceFromCenter = index - centerIndex;
+  const maxRotation = reduceEffects ? REDUCED_SPREAD_MAX_ROTATION : SPREAD_MAX_ROTATION;
+  const rotationAngle = (distanceFromCenter / centerIndex) * maxRotation;
+  const verticalCurve = reduceEffects ? REDUCED_SPREAD_VERTICAL_CURVE : SPREAD_VERTICAL_CURVE;
+  const verticalOffset = Math.abs(distanceFromCenter) * verticalCurve;
+  const liftOffset = isCentered && !isSelected ? (reduceEffects ? -8 : -12) : 0;
+
+  return (
+    <motion.div
+      className="relative flex-shrink-0"
+      style={{
+        marginLeft: index === 0 ? '0px' : `-${CARD_WIDTH - CARD_OVERLAP}px`,
+        zIndex: index,
+        opacity: isSelected ? 0 : 1,
+        rotate: rotationAngle,
+        y: liftOffset + verticalOffset,
+        willChange: isCentered || isDragging ? 'transform, opacity' : 'auto',
+      }}
+      animate={{
+        opacity: isSelected ? 0 : 1,
+        y: liftOffset + verticalOffset,
+      }}
+      transition={reduceEffects ? { duration: 0.06 } : CENTER_SNAP_TRANSITION}
+      onClick={() => {
+        if (!isDragging && !isSelected) {
+          onActivate(index, cardId);
+        }
+      }}
+    >
+      <motion.div
+        className="overflow-hidden rounded-lg border"
+        style={{
+          width: `${CARD_WIDTH}px`,
+          height: `${CARD_HEIGHT}px`,
+          ...cardBackStyle,
+          borderColor: isCentered && !isSelected ? 'var(--tarot-card-cover-border)' : 'color-mix(in srgb, var(--tarot-card-cover-border) 42%, transparent)',
+          boxShadow: reduceEffects
+            ? isCentered && !isSelected
+              ? '0 4px 10px rgba(0, 0, 0, 0.18)'
+              : '0 1px 3px rgba(0, 0, 0, 0.16)'
+            : isCentered && !isSelected
+              ? '0 8px 18px rgba(0, 0, 0, 0.24)'
+              : '0 2px 7px rgba(0, 0, 0, 0.26)',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+        }}
+        whileHover={!reduceEffects && !isDragging && !isSelected ? { scale: 1.025 } : {}}
+        whileTap={!reduceEffects && !isDragging && !isSelected ? { scale: 0.98 } : {}}
+      >
+        <div className="absolute inset-0 flex items-center justify-center p-3">
+          <TarotCardBackPattern />
+        </div>
+
+        <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 36%, transparent)' }} />
+      </motion.div>
+    </motion.div>
+  );
+});
+
 export function TarotSpreadPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -117,75 +197,14 @@ export function TarotSpreadPage() {
   const [selectedCards, setSelectedCards] = useState<Array<number | null>>(
     Array.from({ length: MAX_SELECTIONS }, () => null),
   );
-  const [cardPreviewMap, setCardPreviewMap] = useState<
-    Record<number, { imageSrc?: string; label: string }>
-  >({});
   const [isDragging, setIsDragging] = useState(false);
   const reduceWebViewEffects = isNativeWebViewRuntime();
   const scrollX = useMotionValue(0);
   const constraintsRef = useRef<HTMLDivElement>(null);
-
-  // Calculate which card is currently centered
-  const centerCardIndex = useTransform(scrollX, (value) => {
-    const totalWidth = TOTAL_CARDS * CARD_OVERLAP;
-    const scrollPercentage = -value / totalWidth;
-    const index = Math.round(scrollPercentage * TOTAL_CARDS);
-    return Math.max(0, Math.min(TOTAL_CARDS - 1, index));
-  });
-
   const [currentCenterIndex, setCurrentCenterIndex] = useState(0);
   const currentCenterIndexRef = useRef(0);
 
   const selectedCardIds = selectedCards.filter((cardId): cardId is number => cardId !== null);
-
-  useEffect(() => {
-    const unsubscribe = centerCardIndex.on('change', (latest) => {
-      if (latest === currentCenterIndexRef.current) return;
-      currentCenterIndexRef.current = latest;
-      setCurrentCenterIndex(latest);
-    });
-    return () => unsubscribe();
-  }, [centerCardIndex]);
-
-  useEffect(() => {
-    let active = true;
-
-    getTarotDeckCards(tarotDeckVersionId)
-      .then((response) => {
-        if (!active || response.length === 0) return;
-
-        const nextPreviewMap: Record<number, { imageSrc?: string; label: string }> = {};
-
-        response.forEach((card: TarotDeckCardResponse) => {
-          const preview = {
-            imageSrc: resolveApiAssetUrl(card.imageUrl) ?? undefined,
-            label: card.koreanName ?? card.name,
-          };
-
-          const candidateIndexes = [card.selectedIndex, card.sortOrder, card.sortOrder - 1]
-            .filter((value, index, array) => array.indexOf(value) === index)
-            .filter((value) => value >= 0 && value < TOTAL_CARDS);
-
-          candidateIndexes.forEach((candidateIndex) => {
-            const existing = nextPreviewMap[candidateIndex];
-            if (!existing || (!existing.imageSrc && preview.imageSrc)) {
-              nextPreviewMap[candidateIndex] = preview;
-            }
-          });
-        });
-
-        setCardPreviewMap(nextPreviewMap);
-      })
-      .catch(() => {
-        if (active) {
-          setCardPreviewMap({});
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [tarotDeckVersionId]);
 
   // Select/deselect card
   const toggleCardSelection = (cardId: number) => {
@@ -235,6 +254,18 @@ export function TarotSpreadPage() {
     currentCenterIndexRef.current = clampedIndex;
     setCurrentCenterIndex(clampedIndex);
     scrollX.set(targetScroll);
+  };
+
+  const handleActivateCard = (index: number, cardId: number) => {
+    if (index !== currentCenterIndexRef.current) {
+      const targetScroll = -(index / TOTAL_CARDS) * (TOTAL_CARDS * CARD_OVERLAP);
+      currentCenterIndexRef.current = index;
+      setCurrentCenterIndex(index);
+      scrollX.set(targetScroll);
+      return;
+    }
+
+    toggleCardSelection(cardId);
   };
 
   return (
@@ -356,7 +387,6 @@ export function TarotSpreadPage() {
           {Array.from({ length: MAX_SELECTIONS }).map((_, slotIndex) => {
             const cardIndex = selectedCards[slotIndex];
             const hasSelectedCard = cardIndex !== null && cardIndex !== undefined;
-            const preview = hasSelectedCard ? cardPreviewMap[cardIndex] : undefined;
 
             return (
               <div
@@ -431,81 +461,18 @@ export function TarotSpreadPage() {
             style={{ x: scrollX, touchAction: 'none', willChange: isDragging ? 'transform' : 'auto' }}
             className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
           >
-            {deckOrder.map((cardId, index) => {
-              const isSelected = selectedCardIds.includes(cardId);
-              const isCentered = index === currentCenterIndex;
-              const preview = cardPreviewMap[cardId];
-
-              // Calculate fan spread effect
-              const centerIndex = TOTAL_CARDS / 2;
-              const distanceFromCenter = index - centerIndex;
-              const maxRotation = reduceWebViewEffects ? REDUCED_SPREAD_MAX_ROTATION : SPREAD_MAX_ROTATION;
-              const rotationAngle = (distanceFromCenter / centerIndex) * maxRotation;
-              
-              // Subtle vertical curve (arc)
-              const verticalCurve = reduceWebViewEffects ? REDUCED_SPREAD_VERTICAL_CURVE : SPREAD_VERTICAL_CURVE;
-              const verticalOffset = Math.abs(distanceFromCenter) * verticalCurve;
-
-              return (
-                <motion.div
-                  key={index}
-                  className="relative flex-shrink-0"
-                  style={{
-                    marginLeft: index === 0 ? '0px' : `-${CARD_WIDTH - CARD_OVERLAP}px`,
-                    // Keep the natural stack order so the lifted card stays partially covered.
-                    zIndex: index,
-                  }}
-                  animate={{
-                    y: (isCentered && !isSelected ? (reduceWebViewEffects ? -8 : -12) : 0) + verticalOffset,
-                    opacity: isSelected ? 0 : 1,
-                    rotate: rotationAngle,
-                  }}
-                  transition={reduceWebViewEffects ? { duration: 0.08 } : {
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 25,
-                  }}
-                  onClick={() => {
-                    if (!isDragging && !isSelected) {
-                      // If card is not active, make it active
-                      if (!isCentered) {
-                        currentCenterIndexRef.current = index;
-                        setCurrentCenterIndex(index);
-                      } else {
-                        // If card is already active, select it
-                        toggleCardSelection(cardId);
-                      }
-                    }
-                  }}
-                >
-                  <motion.div
-                    className="overflow-hidden rounded-lg border shadow-lg transition-all"
-                    style={{
-                      width: `${CARD_WIDTH}px`,
-                      height: `${CARD_HEIGHT}px`,
-                      ...cardBackStyle,
-                      borderColor: isCentered && !isSelected ? 'var(--tarot-card-cover-border)' : 'color-mix(in srgb, var(--tarot-card-cover-border) 45%, transparent)',
-                      boxShadow: reduceWebViewEffects
-                        ? isCentered && !isSelected
-                          ? '0 4px 10px rgba(0, 0, 0, 0.18)'
-                          : '0 1px 4px rgba(0, 0, 0, 0.18)'
-                        : isCentered && !isSelected
-                          ? '0 8px 18px rgba(0, 0, 0, 0.24)'
-                          : '0 4px 12px rgba(0, 0, 0, 0.4)',
-                    }}
-                    whileHover={!reduceWebViewEffects && !isDragging && !isSelected ? { scale: 1.03 } : {}}
-                    whileTap={!reduceWebViewEffects && !isDragging && !isSelected ? { scale: 0.97 } : {}}
-                  >
-                    {/* Card back pattern */}
-                    <div className="absolute inset-0 flex items-center justify-center p-3">
-                      <TarotCardBackPattern />
-                    </div>
-
-                    <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
-                  </motion.div>
-                </motion.div>
-              );
-            })}
+            {deckOrder.map((cardId, index) => (
+              <SpreadCard
+                key={`${cardId}-${index}`}
+                cardId={cardId}
+                index={index}
+                isSelected={selectedCardIds.includes(cardId)}
+                isCentered={index === currentCenterIndex}
+                isDragging={isDragging}
+                reduceEffects={reduceWebViewEffects}
+                onActivate={handleActivateCard}
+              />
+            ))}
           </motion.div>
         </div>
       </div>
