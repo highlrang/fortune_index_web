@@ -50,6 +50,8 @@ const REVEAL_PARTICLES = Array.from({ length: 30 }, (_, index) => ({
 
 const CARD_WIDTH = 100;
 const CARD_HEIGHT = 150;
+const CARD_REVEAL_START_DELAY_MS = 300;
+const CARD_REVEAL_TOTAL_DURATION_MS = 1800;
 const modeByType = {
   saju: 'INVESTMENT_SAJU',
   tarot: 'INVESTMENT_TAROT',
@@ -80,6 +82,14 @@ const accentButtonStyle = {
   background:
     'linear-gradient(135deg, var(--tarot-cta-start) 0%, var(--tarot-cta-mid) 50%, var(--tarot-cta-end) 100%)',
   color: 'var(--tarot-text-main)',
+};
+
+const stableCtaStyle = {
+  ...accentButtonStyle,
+  transform: 'translateZ(0)',
+  backfaceVisibility: 'hidden' as const,
+  WebkitBackfaceVisibility: 'hidden' as const,
+  isolation: 'isolate' as const,
 };
 
 const errorCardStyle = {
@@ -135,10 +145,12 @@ function CardMedia({
   card,
   alt,
   className,
+  reduceEffects = false,
 }: {
   card: CardData;
   alt: string;
   className: string;
+  reduceEffects?: boolean;
 }) {
   if (card.videoSrc) {
     return (
@@ -155,6 +167,16 @@ function CardMedia({
   }
 
   if (card.imageSrc) {
+    if (reduceEffects) {
+      return (
+        <img
+          src={card.imageSrc}
+          alt={alt}
+          className={className}
+        />
+      );
+    }
+
     return (
       <>
         <motion.img
@@ -217,6 +239,10 @@ function preloadCardMedia(card: CardData) {
   });
 }
 
+function isNativeWebViewRuntime() {
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('is-native-webview');
+}
+
 export function TarotResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -252,6 +278,7 @@ export function TarotResultPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [isCardMediaPrepared, setIsCardMediaPrepared] = useState(false);
+  const reduceWebViewEffects = isNativeWebViewRuntime();
 
   useEffect(() => {
     setCards(
@@ -368,7 +395,7 @@ export function TarotResultPage() {
         setCards(prev => prev.map(c => 
           c.id === cardId ? { ...c, revealState: 'revealing' as CardRevealState } : c
         ));
-      }, 600);
+      }, CARD_REVEAL_START_DELAY_MS);
 
       // Step 3: After reveal animation, transition to front (skip shrinking)
       setTimeout(() => {
@@ -377,7 +404,7 @@ export function TarotResultPage() {
         ));
         setExpandedCardId(null);
         setIsAnimating(false);
-      }, 3500);
+      }, CARD_REVEAL_TOTAL_DURATION_MS);
     }
   };
 
@@ -447,7 +474,7 @@ export function TarotResultPage() {
   return (
     <div className="tarot-result-page fixed inset-0 overflow-hidden" style={pageGradientStyle}>
       <div className="absolute inset-0">
-        {STATIC_STARS.map((star) => (
+        {(reduceWebViewEffects ? STATIC_STARS.slice(0, 24) : STATIC_STARS).map((star) => (
           <motion.div
             key={star.id}
             className="absolute h-0.5 w-0.5 rounded-full"
@@ -456,11 +483,11 @@ export function TarotResultPage() {
               top: star.top,
               backgroundColor: 'var(--tarot-text-main)',
             }}
-            animate={{
+            animate={reduceWebViewEffects ? { opacity: 0.28, scale: 1 } : {
               opacity: [0.1, 0.8, 0.1],
               scale: [1, 1.5, 1],
             }}
-            transition={{
+            transition={reduceWebViewEffects ? { duration: 0 } : {
               duration: star.duration,
               repeat: Infinity,
               delay: star.delay,
@@ -468,8 +495,12 @@ export function TarotResultPage() {
           />
         ))}
 
-        <div className="absolute left-1/2 top-1/4 h-96 w-96 -translate-x-1/2 rounded-full blur-[120px]" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
-        <div className="absolute left-1/2 top-2/3 h-96 w-96 -translate-x-1/2 rounded-full blur-[120px]" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
+        {!reduceWebViewEffects && (
+          <>
+            <div className="absolute left-1/2 top-1/4 h-96 w-96 -translate-x-1/2 rounded-full blur-[120px]" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
+            <div className="absolute left-1/2 top-2/3 h-96 w-96 -translate-x-1/2 rounded-full blur-[120px]" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
+          </>
+        )}
       </div>
 
       <AnimatePresence>
@@ -479,7 +510,11 @@ export function TarotResultPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-40 backdrop-blur-md"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--bg-main) 78%, transparent)' }}
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--bg-main) 78%, transparent)',
+              backdropFilter: reduceWebViewEffects ? 'none' : undefined,
+              WebkitBackdropFilter: reduceWebViewEffects ? 'none' : undefined,
+            }}
           />
         )}
       </AnimatePresence>
@@ -584,6 +619,7 @@ export function TarotResultPage() {
                             card={card}
                             alt={card.label || `Tarot Card ${index + 1}`}
                             className="h-full w-full object-cover"
+                            reduceEffects={reduceWebViewEffects}
                           />
 
                           {card.videoSrc ? <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.18)' }} /> : null}
@@ -604,10 +640,10 @@ export function TarotResultPage() {
                           {/* Subtle shimmer effect */}
                           <motion.div
                             className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent"
-                            animate={{
+                            animate={reduceWebViewEffects ? undefined : {
                               x: ['-100%', '200%'],
                             }}
-                            transition={{
+                            transition={reduceWebViewEffects ? undefined : {
                               duration: 3,
                               repeat: Infinity,
                               repeatDelay: 2,
@@ -672,6 +708,7 @@ export function TarotResultPage() {
                             card={card}
                             alt={card.label || `Tarot Card ${index + 1}`}
                             className="absolute inset-0 h-full w-full object-cover"
+                            reduceEffects={reduceWebViewEffects}
                           />
 
                           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.18)' }} />
@@ -679,6 +716,7 @@ export function TarotResultPage() {
                           {/* Mystical magic circle overlay animation */}
                           <div className="absolute inset-0 flex items-center justify-center">
                             {/* Outer rotating circle */}
+                            {!reduceWebViewEffects && (
                             <motion.svg
                               className="absolute h-full w-full"
                               viewBox="0 0 320 480"
@@ -707,8 +745,10 @@ export function TarotResultPage() {
                                 );
                               })}
                             </motion.svg>
+                            )}
 
                             {/* Middle rotating ring */}
+                            {!reduceWebViewEffects && (
                             <motion.svg
                               className="absolute h-full w-full"
                               viewBox="0 0 320 480"
@@ -723,8 +763,10 @@ export function TarotResultPage() {
                                 return <circle key={i} cx={x} cy={y} r="4" fill="var(--tarot-point-color)" opacity="0.7" />;
                               })}
                             </motion.svg>
+                            )}
 
                             {/* Inner counter-rotating circle */}
+                            {!reduceWebViewEffects && (
                             <motion.svg
                               className="absolute h-full w-full"
                               viewBox="0 0 320 480"
@@ -734,23 +776,24 @@ export function TarotResultPage() {
                               <circle cx="160" cy="240" r="50" fill="none" stroke="var(--tarot-point-color)" strokeWidth="0.8" opacity="0.5" />
                               <circle cx="160" cy="240" r="40" fill="none" stroke="var(--tarot-point-color)" strokeWidth="0.5" opacity="0.4" />
                             </motion.svg>
+                            )}
 
                             {/* Center pulsing light */}
                             <motion.div
                               className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                              style={{ backgroundColor: 'var(--tarot-point-color)', filter: 'blur(40px)' }}
-                              animate={{
+                              style={{ backgroundColor: 'var(--tarot-point-color)', filter: reduceWebViewEffects ? 'blur(14px)' : 'blur(40px)' }}
+                              animate={reduceWebViewEffects ? { scale: 1, opacity: 0.28 } : {
                                 scale: [1, 1.8, 1],
                                 opacity: [0.4, 0.7, 0.4],
                               }}
-                              transition={{
+                              transition={reduceWebViewEffects ? { duration: 0 } : {
                                 duration: 2,
                                 repeat: Infinity,
                               }}
                             />
 
                             {/* Light rays */}
-                            {Array.from({ length: 8 }).map((_, i) => {
+                            {!reduceWebViewEffects && Array.from({ length: 8 }).map((_, i) => {
                               const angle = (i * 360) / 8;
                               return (
                                 <motion.div
@@ -773,7 +816,7 @@ export function TarotResultPage() {
                             })}
 
                             {/* Floating particles/sparkles */}
-                            {REVEAL_PARTICLES.map((particle) => (
+                            {!reduceWebViewEffects && REVEAL_PARTICLES.map((particle) => (
                               <motion.div
                                 key={particle.id}
                                 className="absolute h-1 w-1 rounded-full"
@@ -799,14 +842,14 @@ export function TarotResultPage() {
                           {/* Revealing glow pulse */}
                           <motion.div
                             className="absolute inset-0 rounded-2xl"
-                            animate={{
+                            animate={reduceWebViewEffects ? undefined : {
                               boxShadow: [
                                 'inset 0 0 30px rgba(212, 175, 55, 0.5)',
                                 'inset 0 0 60px rgba(212, 175, 55, 0.8)',
                                 'inset 0 0 30px rgba(212, 175, 55, 0.5)',
                               ],
                             }}
-                            transition={{
+                            transition={reduceWebViewEffects ? undefined : {
                               duration: 1.5,
                               repeat: Infinity,
                             }}
@@ -864,23 +907,23 @@ export function TarotResultPage() {
                 animate={{ opacity: 1, y: 0 }}
                 onClick={handleConfirm}
                 disabled={isSubmitting}
-                className="group relative overflow-hidden rounded-full border px-6 py-3.5 transition-all"
-                style={accentButtonStyle}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                className="tarot-stable-cta group relative overflow-hidden rounded-full border px-6 py-3.5 transition-all"
+                style={stableCtaStyle}
+                whileHover={reduceWebViewEffects ? undefined : { scale: 1.02 }}
+                whileTap={reduceWebViewEffects ? undefined : { scale: 0.98 }}
               >
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.24) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
                 
                 <motion.div
                   className="absolute inset-0 rounded-full"
-                  animate={{
+                  animate={reduceWebViewEffects ? undefined : {
                     boxShadow: [
                       '0 0 18px var(--tarot-card-cover-glow), inset 0 0 18px var(--tarot-card-cover-glow)',
                       '0 0 28px var(--tarot-card-cover-glow), inset 0 0 28px var(--tarot-card-cover-glow)',
                       '0 0 18px var(--tarot-card-cover-glow), inset 0 0 18px var(--tarot-card-cover-glow)',
                     ],
                   }}
-                  transition={{
+                  transition={reduceWebViewEffects ? undefined : {
                     duration: 2,
                     repeat: Infinity,
                     ease: 'easeInOut',

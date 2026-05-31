@@ -124,7 +124,7 @@ function getRandomShuffledOrder(order: number[]) {
   return next;
 }
 
-function getRandomShuffleChunkMotion(index: number, isAnimating: boolean) {
+function getRandomShuffleChunkMotion(index: number, isAnimating: boolean, reduceEffects: boolean) {
   if (!isAnimating) {
     return {
       animate: {
@@ -136,6 +136,20 @@ function getRandomShuffleChunkMotion(index: number, isAnimating: boolean) {
       transition: {
         duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000,
         ease: [0.22, 1, 0.36, 1] as const,
+      },
+    };
+  }
+
+  if (reduceEffects && index !== 0 && index !== TOTAL_CARDS - 1 && index % 13 !== 0) {
+    return {
+      animate: {
+        x: 0,
+        y: 0,
+        rotateZ: 0,
+        scale: 1,
+      },
+      transition: {
+        duration: 0.08,
       },
     };
   }
@@ -323,6 +337,7 @@ export function TarotPickerPage() {
   const [hasShuffled, setHasShuffled] = useState(false); // Track if user has shuffled at least once
   const [isMergedStack, setIsMergedStack] = useState(false);
   const [isRandomShuffleAnimating, setIsRandomShuffleAnimating] = useState(false);
+  const [isDeckDragging, setIsDeckDragging] = useState(false);
   const reduceWebViewEffects = isNativeWebViewRuntime();
 
   const isDraggingRotation = useRef(false);
@@ -349,6 +364,7 @@ export function TarotPickerPage() {
   // Rotation drag (unified deck only, horizontal drag)
   const handleRotationDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     isDraggingRotation.current = true;
+    setIsDeckDragging(true);
     const newRotation = rotation.get() + info.delta.x * 0.8;
     rotation.set(Math.max(-30, Math.min(30, newRotation)));
   };
@@ -356,6 +372,7 @@ export function TarotPickerPage() {
   const handleRotationDragEnd = () => {
     setTimeout(() => {
       isDraggingRotation.current = false;
+      setIsDeckDragging(false);
     }, 50);
     rotation.set(0);
   };
@@ -475,8 +492,12 @@ export function TarotPickerPage() {
         ))}
         
         {/* Ambient glows */}
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
+        {!reduceWebViewEffects && (
+          <>
+            <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
+            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
+          </>
+        )}
       </div>
 
       {/* Main content */}
@@ -627,13 +648,14 @@ export function TarotPickerPage() {
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.04}
               dragMomentum={false}
+              onDragStart={() => setIsDeckDragging(true)}
               onDrag={handleRotationDrag}
               onDragEnd={handleRotationDragEnd}
               className="cursor-grab active:cursor-grabbing"
               style={{
                 transformStyle: 'preserve-3d',
                 rotateY: rotation,
-                willChange: 'transform',
+                willChange: isDeckDragging || isRandomShuffleAnimating ? 'transform' : 'auto',
                 touchAction: 'none',
               }}
               animate={{
@@ -659,7 +681,7 @@ export function TarotPickerPage() {
                   const isVisible = i % 2 === 0 || i < 5 || i > TOTAL_CARDS - 6;
                   const isTopCard = i === TOTAL_CARDS - 1;
                   const isBottomCard = i === 0;
-                  const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating);
+                  const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating, reduceWebViewEffects);
 
                   return (
                     <motion.div
@@ -840,7 +862,7 @@ export function TarotPickerPage() {
                     transform: `translateZ(${MERGED_TOP_CARD_Z}px)`,
                     transformStyle: 'preserve-3d',
                     zIndex: 5,
-                    willChange: 'transform',
+                    willChange: isShuffling ? 'transform' : 'auto',
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
                   }}
@@ -859,25 +881,24 @@ export function TarotPickerPage() {
 
         {/* Keep button area mounted to avoid repainting the whole content stack after shuffle */}
         <div className="-mt-3 pb-2 pt-0" style={{ minHeight: '68px' }}>
-          <motion.div
-            initial={false}
-            animate={{
-              opacity: canProceedToSpread ? 1 : 0,
-              y: canProceedToSpread ? 0 : 20,
-            }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+          <div
             className={canProceedToSpread ? '' : 'pointer-events-none'}
+            style={{
+              opacity: canProceedToSpread ? 1 : 0,
+              visibility: canProceedToSpread ? 'visible' : 'hidden',
+              transition: 'opacity 160ms ease-out',
+            }}
           >
             <motion.button
               onClick={handleConfirm}
-              className="group relative w-full overflow-hidden rounded-2xl border px-6 py-5 backdrop-blur-xl transition-all"
+              className="tarot-stable-cta group relative w-full overflow-hidden rounded-2xl border px-6 py-5 transition-all"
               style={{
                 borderColor: 'var(--tarot-cta-border)',
                 background:
                   'linear-gradient(135deg, var(--tarot-cta-start) 0%, var(--tarot-cta-mid) 50%, var(--tarot-cta-end) 100%)',
               }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={reduceWebViewEffects ? undefined : { scale: 1.02 }}
+              whileTap={reduceWebViewEffects ? undefined : { scale: 0.98 }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/[0.15] via-transparent to-white/[0.05]" />
               
@@ -896,7 +917,7 @@ export function TarotPickerPage() {
                 </span>
               </div>
             </motion.button>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

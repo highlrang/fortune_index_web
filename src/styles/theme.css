@@ -534,6 +534,23 @@ html.is-native-webview.is-native-android {
     -webkit-backdrop-filter: blur(6px);
   }
 
+  body.is-native-webview .tarot-stable-cta {
+    position: relative;
+    z-index: 60;
+    isolation: isolate;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: paint;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 6px 14px rgba(5, 7, 16, 0.18);
+  }
+
+  body.is-native-webview .tarot-stable-cta > * {
+    transform: translateZ(0);
+  }
+
   .fi-glass {
     position: relative;
     overflow: hidden;

@@ -66,6 +66,14 @@ const accentButtonStyle = {
   color: 'var(--tarot-text-main)',
 };
 
+const stableCtaStyle = {
+  ...accentButtonStyle,
+  transform: 'translateZ(0)',
+  backfaceVisibility: 'hidden' as const,
+  WebkitBackfaceVisibility: 'hidden' as const,
+  isolation: 'isolate' as const,
+};
+
 const cardBackStyle = {
   borderColor: 'var(--tarot-card-cover-border)',
   background:
@@ -318,14 +326,18 @@ export function TarotSpreadPage() {
               'linear-gradient(180deg, color-mix(in srgb, var(--tarot-card-cover-glow) 14%, transparent) 0%, transparent 24%, transparent 72%, color-mix(in srgb, var(--tarot-card-cover-glow) 10%, transparent) 100%)',
           }}
         />
-        <div
-          className="absolute left-1/2 top-[5.5rem] h-40 w-[24rem] -translate-x-1/2 rounded-full blur-3xl"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--tarot-card-cover-glow) 82%, transparent)', opacity: 0.34 }}
-        />
-        <div
-          className="absolute left-1/2 top-[12rem] h-64 w-[44rem] -translate-x-1/2 rounded-full blur-[84px]"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--tarot-ambient-blob-a) 78%, transparent)', opacity: 0.24 }}
-        />
+        {!reduceWebViewEffects && (
+          <>
+            <div
+              className="absolute left-1/2 top-[5.5rem] h-40 w-[24rem] -translate-x-1/2 rounded-full blur-3xl"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--tarot-card-cover-glow) 82%, transparent)', opacity: 0.34 }}
+            />
+            <div
+              className="absolute left-1/2 top-[12rem] h-64 w-[44rem] -translate-x-1/2 rounded-full blur-[84px]"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--tarot-ambient-blob-a) 78%, transparent)', opacity: 0.24 }}
+            />
+          </>
+        )}
       </div>
 
       <div
@@ -412,7 +424,7 @@ export function TarotSpreadPage() {
             dragMomentum={!reduceWebViewEffects}
             onDragStart={() => setIsDragging(true)}
             onDragEnd={handleDragEnd}
-            style={{ x: scrollX, touchAction: 'none', willChange: 'transform' }}
+            style={{ x: scrollX, touchAction: 'none', willChange: isDragging ? 'transform' : 'auto' }}
             className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
           >
             {deckOrder.map((cardId, index) => {
@@ -439,11 +451,15 @@ export function TarotSpreadPage() {
                     zIndex: index,
                   }}
                   animate={{
-                    y: (isCentered && !isSelected ? -12 : 0) + verticalOffset,
+                    y: reduceWebViewEffects
+                      ? isCentered && !isSelected
+                        ? -8
+                        : 0
+                      : (isCentered && !isSelected ? -12 : 0) + verticalOffset,
                     opacity: isSelected ? 0 : 1,
-                    rotate: rotationAngle,
+                    rotate: reduceWebViewEffects ? 0 : rotationAngle,
                   }}
-                  transition={reduceWebViewEffects ? { duration: 0.12 } : {
+                  transition={reduceWebViewEffects ? { duration: 0.08 } : {
                     type: 'spring',
                     stiffness: 300,
                     damping: 25,
@@ -468,12 +484,16 @@ export function TarotSpreadPage() {
                       height: `${CARD_HEIGHT}px`,
                       ...cardBackStyle,
                       borderColor: isCentered && !isSelected ? 'var(--tarot-card-cover-border)' : 'color-mix(in srgb, var(--tarot-card-cover-border) 45%, transparent)',
-                      boxShadow: isCentered && !isSelected
-                        ? '0 8px 18px rgba(0, 0, 0, 0.24)'
-                        : '0 4px 12px rgba(0, 0, 0, 0.4)',
+                      boxShadow: reduceWebViewEffects
+                        ? isCentered && !isSelected
+                          ? '0 4px 10px rgba(0, 0, 0, 0.18)'
+                          : '0 1px 4px rgba(0, 0, 0, 0.18)'
+                        : isCentered && !isSelected
+                          ? '0 8px 18px rgba(0, 0, 0, 0.24)'
+                          : '0 4px 12px rgba(0, 0, 0, 0.4)',
                     }}
-                    whileHover={!isDragging && !isSelected ? { scale: 1.03 } : {}}
-                    whileTap={!isDragging && !isSelected ? { scale: 0.97 } : {}}
+                    whileHover={!reduceWebViewEffects && !isDragging && !isSelected ? { scale: 1.03 } : {}}
+                    whileTap={!reduceWebViewEffects && !isDragging && !isSelected ? { scale: 0.97 } : {}}
                   >
                     {/* Card back pattern */}
                     {reduceWebViewEffects ? (
@@ -509,10 +529,10 @@ export function TarotSpreadPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={handleConfirm}
-            className="group relative overflow-hidden rounded-full border px-6 py-2.5 transition-all"
-            style={accentButtonStyle}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            className="tarot-stable-cta group relative overflow-hidden rounded-full border px-6 py-2.5 transition-all"
+            style={stableCtaStyle}
+            whileHover={reduceWebViewEffects ? undefined : { scale: 1.05 }}
+            whileTap={reduceWebViewEffects ? undefined : { scale: 0.95 }}
           >
             <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.24) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)' }} />
             
