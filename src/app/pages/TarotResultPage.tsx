@@ -638,7 +638,6 @@ export function TarotResultPage() {
 
                           <div className="absolute inset-x-3 bottom-3 rounded-xl px-3 py-2" style={frontCaptionStyle}>
                             <div className="text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{card.label}</div>
-                            {card.meaning ? <div className="mt-1 text-[11px] leading-4" style={{ color: 'var(--app-text-muted)' }}>{card.meaning}</div> : null}
                           </div>
 
                           <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--tarot-card-cover-glow) 60%, transparent) 0%, transparent 30%, color-mix(in srgb, var(--tarot-card-cover-glow) 45%, transparent) 100%)' }} />

@@ -536,6 +536,7 @@ html.is-native-webview.is-native-android {
 
   body.is-native-webview .tarot-picker-page {
     min-height: 100dvh;
+    overflow: visible;
   }
 
   body.is-native-webview .tarot-picker-content {
@@ -544,7 +545,23 @@ html.is-native-webview.is-native-android {
   }
 
   body.is-native-webview .tarot-picker-deck {
-    min-height: clamp(19rem, 54dvh, 28rem);
+    min-height: clamp(22rem, 62dvh, 31rem);
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    overflow: visible;
+    isolation: isolate;
+  }
+
+  body.is-native-webview .tarot-spread-native-scroll {
+    overscroll-behavior-x: contain;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+
+  body.is-native-webview .tarot-spread-native-scroll::-webkit-scrollbar {
+    display: none;
   }
 
   body.is-native-webview .tarot-picker-cta-wrap {

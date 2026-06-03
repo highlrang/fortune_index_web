@@ -1,11 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { RouterProvider } from 'react-router';
 import { Toaster } from 'sonner';
 import { router } from './routes';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './components/ui/dialog';
 import { applyThemePreference, resolveInitialThemePreference } from '@/lib/theme';
 import { getCurrentUser } from '@/lib/session';
 import { setSelectedTarotDeckId } from '@/lib/tarot';
 import { savePasswordResetToken } from '@/lib/passwordReset';
+import { AUTH_REQUIRED_EVENT } from '@/lib/api/client';
 import {
   captureSignupVerificationParams,
   getSignupVerificationEmail,
@@ -17,6 +26,8 @@ import {
 } from '@/lib/nativeDeepLink';
 
 export default function App() {
+  const [showAuthRequiredModal, setShowAuthRequiredModal] = useState(false);
+
   useEffect(() => {
     if (!document.documentElement.classList.contains('is-native-webview')) return;
 
@@ -79,9 +90,60 @@ export default function App() {
     applyThemePreference(resolveInitialThemePreference(defaultTheme));
   }, []);
 
+  useEffect(() => {
+    const handleAuthRequired = () => {
+      if (window.location.pathname === '/' || window.location.pathname === '/login') return;
+      setShowAuthRequiredModal(true);
+    };
+
+    window.addEventListener(AUTH_REQUIRED_EVENT, handleAuthRequired);
+
+    return () => {
+      window.removeEventListener(AUTH_REQUIRED_EVENT, handleAuthRequired);
+    };
+  }, []);
+
+  const handleGoToLogin = () => {
+    setShowAuthRequiredModal(false);
+    router.navigate('/login');
+  };
+
   return (
     <>
       <RouterProvider router={router} />
+      <Dialog open={showAuthRequiredModal} onOpenChange={setShowAuthRequiredModal}>
+        <DialogContent
+          className="max-w-[calc(100%-2rem)] rounded-2xl border p-5"
+          style={{
+            borderColor: 'var(--app-surface-border)',
+            backgroundColor: 'var(--app-surface-bg)',
+            color: 'var(--tarot-text-main)',
+            backdropFilter: 'var(--app-card-blur)',
+            WebkitBackdropFilter: 'var(--app-card-blur)',
+          }}
+        >
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-lg">로그인이 필요합니다</DialogTitle>
+            <DialogDescription style={{ color: 'var(--app-text-muted)' }}>
+              다시 로그인한 뒤 이용해주세요.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={handleGoToLogin}
+              className="h-11 w-full rounded-full border text-sm font-semibold"
+              style={{
+                borderColor: 'var(--app-accent-border)',
+                backgroundColor: 'var(--app-accent-soft)',
+                color: 'var(--app-accent-text-strong)',
+              }}
+            >
+              로그인 하러가기
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Toaster
         position="top-center"
         richColors

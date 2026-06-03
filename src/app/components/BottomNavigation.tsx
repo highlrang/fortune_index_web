@@ -28,8 +28,8 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   
   const tabs = [
     { id: 'home', label: '홈', icon: Home, path: '/home' },
-    { id: 'oracle', label: '운세', icon: Sparkles, path: '/consultation' },
-    { id: 'consult', label: '상담', icon: MessageCircle, path: '/consultation-history' },
+    { id: 'oracle', label: '상담', icon: Sparkles, path: '/consultation' },
+    { id: 'consult', label: '기록', icon: MessageCircle, path: '/consultation-history' },
     { id: 'my', label: '마이', icon: User, path: '/my' },
   ];
 

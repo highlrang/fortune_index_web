@@ -1,5 +1,5 @@
-import { memo, useState, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue } from 'motion/react';
+import { memo, useEffect, useRef, useState } from 'react';
+import { motion, useMotionValue } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -106,6 +106,15 @@ function TarotCardBackPattern() {
   );
 }
 
+function TarotCardBackMinimalPattern() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="h-10 w-10 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)' }} />
+      <div className="absolute h-16 w-16 rounded-[18px] border" style={{ borderColor: 'var(--tarot-card-sigil-soft)' }} />
+    </div>
+  );
+}
+
 type SpreadCardProps = {
   cardId: number;
   index: number;
@@ -176,9 +185,13 @@ const SpreadCard = memo(function SpreadCard({
         whileHover={!reduceEffects && !isDragging && !isSelected ? { scale: 1.025 } : {}}
         whileTap={!reduceEffects && !isDragging && !isSelected ? { scale: 0.98 } : {}}
       >
-        <div className="absolute inset-0 flex items-center justify-center p-3">
-          <TarotCardBackPattern />
-        </div>
+        {reduceEffects ? (
+          <TarotCardBackMinimalPattern />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center p-3">
+            <TarotCardBackPattern />
+          </div>
+        )}
 
         <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 36%, transparent)' }} />
       </motion.div>
@@ -201,10 +214,22 @@ export function TarotSpreadPage() {
   const reduceWebViewEffects = isNativeWebViewRuntime();
   const scrollX = useMotionValue(0);
   const constraintsRef = useRef<HTMLDivElement>(null);
+  const webViewScrollRef = useRef<HTMLDivElement>(null);
+  const webViewScrollRafRef = useRef<number | null>(null);
   const [currentCenterIndex, setCurrentCenterIndex] = useState(0);
   const currentCenterIndexRef = useRef(0);
 
   const selectedCardIds = selectedCards.filter((cardId): cardId is number => cardId !== null);
+
+  useEffect(() => {
+    if (!reduceWebViewEffects) return undefined;
+
+    return () => {
+      if (webViewScrollRafRef.current !== null) {
+        window.cancelAnimationFrame(webViewScrollRafRef.current);
+      }
+    };
+  }, [reduceWebViewEffects]);
 
   // Select/deselect card
   const toggleCardSelection = (cardId: number) => {
@@ -262,7 +287,39 @@ export function TarotSpreadPage() {
       currentCenterIndexRef.current = index;
       setCurrentCenterIndex(index);
       scrollX.set(targetScroll);
-      return;
+    }
+
+    toggleCardSelection(cardId);
+  };
+
+  const handleWebViewScroll = () => {
+    if (!webViewScrollRef.current || webViewScrollRafRef.current !== null) return;
+
+    webViewScrollRafRef.current = window.requestAnimationFrame(() => {
+      const container = webViewScrollRef.current;
+      webViewScrollRafRef.current = null;
+      if (!container) return;
+
+      const nextCenterIndex = Math.max(
+        0,
+        Math.min(TOTAL_CARDS - 1, Math.round(container.scrollLeft / CARD_OVERLAP)),
+      );
+
+      if (nextCenterIndex !== currentCenterIndexRef.current) {
+        currentCenterIndexRef.current = nextCenterIndex;
+        setCurrentCenterIndex(nextCenterIndex);
+      }
+    });
+  };
+
+  const handleWebViewActivateCard = (index: number, cardId: number) => {
+    if (index !== currentCenterIndexRef.current) {
+      currentCenterIndexRef.current = index;
+      setCurrentCenterIndex(index);
+      webViewScrollRef.current?.scrollTo({
+        left: index * CARD_OVERLAP,
+        behavior: 'smooth',
+      });
     }
 
     toggleCardSelection(cardId);
@@ -440,41 +497,74 @@ export function TarotSpreadPage() {
 
       {/* BOTTOM SECTION - Ultra-Dense Horizontal Carousel (2/3 of screen) */}
       <div className="absolute bottom-0 left-0 right-0 z-30" style={{ top: 'var(--tarot-spread-carousel-top)' }}>
-        <div className="pointer-events-none absolute left-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(90deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
-        <div className="pointer-events-none absolute right-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(270deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
+        {!reduceWebViewEffects && (
+          <>
+            <div className="pointer-events-none absolute left-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(90deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
+            <div className="pointer-events-none absolute right-0 top-1/2 h-48 w-1/4 -translate-y-1/2 blur-2xl" style={{ background: 'linear-gradient(270deg, var(--tarot-card-cover-glow) 0%, transparent 100%)', opacity: 0.4 }} />
+          </>
+        )}
 
         {/* Cards Container */}
-        <div 
-          ref={constraintsRef}
-          className="relative h-full w-full overflow-hidden"
-        >
-          <motion.div
-            drag="x"
-            dragConstraints={{
-              left: -(TOTAL_CARDS - 1) * CARD_OVERLAP,
-              right: 0,
-            }}
-            dragElastic={reduceWebViewEffects ? 0 : 0.05}
-            dragMomentum={!reduceWebViewEffects}
-            onDragStart={() => setIsDragging(true)}
-            onDragEnd={handleDragEnd}
-            style={{ x: scrollX, touchAction: 'none', willChange: isDragging ? 'transform' : 'auto' }}
-            className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
+        {reduceWebViewEffects ? (
+          <div
+            ref={webViewScrollRef}
+            className="tarot-spread-native-scroll relative h-full w-full overflow-x-auto overflow-y-hidden"
+            onScroll={handleWebViewScroll}
           >
-            {deckOrder.map((cardId, index) => (
-              <SpreadCard
-                key={`${cardId}-${index}`}
-                cardId={cardId}
-                index={index}
-                isSelected={selectedCardIds.includes(cardId)}
-                isCentered={index === currentCenterIndex}
-                isDragging={isDragging}
-                reduceEffects={reduceWebViewEffects}
-                onActivate={handleActivateCard}
-              />
-            ))}
-          </motion.div>
-        </div>
+            <div
+              className="flex h-full items-center"
+              style={{
+                paddingLeft: `calc(50vw - ${CARD_WIDTH / 2}px)`,
+                paddingRight: `calc(50vw - ${CARD_WIDTH / 2}px)`,
+              }}
+            >
+              {deckOrder.map((cardId, index) => (
+                <SpreadCard
+                  key={`${cardId}-${index}`}
+                  cardId={cardId}
+                  index={index}
+                  isSelected={selectedCardIds.includes(cardId)}
+                  isCentered={index === currentCenterIndex}
+                  isDragging={false}
+                  reduceEffects
+                  onActivate={handleWebViewActivateCard}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            ref={constraintsRef}
+            className="relative h-full w-full overflow-hidden"
+          >
+            <motion.div
+              drag="x"
+              dragConstraints={{
+                left: -(TOTAL_CARDS - 1) * CARD_OVERLAP,
+                right: 0,
+              }}
+              dragElastic={0.05}
+              dragMomentum
+              onDragStart={() => setIsDragging(true)}
+              onDragEnd={handleDragEnd}
+              style={{ x: scrollX, touchAction: 'none', willChange: isDragging ? 'transform' : 'auto' }}
+              className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
+            >
+              {deckOrder.map((cardId, index) => (
+                <SpreadCard
+                  key={`${cardId}-${index}`}
+                  cardId={cardId}
+                  index={index}
+                  isSelected={selectedCardIds.includes(cardId)}
+                  isCentered={index === currentCenterIndex}
+                  isDragging={isDragging}
+                  reduceEffects={false}
+                  onActivate={handleActivateCard}
+                />
+              ))}
+            </motion.div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Controls */}

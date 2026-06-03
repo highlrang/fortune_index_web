@@ -34,6 +34,7 @@ interface RequestOptions {
 
 let refreshPromise: Promise<boolean> | null = null;
 const LAST_AUTH_FAILURE_KEY = 'fortune-index-last-auth-failure';
+export const AUTH_REQUIRED_EVENT = 'fortune-index-auth-required';
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response: Response;
@@ -57,8 +58,16 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       const retryPayload = await parseResponsePayload(retryResponse);
 
       if (!retryResponse.ok) {
+        if (retryResponse.status === 401) {
+          clearSessionAfterAuthFailure({
+            reason: 'retry_unauthorized',
+            status: retryResponse.status,
+            payload: retryPayload,
+          });
+        }
+
         throw new ApiError(
-          resolveErrorMessage(retryPayload, retryResponse.status),
+          resolveErrorMessage(retryPayload, retryResponse.status, path),
           retryResponse.status,
           retryPayload,
         );
@@ -69,7 +78,15 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   if (!response.ok) {
-    throw new ApiError(resolveErrorMessage(payload, response.status), response.status, payload);
+    if (response.status === 401 && shouldNotifyAuthRequired(path)) {
+      clearSessionAfterAuthFailure({
+        reason: 'request_unauthorized',
+        status: response.status,
+        payload,
+      });
+    }
+
+    throw new ApiError(resolveErrorMessage(payload, response.status, path), response.status, payload);
   }
 
   return payload as T;
@@ -200,7 +217,11 @@ function safeJsonParse(text: string) {
   }
 }
 
-function resolveErrorMessage(payload: unknown, status: number) {
+function resolveErrorMessage(payload: unknown, status: number, path?: string) {
+  if (status === 401 && path && shouldNotifyAuthRequired(path)) {
+    return '';
+  }
+
   if (payload && typeof payload === 'object') {
     if ('message' in payload && typeof payload.message === 'string') {
       return localizeErrorMessage(payload.message, status);
@@ -312,6 +333,7 @@ function fallbackStatusMessage(status?: number) {
 function clearSessionAfterAuthFailure(details: Record<string, unknown>) {
   clearSession();
   recordAuthFailure(details);
+  notifyAuthRequired();
 }
 
 function recordAuthFailure(details: Record<string, unknown>) {
@@ -325,6 +347,16 @@ function recordAuthFailure(details: Record<string, unknown>) {
 
   window.localStorage.setItem(LAST_AUTH_FAILURE_KEY, JSON.stringify(failure));
   console.warn('[auth] token refresh failed', failure);
+}
+
+function shouldNotifyAuthRequired(path: string) {
+  return !isPublicAuthPath(path);
+}
+
+function notifyAuthRequired() {
+  if (typeof window === 'undefined') return;
+
+  window.dispatchEvent(new CustomEvent(AUTH_REQUIRED_EVENT));
 }
 
 function normalizeTokenValue(token?: string | null) {

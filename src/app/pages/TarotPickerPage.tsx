@@ -26,6 +26,7 @@ const SHUFFLE_HANDOFF_OVERLAY_MS = 180;
 const SHUFFLE_HANDOFF_SETTLE_MS = 80;
 const SHUFFLE_VERTICAL_TRAVEL = 180;
 const RANDOM_SHUFFLE_ANIMATION_MS = 1380;
+const WEBVIEW_RANDOM_SHUFFLE_ANIMATION_MS = 2100;
 const RANDOM_SHUFFLE_VISUAL_CHUNK_COUNT = 3;
 const DECK_LAYER_STRIDE = 3;
 const REDUCED_DECK_LAYER_STRIDE = 6;
@@ -177,7 +178,16 @@ function getDeckLayerGroups(order: number[], reduceEffects: boolean) {
   return groups;
 }
 
-function getRandomShuffleChunkMotion(_index: number, isAnimating: boolean, reduceEffects: boolean) {
+function getRandomShuffleAnimationMs(reduceEffects: boolean) {
+  return reduceEffects ? WEBVIEW_RANDOM_SHUFFLE_ANIMATION_MS : RANDOM_SHUFFLE_ANIMATION_MS;
+}
+
+function getRandomShuffleChunkMotion(
+  _index: number,
+  isAnimating: boolean,
+  reduceEffects: boolean,
+  animationMs: number,
+) {
   return {
     animate: {
       x: 0,
@@ -186,7 +196,7 @@ function getRandomShuffleChunkMotion(_index: number, isAnimating: boolean, reduc
       scale: 1,
     },
     transition: {
-      duration: isAnimating && reduceEffects ? 0.08 : RANDOM_SHUFFLE_ANIMATION_MS / 1000,
+      duration: isAnimating && reduceEffects ? animationMs / 1000 : RANDOM_SHUFFLE_ANIMATION_MS / 1000,
       ease: [0.22, 1, 0.36, 1] as const,
     },
   };
@@ -504,7 +514,7 @@ export function TarotPickerPage() {
       }
 
       setIsRandomShuffleAnimating(false);
-    }, RANDOM_SHUFFLE_ANIMATION_MS);
+    }, getRandomShuffleAnimationMs(reduceWebViewEffects));
   };
 
   const upperDeckCards = visualDeckOrder.slice(0, splitIndex);
@@ -515,6 +525,8 @@ export function TarotPickerPage() {
   const compensatedDistance = SPLIT_DISTANCE * (1 + depthFactor * SPLIT_DEPTH_MULTIPLIER);
   const upperDeckZ = splitPointZ - compensatedDistance / 2;
   const lowerDeckZ = splitPointZ + compensatedDistance / 2;
+  const shuffleVerticalTravel = reduceWebViewEffects ? 132 : SHUFFLE_VERTICAL_TRAVEL;
+  const randomShuffleAnimationMs = getRandomShuffleAnimationMs(reduceWebViewEffects);
 
   return (
     <div className="tarot-picker-page relative min-h-screen overflow-hidden" style={{ ...tarotPageVars, backgroundColor: 'var(--tarot-bg-color)' }}>
@@ -617,7 +629,7 @@ export function TarotPickerPage() {
                     backgroundColor: 'rgba(255,255,255,0.05)',
                   }
             }
-            transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: randomShuffleAnimationMs / 1000, ease: [0.22, 1, 0.36, 1] }}
           >
             <motion.div
               className="absolute inset-0 rounded-full"
@@ -629,7 +641,7 @@ export function TarotPickerPage() {
                     }
                   : { opacity: 0, scale: 1 }
               }
-              transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: 'easeOut' }}
+              transition={{ duration: randomShuffleAnimationMs / 1000, ease: 'easeOut' }}
               style={{
                 background:
                   'radial-gradient(circle, rgba(212,175,55,0.46) 0%, rgba(168,85,247,0.24) 42%, rgba(168,85,247,0) 76%)',
@@ -652,7 +664,7 @@ export function TarotPickerPage() {
                       boxShadow: '0 0 0 rgba(212, 175, 55, 0)',
                     }
               }
-              transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: 'easeInOut' }}
+              transition={{ duration: randomShuffleAnimationMs / 1000, ease: 'easeInOut' }}
             />
             <motion.div
               className="relative z-10"
@@ -664,7 +676,7 @@ export function TarotPickerPage() {
                     }
                   : { rotate: 0, scale: 1 }
               }
-              transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: randomShuffleAnimationMs / 1000, ease: [0.22, 1, 0.36, 1] }}
             >
               <Shuffle className="h-4.5 w-4.5" />
             </motion.div>
@@ -684,7 +696,7 @@ export function TarotPickerPage() {
                   scale: [0.82, 1.06, 1.16],
                 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000, ease: 'easeOut' }}
+                transition={{ duration: randomShuffleAnimationMs / 1000, ease: 'easeOut' }}
                 style={{
                   background:
                     'radial-gradient(circle at center, rgba(212,175,55,0.16) 0%, rgba(168,85,247,0.16) 36%, rgba(10,10,18,0) 74%)',
@@ -716,7 +728,7 @@ export function TarotPickerPage() {
                 y: isRandomShuffleAnimating ? [0, -5, 2, -1, 0] : 0,
               }}
               transition={{
-                duration: RANDOM_SHUFFLE_ANIMATION_MS / 1000,
+                duration: randomShuffleAnimationMs / 1000,
                 ease: [0.22, 1, 0.36, 1],
               }}
             >
@@ -757,7 +769,7 @@ export function TarotPickerPage() {
                       }}
                       animate={groupMotion}
                       transition={{
-                        duration: reduceWebViewEffects ? 0.62 : RANDOM_SHUFFLE_ANIMATION_MS / 1000,
+                        duration: reduceWebViewEffects ? randomShuffleAnimationMs / 1000 : RANDOM_SHUFFLE_ANIMATION_MS / 1000,
                         delay: isRandomShuffleAnimating && chunk ? chunk.delay : 0,
                         ease: [0.22, 1, 0.36, 1],
                       }}
@@ -767,7 +779,12 @@ export function TarotPickerPage() {
                         const isTopCard = i === TOTAL_CARDS - 1;
                         const isBottomCard = i === 0;
                         const isVisible = isTopCard || isBottomCard || i < 5 || i > TOTAL_CARDS - 6;
-                        const shuffleCardMotion = getRandomShuffleChunkMotion(i, isRandomShuffleAnimating, reduceWebViewEffects);
+                        const shuffleCardMotion = getRandomShuffleChunkMotion(
+                          i,
+                          isRandomShuffleAnimating,
+                          reduceWebViewEffects,
+                          randomShuffleAnimationMs,
+                        );
 
                         return (
                           <motion.div
@@ -836,7 +853,7 @@ export function TarotPickerPage() {
                     : isMergedStack
                       ? TOTAL_CARDS - 1
                       : upperDeckZ,
-                  y: isShuffling ? [0, SHUFFLE_VERTICAL_TRAVEL, SHUFFLE_VERTICAL_TRAVEL, 0] : 0,
+                  y: isShuffling ? [0, shuffleVerticalTravel, shuffleVerticalTravel, 0] : 0,
                 }}
                 transition={{
                   z: {
@@ -895,7 +912,7 @@ export function TarotPickerPage() {
                     : isMergedStack
                       ? 0
                       : lowerDeckZ,
-                  y: isShuffling ? [0, -SHUFFLE_VERTICAL_TRAVEL, -SHUFFLE_VERTICAL_TRAVEL, 0] : 0,
+                  y: isShuffling ? [0, -shuffleVerticalTravel, -shuffleVerticalTravel, 0] : 0,
                 }}
                 transition={{
                   z: {

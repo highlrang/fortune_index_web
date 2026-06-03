@@ -6,7 +6,6 @@ import {
   Sparkles,
   Eye,
   MoonStar,
-  Share2,
   Heart,
   Clock,
   Trash2,
@@ -42,6 +41,14 @@ const glassCardStyle = {
   ...glassLayerStyle,
   backgroundColor: 'var(--app-surface-bg)',
   borderColor: 'var(--app-surface-border)',
+};
+
+const resultPanelStyle = {
+  ...glassLayerStyle,
+  background:
+    'linear-gradient(180deg, color-mix(in srgb, var(--app-surface-bg) 88%, transparent) 0%, color-mix(in srgb, var(--app-surface-bg-strong) 76%, transparent) 100%)',
+  borderColor: 'color-mix(in srgb, var(--app-surface-border) 82%, transparent)',
+  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.14)',
 };
 
 const iconButtonStyle = {
@@ -278,9 +285,7 @@ export function InvestmentResultPage() {
               <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{focusLabel}</p>
             </div>
 
-            <button className="flex h-10 w-10 items-center justify-center rounded-full border transition-opacity hover:opacity-90" style={iconButtonStyle}>
-              <Share2 className="h-4 w-4" />
-            </button>
+            <div className="h-10 w-10" aria-hidden="true" />
           </div>
         </div>
 
@@ -334,23 +339,26 @@ export function InvestmentResultPage() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="mb-6"
           >
-            <div className="relative overflow-hidden rounded-2xl p-6" style={glassCardStyle}>
+            <div className="relative overflow-hidden rounded-xl p-5" style={resultPanelStyle}>
               <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
               <div className="relative space-y-4">
-                <h3 className="text-center text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
-
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
                     <Clock className="h-4 w-4" />
                   </div>
-                  <p className="flex-1 text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
+                  <div>
+                    <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>Core Summary</p>
+                    <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
+                  </div>
                 </div>
+
+                <p className="text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
               </div>
             </div>
           </motion.div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {sections.map((section, index) => (
               <motion.div
                 key={section.key}
@@ -358,23 +366,21 @@ export function InvestmentResultPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
               >
-                <div className="relative overflow-hidden rounded-2xl p-6" style={glassCardStyle}>
+                <div className="relative overflow-hidden rounded-xl p-5" style={resultPanelStyle}>
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
                   <div className="relative">
-                    <div className="mb-4 flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full" style={accentButtonStyle}>
-                        <section.icon className="h-6 w-6" />
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full" style={accentButtonStyle}>
+                        <section.icon className="h-[18px] w-[18px]" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
-                        <p className="text-xs" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
+                        <p className="text-[11px]" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
                       </div>
                     </div>
 
-                    <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--app-surface-bg-strong)' }}>
-                      <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
-                    </div>
+                    <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
                   </div>
                 </div>
               </motion.div>
