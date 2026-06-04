@@ -214,7 +214,7 @@ export function InvestmentResultPage() {
   if (!consultResult) {
     return (
       <div className="fi-mobile-screen" style={pageGradientStyle}>
-        <div className="mx-auto flex h-full max-w-md flex-col items-center justify-center px-6 text-center">
+        <div className="mx-auto flex h-full w-full max-w-md flex-col items-center justify-center px-6 text-center">
           <p className="mb-4 text-lg" style={{ color: 'var(--tarot-text-main)' }}>표시할 상담 결과가 없습니다.</p>
           <button
             onClick={() => navigate('/consultation')}
@@ -261,7 +261,7 @@ export function InvestmentResultPage() {
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
       </div>
 
-      <div className="relative z-10 mx-auto flex h-full max-w-md flex-col">
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col">
         <div
           className="z-50 px-6 py-4"
           style={{

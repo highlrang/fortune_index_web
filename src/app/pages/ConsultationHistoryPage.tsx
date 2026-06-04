@@ -160,7 +160,7 @@ export function ConsultationHistoryPage() {
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 mx-auto w-full max-w-md">
         <div className="sticky top-0 z-50 px-6 pb-4 pt-5">
           <div className="mb-4 flex items-center justify-center">
             <div className="text-center">

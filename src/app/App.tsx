@@ -113,7 +113,7 @@ export default function App() {
       <RouterProvider router={router} />
       <Dialog open={showAuthRequiredModal} onOpenChange={setShowAuthRequiredModal}>
         <DialogContent
-          className="max-w-[calc(100%-2rem)] rounded-2xl border p-5"
+          className="w-[calc(100%-2rem)] !max-w-md rounded-2xl border p-5 sm:!max-w-md"
           style={{
             borderColor: 'var(--app-surface-border)',
             backgroundColor: 'var(--app-surface-bg)',

@@ -84,6 +84,11 @@ const cardBackStyle = {
     'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
 };
 
+const cardFaceGlowStyle = {
+  background:
+    'radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.24) 0%, transparent 30%), radial-gradient(circle at 50% 70%, var(--tarot-card-cover-glow) 0%, transparent 52%)',
+};
+
 function isNativeWebViewRuntime() {
   return typeof document !== 'undefined' && document.documentElement.classList.contains('is-native-webview');
 }
@@ -111,6 +116,54 @@ function TarotCardBackMinimalPattern() {
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="h-10 w-10 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)' }} />
       <div className="absolute h-16 w-16 rounded-[18px] border" style={{ borderColor: 'var(--tarot-card-sigil-soft)' }} />
+    </div>
+  );
+}
+
+function TarotSpreadCardFace({ minimal = false }: { minimal?: boolean }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0" style={cardFaceGlowStyle} />
+      <div
+        className="absolute inset-1.5 rounded-[10px] border"
+        style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 76%, transparent)' }}
+      />
+      <div
+        className="absolute inset-3 rounded-[8px] border"
+        style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-sigil-soft) 58%, transparent)' }}
+      />
+
+      {[
+        'left-2 top-2',
+        'right-2 top-2 rotate-90',
+        'bottom-2 right-2 rotate-180',
+        'bottom-2 left-2 -rotate-90',
+      ].map((position) => (
+        <div key={position} className={`absolute h-4 w-4 ${position}`}>
+          <div className="absolute left-0 top-0 h-px w-4" style={{ backgroundColor: 'var(--tarot-card-sigil)' }} />
+          <div className="absolute left-0 top-0 h-4 w-px" style={{ backgroundColor: 'var(--tarot-card-sigil)' }} />
+        </div>
+      ))}
+
+      <div className="absolute inset-x-0 top-4 flex justify-center">
+        <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--tarot-card-sigil)', opacity: 0.7 }} />
+      </div>
+      <div className="absolute inset-x-0 bottom-4 flex justify-center">
+        <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--tarot-card-sigil)', opacity: 0.7 }} />
+      </div>
+
+      {minimal ? (
+        <TarotCardBackMinimalPattern />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center p-3.5">
+          <TarotCardBackPattern />
+        </div>
+      )}
+
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.14) 45%, transparent 58%)' }}
+      />
     </div>
   );
 }
@@ -165,7 +218,7 @@ const SpreadCard = memo(function SpreadCard({
       }}
     >
       <motion.div
-        className="overflow-hidden rounded-lg border"
+        className="relative overflow-hidden rounded-lg border"
         style={{
           width: `${CARD_WIDTH}px`,
           height: `${CARD_HEIGHT}px`,
@@ -185,13 +238,7 @@ const SpreadCard = memo(function SpreadCard({
         whileHover={!reduceEffects && !isDragging && !isSelected ? { scale: 1.025 } : {}}
         whileTap={!reduceEffects && !isDragging && !isSelected ? { scale: 0.98 } : {}}
       >
-        {reduceEffects ? (
-          <TarotCardBackMinimalPattern />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center p-3">
-            <TarotCardBackPattern />
-          </div>
-        )}
+        <TarotSpreadCardFace minimal={reduceEffects} />
 
         <div className="pointer-events-none absolute inset-0 rounded-lg border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 36%, transparent)' }} />
       </motion.div>
@@ -483,9 +530,7 @@ export function TarotSpreadPage() {
                         boxShadow: '0 8px 18px rgba(0, 0, 0, 0.24)',
                       }}
                     >
-                      <div className="absolute inset-0 flex items-center justify-center p-3">
-                        <TarotCardBackPattern />
-                      </div>
+                      <TarotSpreadCardFace minimal={reduceWebViewEffects} />
                     </div>
                   </div>
                 )}

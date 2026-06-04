@@ -637,7 +637,7 @@ export function TarotResultPage() {
                           </div>
 
                           <div className="absolute inset-x-3 bottom-3 rounded-xl px-3 py-2" style={frontCaptionStyle}>
-                            <div className="text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{card.label}</div>
+                            <div className="text-xs font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{card.label}</div>
                           </div>
 
                           <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--tarot-card-cover-glow) 60%, transparent) 0%, transparent 30%, color-mix(in srgb, var(--tarot-card-cover-glow) 45%, transparent) 100%)' }} />
@@ -863,7 +863,7 @@ export function TarotResultPage() {
                           />
 
                           <div className="absolute inset-x-6 bottom-6 rounded-2xl border px-4 py-3" style={frontCaptionStyle}>
-                            <div className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{card.label}</div>
+                            <div className="text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{card.label}</div>
                             {card.videoSrc ? (
                               <div className="mt-1 text-xs" style={{ color: 'var(--app-text-muted)' }}>카드 비전 영상 해석 중...</div>
                             ) : (
@@ -904,6 +904,12 @@ export function TarotResultPage() {
             <div className="rounded-2xl border px-4 py-3 text-sm" style={errorCardStyle}>
               {submitError}
             </div>
+          ) : null}
+
+          {allCardsRevealed ? (
+            <p className="text-center text-xs" style={{ color: 'var(--app-text-subtle)' }}>
+              카드를 누르면 의미를 볼 수 있어요
+            </p>
           ) : null}
 
           {/* Summary button - appears after all cards revealed */}
