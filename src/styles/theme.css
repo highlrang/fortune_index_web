@@ -42,8 +42,8 @@
   --sidebar-ring: oklch(0.708 0 0);
 
   /* Dark mode default */
-  --bg-main: #221256;
-  --card-surface: rgba(52, 22, 90, 0.70);
+  --bg-main: #221858;
+  --card-surface: rgba(50, 28, 84, 0.70);
   --card-blur: blur(25px);
   --card-border: rgba(223, 188, 95, 0.38);
   --point-gold: #dfbe66;
@@ -53,7 +53,7 @@
   /* Tarot theme */
   --tarot-bg-color: var(--bg-main);
   --tarot-card-bg: var(--card-surface);
-  --tarot-card-bg-strong: rgba(64, 20, 106, 0.80);
+  --tarot-card-bg-strong: rgba(62, 24, 98, 0.80);
   --tarot-point-color: var(--point-gold);
   --tarot-point-border: var(--card-border);
   --tarot-accent-glow: var(--glow-purple);
@@ -63,9 +63,9 @@
   --tarot-surface-bg: rgba(255, 255, 255, 0.07);
   --tarot-surface-hover: rgba(255, 255, 255, 0.14);
   --tarot-surface-border: var(--card-border);
-  --tarot-ambient-start: #221256;
-  --tarot-ambient-mid: #381480;
-  --tarot-ambient-end: #2c1068;
+  --tarot-ambient-start: #221858;
+  --tarot-ambient-mid: #341a78;
+  --tarot-ambient-end: #2a1268;
   --tarot-ambient-blob-a: rgba(173, 136, 255, 0.24);
   --tarot-ambient-blob-b: rgba(223, 188, 95, 0.12);
   --tarot-cta-start: rgba(223, 188, 95, 0.3);
@@ -84,13 +84,13 @@
   --tarot-card-sigil-soft: rgba(255, 255, 255, 0.5);
   --tarot-guide-text: rgba(241, 239, 255, 0.84);
   --app-surface-bg: var(--card-surface);
-  --app-surface-bg-strong: rgba(60, 22, 98, 0.76);
+  --app-surface-bg-strong: rgba(56, 26, 90, 0.76);
   --app-surface-hover: rgba(255, 255, 255, 0.14);
   --app-surface-border: var(--card-border);
   --app-surface-divider: rgba(255, 255, 255, 0.08);
   --app-modal-backdrop: rgba(5, 8, 18, 0.5);
-  --app-modal-bg: rgba(34, 14, 68, 0.74);
-  --app-input-bg: rgba(56, 20, 94, 0.58);
+  --app-modal-bg: rgba(34, 18, 62, 0.74);
+  --app-input-bg: rgba(54, 24, 86, 0.60);
   --app-input-placeholder: rgba(241, 239, 255, 0.38);
   --app-icon-muted: rgba(241, 239, 255, 0.72);
   --app-icon-soft: rgba(241, 239, 255, 0.5);
