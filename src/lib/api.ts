@@ -550,6 +550,17 @@ export interface BirthTarotProfileResponse {
 
 export interface SajuDescriptionResponse {
   name?: string;
+  element?: string;
+  summary?: string;
+}
+
+export interface SajuTimelineItemResponse {
+  label?: string;
+  period?: string;
+  year?: number;
+  ganji?: string;
+  element?: string;
+  isCurrent?: boolean;
   summary?: string;
 }
 
@@ -566,6 +577,8 @@ export interface SajuProfileResponse {
   wolji?: SajuDescriptionResponse | null;
   daeun?: SajuDescriptionResponse | null;
   sewun?: SajuDescriptionResponse | null;
+  daeunTimeline?: SajuTimelineItemResponse[];
+  sewunTimeline?: SajuTimelineItemResponse[];
 }
 
 export interface ZodiacProfileResponse {

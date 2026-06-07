@@ -124,6 +124,15 @@ const titleByMode = {
   INVESTMENT_ALL: '종합 해석',
 } as const;
 
+function getScenarioLabel(scenario: NonNullable<ConsultResponse['history']['scenario']>) {
+  if (scenario === 'TIMING_ENTRY') return '매수 타이밍';
+  if (scenario === 'TIMING_EXIT') return '매도 타이밍';
+  if (scenario === 'SAJU_MATCH') return '나와 맞는 자산';
+  if (scenario === 'RESCUE_PLAN') return '손실 회복 전략';
+  if (scenario === 'MENTAL_GUIDE') return '투자 멘탈 가이드';
+  return scenario;
+}
+
 export function InvestmentResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -233,6 +242,9 @@ export function InvestmentResultPage() {
   const finalAdvice =
     consultResult.ai?.finalAdvice ?? consultResult.history?.overallSummary ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
   const historyId = consultResult.history?.id;
+  const scenarioLabel = consultResult.history?.scenario ? getScenarioLabel(consultResult.history.scenario) : '';
+  const question = consultResult.history?.question?.trim() ?? '';
+  const hasConsultContext = Boolean(scenarioLabel || question);
   const riskToneStyle = typeof riskScore === 'number' ? getRiskToneStyle(riskScore) : null;
   const selectedTarotCardMetadata =
     selectedTarotCard ? tarotCardMetadata.get(selectedTarotCard.selectedIndex) : undefined;
@@ -328,6 +340,42 @@ export function InvestmentResultPage() {
                       backgroundColor: riskToneStyle.color,
                     }}
                   />
+                </div>
+              </div>
+            </motion.div>
+          ) : null}
+
+          {hasConsultContext ? (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05, duration: 0.45 }}
+              className="mb-4"
+            >
+              <div className="relative overflow-hidden rounded-xl p-4" style={resultPanelStyle}>
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
+                <div className="relative space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-medium" style={{ color: 'var(--app-text-subtle)' }}>
+                      나의 질문
+                    </p>
+                    {scenarioLabel ? (
+                      <span
+                        className="shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+                        style={{
+                          borderColor: 'var(--app-accent-border)',
+                          backgroundColor: 'var(--app-accent-soft)',
+                          color: 'var(--app-accent-text-strong)',
+                        }}
+                      >
+                        {scenarioLabel}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {question ? (
+                    <p className="text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>{question}</p>
+                  ) : null}
                 </div>
               </div>
             </motion.div>

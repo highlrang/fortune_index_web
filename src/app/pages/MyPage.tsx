@@ -8,6 +8,7 @@ import {
   Cake,
   Sparkles,
   Star,
+  ChevronLeft,
   ChevronRight,
   Moon,
   Sun,
@@ -29,6 +30,7 @@ import {
   resolveApiAssetUrl,
   updateMyProfile,
   type SajuDescriptionResponse,
+  type SajuTimelineItemResponse,
   type UserProfileDetailsResponse,
 } from '@/lib/api';
 import { clearSession, getCurrentUser, getSession, updateSessionUser, type SessionUser } from '@/lib/session';
@@ -168,8 +170,10 @@ const fiveElementColorMap: Record<FiveElementKey, string> = {
   fire: '#E07A5F',
   earth: '#D4AF37',
   metal: '#A0AEC0',
-  water: '#111827',
+  water: '#6B7280',
 };
+
+const SAJU_TIMELINE_VISIBLE_ITEM_COUNT = 3;
 
 const sajuCharacterElementMap = new Map<string, FiveElementKey>([
   ['甲', 'wood'],
@@ -221,6 +225,81 @@ const sajuCharacterKoreanMap = new Map<string, string>([
   ['亥', '해'],
 ]);
 
+const sajuKoreanReadingElementMap = new Map<string, FiveElementKey>([
+  ['갑', 'wood'],
+  ['을', 'wood'],
+  ['인', 'wood'],
+  ['묘', 'wood'],
+  ['병', 'fire'],
+  ['정', 'fire'],
+  ['사', 'fire'],
+  ['오', 'fire'],
+  ['무', 'earth'],
+  ['기', 'earth'],
+  ['진', 'earth'],
+  ['술', 'earth'],
+  ['축', 'earth'],
+  ['미', 'earth'],
+  ['경', 'metal'],
+  ['신', 'metal'],
+  ['유', 'metal'],
+  ['임', 'water'],
+  ['계', 'water'],
+  ['해', 'water'],
+  ['자', 'water'],
+]);
+
+const fiveElementKoreanNameMap = new Map<string, FiveElementKey>([
+  ['목', 'wood'],
+  ['나무', 'wood'],
+  ['화', 'fire'],
+  ['불', 'fire'],
+  ['토', 'earth'],
+  ['흙', 'earth'],
+  ['금', 'metal'],
+  ['쇠', 'metal'],
+  ['수', 'water'],
+  ['물', 'water'],
+]);
+
+const zodiacTraitDescriptionMap = new Map<string, string>([
+  ['독립성', '스스로 기준을 세웁니다'],
+  ['직관', '흐름의 변화를 빨리 감지합니다'],
+  ['실험정신', '새로운 방식을 기꺼이 시도합니다'],
+  ['공감력', '상대의 감정선을 섬세하게 읽습니다'],
+  ['유연함', '상황 변화에 부드럽게 맞춥니다'],
+  ['상상력', '보이지 않는 가능성을 그립니다'],
+  ['도전성', '기회가 보이면 먼저 움직입니다'],
+  ['속도감', '판단과 실행의 템포가 빠릅니다'],
+  ['리더십', '방향을 잡고 앞에서 끌어갑니다'],
+  ['안정감', '흔들림보다 지속성을 중시합니다'],
+  ['인내심', '시간이 필요한 일을 버텨냅니다'],
+  ['실리성', '현실적인 이득과 기준을 봅니다'],
+  ['적응력', '새 조건을 빠르게 받아들입니다'],
+  ['호기심', '정보와 가능성을 넓게 탐색합니다'],
+  ['소통력', '생각을 연결하고 전달합니다'],
+  ['안정지향', '지킬 수 있는 기반을 먼저 봅니다'],
+  ['배려', '관계의 온도와 균형을 살핍니다'],
+  ['지속성', '한 번 잡은 방향을 꾸준히 밀고 갑니다'],
+  ['자신감', '확신이 들면 힘 있게 표현합니다'],
+  ['표현력', '존재감과 의도를 분명히 드러냅니다'],
+  ['결단력', '선택해야 할 때 주저함이 적습니다'],
+  ['분석력', '작은 차이와 구조를 잘 구분합니다'],
+  ['정확성', '기준과 디테일을 놓치지 않습니다'],
+  ['성실함', '정한 일을 차근차근 완성합니다'],
+  ['균형감', '치우치지 않는 선택을 찾습니다'],
+  ['조율력', '다른 입장 사이의 접점을 만듭니다'],
+  ['세련됨', '상황에 맞는 거리감과 톤을 압니다'],
+  ['통찰력', '겉보다 안쪽의 이유를 봅니다'],
+  ['집중력', '중요한 대상에 깊게 몰입합니다'],
+  ['몰입감', '관심사가 생기면 끝까지 파고듭니다'],
+  ['낙관성', '다음 가능성을 먼저 떠올립니다'],
+  ['확장성', '좁은 답보다 큰 방향을 봅니다'],
+  ['자유로움', '답답한 틀보다 열린 선택을 선호합니다'],
+  ['신중함', '결정 전에 위험을 먼저 점검합니다'],
+  ['꾸준함', '작은 루틴을 오래 이어갑니다'],
+]);
+
 const inquiryTypeOptions: Array<{ label: string; value: InquiryCategory }> = [
   { label: '서비스 이용 문의', value: 'SERVICE' },
   { label: '결제 및 환불', value: 'BILLING' },
@@ -236,6 +315,8 @@ export function MyPage() {
   const [showBirthTarot, setShowBirthTarot] = useState(false);
   const [showSaju, setShowSaju] = useState(false);
   const [showZodiac, setShowZodiac] = useState(false);
+  const [selectedSajuTimelineItems, setSelectedSajuTimelineItems] = useState<Record<string, string | undefined>>({});
+  const [sajuTimelineWindowOffsets, setSajuTimelineWindowOffsets] = useState<Record<string, number | undefined>>({});
   const [isDarkMode, setIsDarkMode] = useState(() => resolveInitialThemePreference() === 'dark');
   const [showInquiry, setShowInquiry] = useState(false);
   const [inquiryCategory, setInquiryCategory] = useState<InquiryCategory>('SERVICE');
@@ -456,17 +537,21 @@ export function MyPage() {
     setIsSavingProfile(true);
 
     try {
-      const updatedUser = await updateMyProfile({
-        name: trimmedName,
-        birthDate: profileEditBirthDate,
-        birthTime: profileEditDraft.birthTimeUnknown ? null : profileEditBirthTime,
-        gender: profileEditDraft.gender || null,
-        investmentRiskProfile: profileEditDraft.investmentRiskProfile,
-        preferredSectors: profileEditDraft.preferredSectors,
-      });
+      const [updatedUser, updatedProfileDetails] = await Promise.all([
+        updateMyProfile({
+          name: trimmedName,
+          birthDate: profileEditBirthDate,
+          birthTime: profileEditDraft.birthTimeUnknown ? null : profileEditBirthTime,
+          gender: profileEditDraft.gender || null,
+          investmentRiskProfile: profileEditDraft.investmentRiskProfile,
+          preferredSectors: profileEditDraft.preferredSectors,
+        }),
+        getMyProfileDetails(),
+      ]);
 
       updateSessionUser(updatedUser);
       setUser(updatedUser);
+      setProfileDetails(updatedProfileDetails);
       setShowProfileEdit(false);
     } catch (error) {
       setProfileEditError(
@@ -1084,56 +1169,57 @@ export function MyPage() {
                     사주팔자
                   </h4>
                   <div className="grid grid-cols-4 gap-2">
-                    {userData.saju.palza.map((char, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-xl border px-2 py-3 text-center backdrop-blur-xl"
-                        style={glassCardStyle}
-                      >
+                    {userData.saju.palza
+                      .map((char, idx) => ({
+                        char,
+                        label: ['년주', '월주', '일주', '시주'][idx],
+                      }))
+                      .reverse()
+                      .map(({ char, label }) => (
                         <div
-                          className="text-[11px] font-semibold tracking-[0.12em]"
-                          style={{
-                            color: 'var(--app-accent-text-soft)',
-                          }}
+                          key={label}
+                          className="rounded-xl border px-2 py-3 text-center backdrop-blur-xl"
+                          style={glassCardStyle}
                         >
-                          {['년주', '월주', '일주', '시주'][idx]}
-                        </div>
-                        <div className="mt-2 flex justify-center text-2xl font-bold">
-                          {Array.from(char).map((sajuChar, charIndex) => {
-                            const element = getSajuCharacterElement(sajuChar);
-                            const color = element ? fiveElementColorMap[element] : 'var(--tarot-text-main)';
+                          <div
+                            className="text-[11px] font-semibold tracking-[0.12em]"
+                            style={{
+                              color: 'var(--app-accent-text-soft)',
+                            }}
+                          >
+                            {label}
+                          </div>
+                          <div className="mt-2 flex flex-col items-center gap-2 text-2xl font-bold">
+                            {Array.from(char).map((sajuChar, charIndex) => {
+                              const element = getSajuCharacterElement(sajuChar);
+                              const color = element ? fiveElementColorMap[element] : 'var(--tarot-text-main)';
+                              const reading = sajuCharacterKoreanMap.get(sajuChar) ?? sajuChar;
 
-                            return (
-                              <span
-                                key={`${sajuChar}-${charIndex}`}
-                                style={{
-                                  color,
-                                  textShadow: `0 0 18px color-mix(in srgb, ${color} 42%, transparent)`,
-                                }}
-                              >
-                                {sajuChar}
-                              </span>
-                            );
-                          })}
+                              return (
+                                <div
+                                  key={`${sajuChar}-${charIndex}`}
+                                  className="flex flex-col items-center leading-none"
+                                >
+                                  <span
+                                    style={{
+                                      color,
+                                      textShadow: `0 0 18px color-mix(in srgb, ${color} 42%, transparent)`,
+                                    }}
+                                  >
+                                    {sajuChar}
+                                  </span>
+                                  <span
+                                    className="mt-1 text-xs font-semibold"
+                                    style={{ color: `color-mix(in srgb, ${color} 72%, var(--app-text-soft) 28%)` }}
+                                  >
+                                    {reading}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                        <div className="mt-1 flex justify-center text-xs font-semibold">
-                          {Array.from(char).map((sajuChar, charIndex) => {
-                            const element = getSajuCharacterElement(sajuChar);
-                            const color = element ? fiveElementColorMap[element] : 'var(--app-text-soft)';
-                            const reading = sajuCharacterKoreanMap.get(sajuChar) ?? sajuChar;
-
-                            return (
-                              <span
-                                key={`${sajuChar}-${reading}-${charIndex}`}
-                                style={{ color: `color-mix(in srgb, ${color} 72%, var(--app-text-soft) 28%)` }}
-                              >
-                                {reading}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
 
@@ -1177,12 +1263,160 @@ export function MyPage() {
                   >
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <h4 className={`text-sm font-medium ${section.titleClassName}`}>{section.label}</h4>
-                      <span className="text-xs" style={{ color: 'var(--app-text-muted)' }}>{section.title}</span>
+                      <span
+                        className="text-xs font-semibold"
+                        style={{ color: section.titleColor ?? 'var(--app-text-muted)' }}
+                      >
+                        {section.title}
+                      </span>
                     </div>
                     <p className="mb-2 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{section.description}</p>
                     <p className="text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>{section.summary}</p>
                   </div>
                 ))}
+
+                <section>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <h4 className="text-sm font-medium" style={{ color: 'var(--tarot-point-color)' }}>운의 흐름</h4>
+                    <span className="text-xs" style={{ color: 'var(--app-text-muted)' }}>과거 · 현재 · 미래</span>
+                  </div>
+                  <div className="space-y-4">
+                    {userData.saju.timelines.map((timeline) => {
+                      const selectedItem =
+                        timeline.items.find((item) => item.id === selectedSajuTimelineItems[timeline.key]) ??
+                        timeline.items.find((item) => item.isCurrent);
+                      const windowStart = clampSajuTimelineWindowStart(
+                        sajuTimelineWindowOffsets[timeline.key] ?? getDefaultSajuTimelineWindowStart(timeline.items),
+                        timeline.items.length,
+                      );
+                      const visibleItems = timeline.items.slice(
+                        windowStart,
+                        windowStart + SAJU_TIMELINE_VISIBLE_ITEM_COUNT,
+                      );
+                      const maxWindowStart = getMaxSajuTimelineWindowStart(timeline.items.length);
+                      const canMovePrevious = windowStart > 0;
+                      const canMoveNext = windowStart < maxWindowStart;
+                      const moveTimelineWindow = (direction: -1 | 1) => {
+                        setSajuTimelineWindowOffsets((previous) => ({
+                          ...previous,
+                          [timeline.key]: clampSajuTimelineWindowStart(windowStart + direction, timeline.items.length),
+                        }));
+                      };
+
+                      return (
+                        <div key={timeline.key} className="rounded-2xl border p-4" style={glassCardStyle}>
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <div>
+                              <h5 className="text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{timeline.label}</h5>
+                              <p className="mt-1 text-[11px]" style={{ color: 'var(--app-text-muted)' }}>{timeline.description}</p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              <button
+                                type="button"
+                                aria-label={`${timeline.label} 이전 구간`}
+                                disabled={!canMovePrevious}
+                                onClick={() => moveTimelineWindow(-1)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full border transition-opacity disabled:opacity-45"
+                                style={{
+                                  ...glassButtonStyle,
+                                  borderColor: canMovePrevious ? 'var(--app-accent-border-strong)' : 'var(--app-surface-border)',
+                                  background: canMovePrevious
+                                    ? 'linear-gradient(135deg, var(--app-accent-gradient-start), var(--app-accent-gradient-end))'
+                                    : 'var(--app-surface-bg-strong)',
+                                  color: canMovePrevious ? 'var(--tarot-text-main)' : 'var(--app-text-muted)',
+                                  boxShadow: canMovePrevious ? '0 10px 24px -18px var(--app-accent-glow)' : 'none',
+                                }}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label={`${timeline.label} 다음 구간`}
+                                disabled={!canMoveNext}
+                                onClick={() => moveTimelineWindow(1)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full border transition-opacity disabled:opacity-45"
+                                style={{
+                                  ...glassButtonStyle,
+                                  borderColor: canMoveNext ? 'var(--app-accent-border-strong)' : 'var(--app-surface-border)',
+                                  background: canMoveNext
+                                    ? 'linear-gradient(135deg, var(--app-accent-gradient-start), var(--app-accent-gradient-end))'
+                                    : 'var(--app-surface-bg-strong)',
+                                  color: canMoveNext ? 'var(--tarot-text-main)' : 'var(--app-text-muted)',
+                                  boxShadow: canMoveNext ? '0 10px 24px -18px var(--app-accent-glow)' : 'none',
+                                }}
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                            {visibleItems.map((item) => {
+                              const color = item.element ? fiveElementColorMap[item.element] : 'var(--app-accent-text-soft)';
+                              const isSelected = selectedItem?.id === item.id;
+
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedSajuTimelineItems((previous) => ({
+                                      ...previous,
+                                      [timeline.key]: previous[timeline.key] === item.id ? undefined : item.id,
+                                    }))
+                                  }
+                                  className="min-w-0 flex-1 basis-0 rounded-xl border px-2.5 py-2.5 text-center transition-opacity hover:opacity-90"
+                                  style={{
+                                    borderColor: isSelected
+                                      ? color
+                                      : `color-mix(in srgb, ${color} 28%, var(--app-surface-border) 72%)`,
+                                    background: isSelected
+                                      ? `linear-gradient(145deg, color-mix(in srgb, ${color} 32%, var(--app-surface-bg-strong) 68%) 0%, color-mix(in srgb, ${color} 14%, var(--app-surface-bg) 86%) 100%)`
+                                      : 'var(--app-surface-bg)',
+                                    boxShadow: isSelected ? `0 0 0 1px ${color}, 0 14px 30px -18px ${color}` : 'none',
+                                  }}
+                                >
+                                  <div className="text-[11px] font-semibold" style={{ color }}>{item.label}</div>
+                                  <div className="mt-2 whitespace-nowrap text-[11px] font-bold leading-4" style={{ color }}>
+                                    {item.ganji}
+                                  </div>
+                                  <div className="mt-2 text-[11px]" style={{ color: 'var(--app-text-muted)' }}>{item.period}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {selectedItem ? (
+                            <div
+                              className="mt-3 rounded-xl border px-3 py-3"
+                              style={{
+                                borderColor: selectedItem.element
+                                  ? `color-mix(in srgb, ${fiveElementColorMap[selectedItem.element]} 32%, var(--app-surface-border) 68%)`
+                                  : 'var(--app-surface-border)',
+                                backgroundColor: 'var(--app-surface-bg-strong)',
+                              }}
+                            >
+                              <div className="mb-2 flex items-center justify-between gap-3">
+                                <span className="text-xs font-semibold" style={{ color: 'var(--tarot-text-main)' }}>
+                                  {selectedItem.label} 해석
+                                </span>
+                                <span
+                                  className="text-xs font-semibold"
+                                  style={{ color: selectedItem.element ? fiveElementColorMap[selectedItem.element] : 'var(--app-accent-text-soft)' }}
+                                >
+                                  {selectedItem.ganji}
+                                </span>
+                              </div>
+                              <p className="text-xs leading-5" style={{ color: 'var(--app-text-soft)' }}>
+                                {selectedItem.summary}
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
               </div>
             </motion.div>
           </motion.div>
@@ -1267,14 +1501,26 @@ export function MyPage() {
                 </section>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {(userData.zodiac.traits ?? []).map((trait) => (
-                    <div key={trait} className="rounded-2xl border px-3 py-4 text-center" style={glassCardStyle}>
-                      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border" style={accentIconStyle}>
-                        <Star className="h-4 w-4" strokeWidth={2.2} />
+                  {(userData.zodiac.traits ?? []).map((trait) => {
+                    const description = getZodiacTraitDescription(trait, userData.zodiac.traitDetails);
+
+                    return (
+                      <div key={trait} className="rounded-2xl border px-3 py-4 text-center" style={glassCardStyle}>
+                        <div
+                          className="mx-auto flex h-8 w-8 items-center justify-center rounded-full border opacity-70"
+                          style={accentIconStyle}
+                        >
+                          <Star className="h-3.5 w-3.5" strokeWidth={2} />
+                        </div>
+                        <p className="mt-3 text-sm font-bold" style={{ color: 'var(--tarot-text-main)' }}>{trait}</p>
+                        {description ? (
+                          <p className="mt-2 text-[11px] leading-4" style={{ color: 'var(--app-text-muted)' }}>
+                            {description}
+                          </p>
+                        ) : null}
                       </div>
-                      <p className="mt-3 text-xs font-medium" style={{ color: 'var(--tarot-text-main)' }}>{trait}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
               </div>
@@ -1996,12 +2242,185 @@ function normalizeSaju(profileDetails: UserProfileDetailsResponse | null) {
       metal: saju?.ohang?.metal ?? 10,
       water: saju?.ohang?.water ?? 10,
     }),
-    sections: descriptionSections.map((section) => ({
+    sections: descriptionSections.slice(0, 2).map((section) => ({
       ...section,
       title: section.data.name,
+      titleColor: getSajuSectionTitleColor(section.key, section.data.name, palza, section.data.element),
       summary: section.data.summary,
     })),
+    timelines: [
+      {
+        key: 'daeun',
+        label: '대운',
+        description: '10년 단위로 바뀌는 큰 흐름',
+        items: normalizeSajuTimeline(
+          saju?.daeunTimeline,
+          [
+            {
+              label: '이전 대운',
+              period: '과거 흐름',
+              ganji: '-',
+              summary: '이전 대운 데이터가 연결되면 과거의 큰 흐름을 비교해서 보여줍니다.',
+            },
+            {
+              label: '현재 대운',
+              period: '현재 구간',
+              ganji: sectionTitleOrFallback(descriptionSections[2].data.name),
+              element: descriptionSections[2].data.element,
+              summary: descriptionSections[2].data.summary,
+            },
+            {
+              label: '다음 대운',
+              period: '미래 흐름',
+              ganji: '-',
+              summary: '다음 대운 데이터가 연결되면 앞으로의 큰 방향성을 보여줍니다.',
+            },
+          ],
+        ),
+      },
+      {
+        key: 'sewun',
+        label: '세운',
+        description: '연도별로 들어오는 운의 분위기',
+        items: normalizeSajuTimeline(
+          saju?.sewunTimeline,
+          [
+            {
+              label: '작년',
+              period: `${currentYear - 1}년`,
+              ganji: '-',
+              summary: '작년 세운 데이터가 연결되면 올해 흐름과 비교해서 보여줍니다.',
+            },
+            {
+              label: '올해',
+              period: `${currentYear}년`,
+              ganji: sectionTitleOrFallback(descriptionSections[3].data.name),
+              element: descriptionSections[3].data.element,
+              summary: descriptionSections[3].data.summary,
+            },
+            {
+              label: '내년',
+              period: `${currentYear + 1}년`,
+              ganji: '-',
+              summary: '내년 세운 데이터가 연결되면 앞으로의 연간 흐름을 보여줍니다.',
+            },
+          ],
+        ),
+      },
+    ],
   };
+}
+
+function normalizeSajuTimeline(
+  values: SajuTimelineItemResponse[] | null | undefined,
+  fallbackValues: SajuTimelineItemResponse[],
+) {
+  const source = values?.length ? values : fallbackValues;
+  const defaultCurrentIndex = getSajuTimelineCurrentIndex(source);
+
+  return source.map((item, index) => {
+    const ganji = item.ganji?.trim() || '-';
+    const label = item.label?.trim() || (index === 1 ? '현재' : index === 0 ? '과거' : '미래');
+    const period = item.period?.trim() || (typeof item.year === 'number' ? `${item.year}년` : '기간 정보 없음');
+    const explicitElement = item.element?.trim();
+    const inferredElement =
+      (explicitElement ? inferFiveElementFromText(explicitElement) : undefined) ??
+      inferFiveElementFromText(ganji);
+
+    return {
+      id: `${label}-${period}-${ganji}`,
+      label,
+      period,
+      ganji,
+      element: inferredElement,
+      isCurrent: item.isCurrent ?? index === defaultCurrentIndex,
+      summary: item.summary?.trim() || '해석 데이터가 연결되면 이 구간의 흐름을 보여줍니다.',
+    };
+  });
+}
+
+function getSajuTimelineCurrentIndex(items: SajuTimelineItemResponse[]) {
+  const explicitIndex = items.findIndex((item) => item.isCurrent);
+  if (explicitIndex >= 0) return explicitIndex;
+
+  const currentLabelIndex = items.findIndex((item) => /현재|올해/.test(item.label?.trim() ?? ''));
+  if (currentLabelIndex >= 0) return currentLabelIndex;
+
+  return Math.min(1, Math.max(0, items.length - 1));
+}
+
+function getMaxSajuTimelineWindowStart(itemCount: number) {
+  return Math.max(0, itemCount - SAJU_TIMELINE_VISIBLE_ITEM_COUNT);
+}
+
+function clampSajuTimelineWindowStart(value: number, itemCount: number) {
+  return Math.max(0, Math.min(value, getMaxSajuTimelineWindowStart(itemCount)));
+}
+
+function getDefaultSajuTimelineWindowStart(items: Array<{ isCurrent: boolean }>) {
+  const currentIndex = items.findIndex((item) => item.isCurrent);
+  if (currentIndex < 0) return 0;
+
+  return clampSajuTimelineWindowStart(currentIndex - 1, items.length);
+}
+
+function sectionTitleOrFallback(title: string) {
+  return isGenericSajuDescriptionTitle(title) ? '-' : title;
+}
+
+function getSajuSectionTitleColor(
+  sectionKey: string,
+  title: string,
+  palza: string[],
+  explicitElement?: string,
+) {
+  const element =
+    (explicitElement ? inferFiveElementFromText(explicitElement) : undefined) ??
+    (isGenericSajuDescriptionTitle(title) ? undefined : inferFiveElementFromText(title)) ??
+    inferFiveElementFromSajuSection(sectionKey, palza);
+
+  return element ? fiveElementColorMap[element] : undefined;
+}
+
+function isGenericSajuDescriptionTitle(title: string) {
+  return title.includes('정보') || title.includes('운세');
+}
+
+function inferFiveElementFromSajuSection(sectionKey: string, palza: string[]) {
+  if (sectionKey === 'ilju') {
+    return getSajuCharacterElement(Array.from(palza[2] ?? '')[1] ?? '');
+  }
+
+  if (sectionKey === 'wolji') {
+    return getSajuCharacterElement(Array.from(palza[1] ?? '')[1] ?? '');
+  }
+
+  return undefined;
+}
+
+function inferFiveElementFromText(text: string) {
+  const characters = Array.from(text);
+
+  for (const char of characters) {
+    const element = getSajuCharacterElement(char);
+    if (element) return element;
+  }
+
+  for (const [name, element] of fiveElementKoreanNameMap) {
+    if (text.includes(name)) return element;
+  }
+
+  for (let index = 0; index < characters.length; index += 1) {
+    const syllable = characters[index];
+    const twoSyllables = `${syllable}${characters[index + 1] ?? ''}`;
+    const element =
+      sajuKoreanReadingElementMap.get(twoSyllables) ??
+      sajuKoreanReadingElementMap.get(syllable);
+
+    if (element) return element;
+  }
+
+  return undefined;
 }
 
 function normalizeStringList(values: string[] | null | undefined) {
@@ -2019,17 +2438,29 @@ function normalizeZodiacTraitDetails(
     .filter((value) => value.name && value.description) ?? [];
 }
 
+function getZodiacTraitDescription(
+  trait: string,
+  traitDetails: Array<{ name: string; description: string }> | undefined,
+) {
+  return (
+    traitDetails?.find((detail) => detail.name === trait)?.description ??
+    zodiacTraitDescriptionMap.get(trait) ??
+    null
+  );
+}
+
 function normalizeSajuDescription(
   value: SajuDescriptionResponse | string | null | undefined,
   fallbackName: string,
   fallbackSummary: string,
 ) {
   if (typeof value === 'string') {
-    return { name: fallbackName, summary: value };
+    return { name: fallbackName, element: undefined, summary: value };
   }
 
   return {
     name: value?.name?.trim() || fallbackName,
+    element: value?.element?.trim() || undefined,
     summary: value?.summary?.trim() || fallbackSummary,
   };
 }

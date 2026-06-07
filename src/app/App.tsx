@@ -14,6 +14,7 @@ import { applyThemePreference, resolveInitialThemePreference } from '@/lib/theme
 import { getCurrentUser } from '@/lib/session';
 import { setSelectedTarotDeckId } from '@/lib/tarot';
 import { savePasswordResetToken } from '@/lib/passwordReset';
+import { setupAppBackNavigation } from '@/lib/appBackNavigation';
 import { AUTH_REQUIRED_EVENT } from '@/lib/api/client';
 import {
   captureSignupVerificationParams,
@@ -27,6 +28,8 @@ import {
 
 export default function App() {
   const [showAuthRequiredModal, setShowAuthRequiredModal] = useState(false);
+
+  useEffect(() => setupAppBackNavigation(router), []);
 
   useEffect(() => {
     if (!document.documentElement.classList.contains('is-native-webview')) return;

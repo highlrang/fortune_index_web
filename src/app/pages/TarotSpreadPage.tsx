@@ -86,7 +86,7 @@ const cardBackStyle = {
 
 const cardFaceGlowStyle = {
   background:
-    'radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.24) 0%, transparent 30%), radial-gradient(circle at 50% 70%, var(--tarot-card-cover-glow) 0%, transparent 52%)',
+    'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)',
 };
 
 function isNativeWebViewRuntime() {
@@ -96,27 +96,50 @@ function isNativeWebViewRuntime() {
 function TarotCardBackPattern() {
   return (
     <svg className="h-full w-full" viewBox="0 0 100 140">
-      <polygon points="50,25 70,38 70,62 50,75 30,62 30,38" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="1.2" opacity="0.55" />
-      <polygon points="50,32 65,42 65,58 50,68 35,58 35,42" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="0.8" opacity="0.48" />
-      <circle cx="50" cy="50" r="6" fill="var(--tarot-card-sigil)" opacity="0.5" />
-      <circle cx="50" cy="50" r="3.5" fill="var(--tarot-card-sigil)" opacity="0.72" />
-      <line x1="50" y1="50" x2="50" y2="25" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
-      <line x1="50" y1="50" x2="70" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
-      <line x1="50" y1="50" x2="70" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
-      <line x1="50" y1="50" x2="50" y2="75" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
-      <line x1="50" y1="50" x2="30" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
-      <line x1="50" y1="50" x2="30" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.7" opacity="0.4" />
-      <text x="50" y="100" fontSize="7" fill="var(--tarot-card-sigil)" opacity="0.42" textAnchor="middle" fontFamily="serif">ARCANA</text>
+      <polygon
+        points="50,20 75,35 75,65 50,80 25,65 25,35"
+        fill="none"
+        stroke="var(--tarot-card-sigil)"
+        strokeWidth="0.8"
+        opacity="0.4"
+      />
+      <polygon
+        points="50,30 68,42 68,58 50,70 32,58 32,42"
+        fill="none"
+        stroke="var(--tarot-card-sigil)"
+        strokeWidth="0.6"
+        opacity="0.35"
+      />
+      <circle cx="50" cy="50" r="5" fill="var(--tarot-card-sigil)" opacity="0.42" />
+      <circle cx="50" cy="50" r="2.5" fill="var(--tarot-card-sigil)" opacity="0.62" />
+      <circle cx="50" cy="15" r="2" fill="var(--tarot-card-sigil-soft)" opacity="0.42" />
+      <circle cx="50" cy="85" r="2" fill="var(--tarot-card-sigil-soft)" opacity="0.42" />
+      <line x1="50" y1="50" x2="50" y2="20" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="75" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="75" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="50" y2="80" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <text x="50" y="105" fontSize="10" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
+        ✦ ARCANA ✦
+      </text>
+      <text x="50" y="120" fontSize="7" fill="var(--tarot-card-sigil-soft)" opacity="0.28" textAnchor="middle" fontFamily="serif">
+        MAJOR
+      </text>
     </svg>
   );
 }
 
 function TarotCardBackMinimalPattern() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="h-10 w-10 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)' }} />
-      <div className="absolute h-16 w-16 rounded-[18px] border" style={{ borderColor: 'var(--tarot-card-sigil-soft)' }} />
-    </div>
+    <svg className="h-full w-full" viewBox="0 0 100 140">
+      <polygon points="50,24 72,38 72,62 50,76 28,62 28,38" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="1" opacity="0.42" />
+      <polygon points="50,34 64,43 64,57 50,66 36,57 36,43" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="0.8" opacity="0.36" />
+      <circle cx="50" cy="50" r="4.5" fill="var(--tarot-card-sigil)" opacity="0.48" />
+      <text x="50" y="102" fontSize="7" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
+        ARCANA
+      </text>
+    </svg>
   );
 }
 
@@ -126,34 +149,13 @@ function TarotSpreadCardFace({ minimal = false }: { minimal?: boolean }) {
       <div className="absolute inset-0" style={cardFaceGlowStyle} />
       <div
         className="absolute inset-1.5 rounded-[10px] border"
-        style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 76%, transparent)' }}
+        style={{ borderColor: 'var(--tarot-card-line-soft)' }}
       />
-      <div
-        className="absolute inset-3 rounded-[8px] border"
-        style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-sigil-soft) 58%, transparent)' }}
-      />
-
-      {[
-        'left-2 top-2',
-        'right-2 top-2 rotate-90',
-        'bottom-2 right-2 rotate-180',
-        'bottom-2 left-2 -rotate-90',
-      ].map((position) => (
-        <div key={position} className={`absolute h-4 w-4 ${position}`}>
-          <div className="absolute left-0 top-0 h-px w-4" style={{ backgroundColor: 'var(--tarot-card-sigil)' }} />
-          <div className="absolute left-0 top-0 h-4 w-px" style={{ backgroundColor: 'var(--tarot-card-sigil)' }} />
-        </div>
-      ))}
-
-      <div className="absolute inset-x-0 top-4 flex justify-center">
-        <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--tarot-card-sigil)', opacity: 0.7 }} />
-      </div>
-      <div className="absolute inset-x-0 bottom-4 flex justify-center">
-        <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--tarot-card-sigil)', opacity: 0.7 }} />
-      </div>
 
       {minimal ? (
-        <TarotCardBackMinimalPattern />
+        <div className="absolute inset-0 flex items-center justify-center p-3.5">
+          <TarotCardBackMinimalPattern />
+        </div>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center p-3.5">
           <TarotCardBackPattern />
@@ -162,7 +164,7 @@ function TarotSpreadCardFace({ minimal = false }: { minimal?: boolean }) {
 
       <div
         className="pointer-events-none absolute inset-0"
-        style={{ background: 'linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.14) 45%, transparent 58%)' }}
+        style={{ background: 'linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.1) 45%, transparent 58%)' }}
       />
     </div>
   );

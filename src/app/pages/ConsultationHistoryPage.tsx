@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, Sparkles, TrendingUp, Eye, ChevronRight, Clock, X, Heart, MoonStar, Search } from 'lucide-react';
+import { Calendar, TrendingUp, ChevronRight, Clock, X, Heart, Search, Star, Coins, HandCoins } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import {
@@ -129,8 +129,10 @@ export function ConsultationHistoryPage() {
       likeFilter === 'liked' ? typeFiltered.filter((item) => likedIdSet.has(item.id)) : typeFiltered;
     const base = normalizedQuery
       ? likedFiltered.filter((item) => {
+          const scenarioLabel = item.scenario ? getScenarioLabel(item.scenario) : '';
           const searchableText = [
             mapModeToLabel(item.mode),
+            scenarioLabel,
             item.focusLabel,
             item.question,
             item.overallSummary,
@@ -304,6 +306,7 @@ export function ConsultationHistoryPage() {
                 const colorClass = getTypeColor(typeLabel);
                 const isLiked = likedHistoryIds.includes(item.id);
                 const isOpening = openingHistoryId === item.id;
+                const scenarioLabel = item.scenario ? getScenarioLabel(item.scenario) : '';
 
                 return (
                   <motion.button
@@ -343,6 +346,20 @@ export function ConsultationHistoryPage() {
                               <span>{formatHistoryDateTime(item.consultedAt)}</span>
                               {item.focusLabel ? <span>· {item.focusLabel}</span> : null}
                             </div>
+                            {scenarioLabel ? (
+                              <div className="mt-2 flex">
+                                <span
+                                  className="inline-flex max-w-full items-center rounded-full border px-2 py-0.5 text-[11px] font-medium"
+                                  style={{
+                                    borderColor: 'var(--app-accent-border)',
+                                    backgroundColor: 'var(--app-accent-soft)',
+                                    color: 'var(--app-accent-text-strong)',
+                                  }}
+                                >
+                                  <span className="truncate">{scenarioLabel}</span>
+                                </span>
+                              </div>
+                            ) : null}
                           </div>
                         </div>
 
@@ -435,9 +452,9 @@ function getShortTypeLabel(type: ConsultationType) {
 }
 
 function getTypeIcon(mode: ConsultingHistoryListItemResponse['mode']) {
-  if (mode === 'INVESTMENT_TAROT') return Eye;
-  if (mode === 'INVESTMENT_SAJU') return Sparkles;
-  if (mode === 'INVESTMENT_ZODIAC') return MoonStar;
+  if (mode === 'INVESTMENT_TAROT') return Coins;
+  if (mode === 'INVESTMENT_SAJU') return HandCoins;
+  if (mode === 'INVESTMENT_ZODIAC') return Star;
   return TrendingUp;
 }
 
@@ -461,5 +478,14 @@ function getTypeColor(type: ConsultationType) {
   if (type.includes('타로')) return 'from-purple-500/20 to-violet-600/20 text-purple-400';
   if (type.includes('사주')) return 'from-amber-500/20 to-orange-600/20 text-amber-400';
   if (type.includes('별자리')) return 'from-sky-500/20 to-blue-600/20 text-sky-400';
-  return 'from-emerald-500/20 to-green-600/20 text-emerald-400';
+  return 'from-red-500/20 to-rose-600/20 text-red-400';
+}
+
+function getScenarioLabel(scenario: NonNullable<ConsultingHistoryListItemResponse['scenario']>) {
+  if (scenario === 'TIMING_ENTRY') return '매수 타이밍';
+  if (scenario === 'TIMING_EXIT') return '매도 타이밍';
+  if (scenario === 'SAJU_MATCH') return '나와 맞는 자산';
+  if (scenario === 'RESCUE_PLAN') return '손실 회복 전략';
+  if (scenario === 'MENTAL_GUIDE') return '투자 멘탈 가이드';
+  return scenario;
 }
