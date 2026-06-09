@@ -83,13 +83,13 @@ const iconByKey = {
 } as const;
 
 
-function getRiskToneLabel(score: number): string {
+function getStabilityToneLabel(score: number): string {
   if (score < 50) return "안 좋음";
   if (score < 70) return "중간";
   return "좋음";
 }
 
-function getRiskToneStyle(score: number) {
+function getStabilityToneStyle(score: number) {
   if (score < 50) {
     return {
       backgroundColor: 'rgba(59, 130, 246, 0.14)',
@@ -155,9 +155,9 @@ export function InvestmentResultPage() {
       }));
   }, [consultResult]);
 
-  const riskScore = useMemo(() => {
-    if (!consultResult || typeof consultResult.ai?.riskScore !== "number") return null;
-    return Math.min(100, Math.max(0, consultResult.ai.riskScore));
+  const stabilityScore = useMemo(() => {
+    if (!consultResult || typeof consultResult.ai?.stabilityScore !== "number") return null;
+    return Math.min(100, Math.max(0, consultResult.ai.stabilityScore));
   }, [consultResult]);
   const tarotCards = consultResult?.tarot?.cards ?? [];
   const tarotDeckVersionId = tarotCards[0]?.deckVersionId;
@@ -245,7 +245,7 @@ export function InvestmentResultPage() {
   const scenarioLabel = consultResult.history?.scenario ? getScenarioLabel(consultResult.history.scenario) : '';
   const question = consultResult.history?.question?.trim() ?? '';
   const hasConsultContext = Boolean(scenarioLabel || question);
-  const riskToneStyle = typeof riskScore === 'number' ? getRiskToneStyle(riskScore) : null;
+  const stabilityToneStyle = typeof stabilityScore === 'number' ? getStabilityToneStyle(stabilityScore) : null;
   const selectedTarotCardMetadata =
     selectedTarotCard ? tarotCardMetadata.get(selectedTarotCard.selectedIndex) : undefined;
   const selectedTarotCardDetail = selectedTarotCard
@@ -301,8 +301,8 @@ export function InvestmentResultPage() {
           </div>
         </div>
 
-        <div className="fi-mobile-scroll px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-4">
-          {typeof riskScore === "number" && riskToneStyle ? (
+        <div className="fi-mobile-scroll min-h-0 flex-1 px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-4">
+          {typeof stabilityScore === "number" && stabilityToneStyle ? (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -313,31 +313,31 @@ export function InvestmentResultPage() {
                 className="relative overflow-hidden rounded-2xl px-5 py-4"
                 style={{
                   ...glassCardStyle,
-                  boxShadow: `0 14px 36px ${riskToneStyle.glowColor}`,
+                  boxShadow: `0 14px 36px ${stabilityToneStyle.glowColor}`,
                 }}
               >
-                <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${riskToneStyle.glowColor} 0%, transparent 72%)` }} />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${stabilityToneStyle.glowColor} 0%, transparent 72%)` }} />
                 <div className="relative flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold" style={{ color: riskToneStyle.color }}>투자 컨디션</p>
+                    <p className="text-sm font-semibold" style={{ color: stabilityToneStyle.color }}>투자 안정도</p>
                   </div>
                   <div
                     className="flex shrink-0 items-baseline gap-1 rounded-full border px-3 py-2"
                     style={{
-                      backgroundColor: riskToneStyle.backgroundColor,
-                      borderColor: riskToneStyle.borderColor,
+                      backgroundColor: stabilityToneStyle.backgroundColor,
+                      borderColor: stabilityToneStyle.borderColor,
                     }}
                   >
-                    <span className="text-lg font-semibold" style={{ color: riskToneStyle.color }}>{riskScore}</span>
-                    <span className="text-xs" style={{ color: "var(--app-text-muted)" }}>/100 · {getRiskToneLabel(riskScore)}</span>
+                    <span className="text-lg font-semibold" style={{ color: stabilityToneStyle.color }}>{stabilityScore}</span>
+                    <span className="text-xs" style={{ color: "var(--app-text-muted)" }}>/100 · {getStabilityToneLabel(stabilityScore)}</span>
                   </div>
                 </div>
                 <div className="relative mt-4 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.14)' }}>
                   <div
                     className="h-full rounded-full transition-all"
                     style={{
-                      width: `${riskScore}%`,
-                      backgroundColor: riskToneStyle.color,
+                      width: `${stabilityScore}%`,
+                      backgroundColor: stabilityToneStyle.color,
                     }}
                   />
                 </div>

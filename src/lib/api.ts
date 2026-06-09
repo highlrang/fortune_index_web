@@ -261,7 +261,7 @@ export interface HybridConsultingAiResponse {
   mode: string;
   analysisResults: AnalysisResultsPayload;
   finalAdvice: string;
-  riskScore?: number;
+  stabilityScore?: number;
   rawJson: string;
   evidence: {
     grounded: boolean;
@@ -283,7 +283,7 @@ export interface SharedConsultingHistoryResponse {
   saju?: SajuSnapshotResponse;
   tarot?: TarotSnapshotResponse;
   question?: string;
-  riskScore?: number | null;
+  stabilityScore?: number | null;
   overallSummary: string;
   analysis: ConsultingHistoryAnalysisResponse;
   analysisResultJson: string;
@@ -304,7 +304,7 @@ export interface ConsultResponse {
 export interface DailyRiskIndexResponse {
   userId: number;
   date: string;
-  riskScore: number;
+  stabilityScore: number;
   energyLabel: string;
   riskFlags: string[];
   disclaimer: string;
@@ -330,7 +330,7 @@ export interface UpdateMyProfilePayload {
   gender?: 'F' | 'M' | string | null;
   preferredTarotDeckId?: string | null;
   investmentRiskProfile?: InvestmentRiskProfile;
-  preferredSectors?: string[];
+  preferredSectors?: string[] | null;
   notificationEnabled?: boolean;
   darkModeEnabled?: boolean;
 }
@@ -462,7 +462,7 @@ export interface SignUpPayload {
   birthTime?: string;
   gender?: 'F' | 'M';
   investmentRiskProfile: InvestmentRiskProfile;
-  preferredSectors: string[];
+  preferredSectors?: string[];
 }
 
 export interface AssistantDeckSelectionRequest {

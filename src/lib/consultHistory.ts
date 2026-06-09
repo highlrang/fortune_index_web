@@ -117,7 +117,7 @@ export function mapHistoryDetailToConsultResult(
       mode: detail.mode,
       analysisResults: buildAnalysisResults(detail.analysis),
       finalAdvice: detail.overallSummary,
-      riskScore: detail.riskScore ?? undefined,
+      stabilityScore: detail.stabilityScore ?? undefined,
       rawJson: detail.aiResponseJson,
       evidence: {
         grounded: false,

@@ -49,7 +49,7 @@ export function PremiumSignupForm({
   const [birthMinute, setBirthMinute] = useState('');
   const [birthTimeUnknown, setBirthTimeUnknown] = useState(false);
   const [investmentRiskProfile, setInvestmentRiskProfile] = useState<RiskProfile>('STABLE');
-  const [preferredSectors, setPreferredSectors] = useState<string[]>(['TECHNOLOGY']);
+  const [preferredSectors, setPreferredSectors] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -84,11 +84,6 @@ export function PremiumSignupForm({
 
     if (!birthTimeUnknown && !birthTime) {
       setError('태어난 시간을 올바르게 입력해주세요.');
-      return;
-    }
-
-    if (preferredSectors.length === 0) {
-      setError('관심 섹터를 하나 이상 선택해주세요.');
       return;
     }
 

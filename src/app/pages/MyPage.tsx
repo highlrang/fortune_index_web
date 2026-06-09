@@ -528,11 +528,6 @@ export function MyPage() {
       return;
     }
 
-    if (profileEditDraft.preferredSectors.length === 0) {
-      setProfileEditError('선호 섹터를 하나 이상 선택해주세요.');
-      return;
-    }
-
     setProfileEditError('');
     setIsSavingProfile(true);
 
