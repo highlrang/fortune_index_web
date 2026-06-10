@@ -115,7 +115,7 @@ const accentButtonStyle = {
 const fastSheetPanelStyle = {
   ...accentButtonStyle,
   background:
-    'linear-gradient(135deg, color-mix(in srgb, var(--app-accent-gradient-start) 82%, var(--app-surface-bg-strong) 18%) 0%, color-mix(in srgb, var(--app-accent-gradient-end) 72%, var(--app-surface-bg-strong) 28%) 100%)',
+    'linear-gradient(135deg, color-mix(in srgb, var(--app-modal-bg) 94%, var(--point-gold) 6%) 0%, color-mix(in srgb, var(--app-modal-bg) 92%, var(--glow-purple) 8%) 100%)',
   backdropFilter: 'none',
   WebkitBackdropFilter: 'none',
 };

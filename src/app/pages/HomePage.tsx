@@ -192,14 +192,14 @@ function DailyFlowModal({
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center px-5"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}
+      style={{ backgroundColor: 'var(--app-modal-backdrop)', backdropFilter: 'blur(6px)' }}
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div
         className="w-full max-w-sm rounded-3xl p-6 shadow-2xl"
         style={{
           ...glassCardStyle,
-          background: 'color-mix(in srgb, var(--bg-main) 92%, transparent)',
+          background: 'var(--app-modal-bg)',
         }}
       >
         <div className="mb-5 flex items-center justify-between">

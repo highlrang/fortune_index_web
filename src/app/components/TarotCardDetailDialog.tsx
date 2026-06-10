@@ -29,7 +29,7 @@ export function TarotCardDetailDialog({
           maxWidth: 'min(26rem, calc(100% - 2rem))',
           borderColor: 'var(--tarot-card-cover-border)',
           background:
-            'linear-gradient(180deg, color-mix(in srgb, var(--tarot-ambient-start) 98%, black) 0%, color-mix(in srgb, var(--tarot-ambient-mid) 96%, black) 100%)',
+            'linear-gradient(180deg, color-mix(in srgb, var(--app-modal-bg) 94%, var(--tarot-ambient-start) 6%) 0%, color-mix(in srgb, var(--app-modal-bg) 90%, var(--tarot-ambient-mid) 10%) 100%)',
           boxShadow: '0 24px 80px rgba(0, 0, 0, 0.42)',
         }}
       >

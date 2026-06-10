@@ -89,8 +89,8 @@
   --app-surface-hover: rgba(255, 255, 255, 0.14);
   --app-surface-border: var(--card-border);
   --app-surface-divider: rgba(255, 255, 255, 0.08);
-  --app-modal-backdrop: rgba(5, 8, 18, 0.5);
-  --app-modal-bg: rgba(34, 18, 62, 0.74);
+  --app-modal-backdrop: rgba(5, 8, 18, 0.82);
+  --app-modal-bg: #24133f;
   --app-input-bg: rgba(54, 24, 86, 0.60);
   --app-input-placeholder: rgba(241, 239, 255, 0.38);
   --app-icon-muted: rgba(241, 239, 255, 0.72);
@@ -199,8 +199,8 @@ html.is-native-webview.is-native-android {
   --app-surface-hover: rgba(255, 255, 255, 0.84);
   --app-surface-border: var(--card-border);
   --app-surface-divider: rgba(214, 188, 132, 0.16);
-  --app-modal-backdrop: rgba(45, 52, 54, 0.26);
-  --app-modal-bg: rgba(255, 255, 255, 0.62);
+  --app-modal-backdrop: rgba(45, 52, 54, 0.62);
+  --app-modal-bg: #fffdf8;
   --app-input-bg: rgba(255, 255, 255, 0.5);
   --app-input-placeholder: rgba(69, 69, 69, 0.42);
   --app-icon-muted: rgba(69, 69, 69, 0.72);
