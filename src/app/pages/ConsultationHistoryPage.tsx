@@ -102,7 +102,7 @@ export function ConsultationHistoryPage() {
     try {
       const detail = await getHistoryDetail(historyId, currentUserId);
       navigate('/investment-result', {
-        state: { consultResult: mapHistoryDetailToConsultResult(detail) },
+        state: { consultResult: mapHistoryDetailToConsultResult(detail), source: 'history' },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : '상담 결과를 불러오지 못했습니다.');

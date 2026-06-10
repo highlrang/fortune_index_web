@@ -138,12 +138,12 @@ html.is-native-webview {
 }
 
 html.is-native-webview.is-native-android {
-  --native-safe-top: 56px;
+  --native-safe-top: 64px;
 }
 
 @supports (padding-top: max(0px)) {
   html.is-native-webview.is-native-android {
-    --native-safe-top: max(56px, env(safe-area-inset-top, 0px));
+    --native-safe-top: max(64px, env(safe-area-inset-top, 0px));
   }
 }
 

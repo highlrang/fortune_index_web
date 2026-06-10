@@ -113,6 +113,7 @@ export function LikedFortunesPage() {
         state: {
           consultResult: mapHistoryDetailToConsultResult(detail),
           initialLiked: true,
+          source: 'history',
         },
       });
     } catch (err) {

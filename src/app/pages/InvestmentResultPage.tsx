@@ -82,6 +82,52 @@ const iconByKey = {
   zodiac_analysis: MoonStar,
 } as const;
 
+const analysisTitleByKey = {
+  investment_analysis: '종합 분석',
+  saju_analysis: '사주 분석',
+  tarot_analysis: '타로 분석',
+  zodiac_analysis: '별자리 분석',
+} as const;
+
+const orderedAnalysisKeys = [
+  'saju_analysis',
+  'zodiac_analysis',
+  'tarot_analysis',
+  'investment_analysis',
+] as const;
+
+type InvestmentResultSource = 'consultation' | 'history';
+
+type InvestmentResultLocationState = {
+  consultResult?: ConsultResponse;
+  initialLiked?: boolean;
+  source?: InvestmentResultSource;
+} | null;
+
+function hasHistoryAnalysis(analysis: ConsultResponse['history']['analysis'] | undefined) {
+  return Boolean(analysis?.saju || analysis?.tarot || analysis?.zodiac);
+}
+
+function getDisplayAnalysisResults(consultResult: ConsultResponse) {
+  const historyAnalysis = consultResult.history?.analysis;
+
+  if (hasHistoryAnalysis(historyAnalysis)) {
+    return {
+      saju_analysis: historyAnalysis?.saju
+        ? { title: analysisTitleByKey.saju_analysis, content: historyAnalysis.saju }
+        : undefined,
+      tarot_analysis: historyAnalysis?.tarot
+        ? { title: analysisTitleByKey.tarot_analysis, content: historyAnalysis.tarot }
+        : undefined,
+      zodiac_analysis: historyAnalysis?.zodiac
+        ? { title: analysisTitleByKey.zodiac_analysis, content: historyAnalysis.zodiac }
+        : undefined,
+    };
+  }
+
+  return consultResult.ai.analysisResults;
+}
+
 
 function getStabilityToneLabel(score: number): string {
   if (score < 50) return "안 좋음";
@@ -137,7 +183,7 @@ export function InvestmentResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getCurrentUser();
-  const navigationState = location.state as { consultResult?: ConsultResponse; initialLiked?: boolean } | null;
+  const navigationState = location.state as InvestmentResultLocationState;
   const consultResult =
     (navigationState?.consultResult as ConsultResponse | undefined) ??
     getLastConsultResult<ConsultResponse>();
@@ -145,11 +191,14 @@ export function InvestmentResultPage() {
   const sections = useMemo(() => {
     if (!consultResult) return [];
 
-    return Object.entries(consultResult.ai.analysisResults)
+    const displayAnalysisResults = getDisplayAnalysisResults(consultResult);
+
+    return orderedAnalysisKeys
+      .map((key) => [key, displayAnalysisResults[key]] as const)
       .filter(([, value]) => value?.content)
       .map(([key, value]) => ({
         key,
-        title: value.title,
+        title: analysisTitleByKey[key] ?? value.title,
         content: value.content,
         icon: iconByKey[key as keyof typeof iconByKey] ?? Sparkles,
       }));
@@ -246,6 +295,7 @@ export function InvestmentResultPage() {
   const question = consultResult.history?.question?.trim() ?? '';
   const hasConsultContext = Boolean(scenarioLabel || question);
   const stabilityToneStyle = typeof stabilityScore === 'number' ? getStabilityToneStyle(stabilityScore) : null;
+  const bottomNavigationActiveTab = navigationState?.source === 'history' ? 'consult' : 'oracle';
   const selectedTarotCardMetadata =
     selectedTarotCard ? tarotCardMetadata.get(selectedTarotCard.selectedIndex) : undefined;
   const selectedTarotCardDetail = selectedTarotCard
@@ -267,7 +317,7 @@ export function InvestmentResultPage() {
   };
 
   return (
-    <div className="fi-mobile-screen" style={pageGradientStyle}>
+    <div className="investment-result-page fi-mobile-screen" style={pageGradientStyle}>
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-a)' }} />
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--tarot-ambient-blob-b)' }} />
@@ -275,7 +325,7 @@ export function InvestmentResultPage() {
 
       <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col">
         <div
-          className="z-50 px-6 py-4"
+          className="z-50 px-6 pb-2 pt-3"
           style={{
             background:
               'linear-gradient(180deg, color-mix(in srgb, var(--bg-main) 92%, transparent) 0%, transparent 100%)',
@@ -301,7 +351,7 @@ export function InvestmentResultPage() {
           </div>
         </div>
 
-        <div className="fi-mobile-scroll min-h-0 flex-1 px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-4">
+        <div className="fi-mobile-scroll min-h-0 flex-1 px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-1">
           {typeof stabilityScore === "number" && stabilityToneStyle ? (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -408,74 +458,75 @@ export function InvestmentResultPage() {
 
           <div className="space-y-4">
             {sections.map((section, index) => (
-              <motion.div
-                key={section.key}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-              >
-                <div className="relative overflow-hidden rounded-xl p-5" style={resultPanelStyle}>
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
+              <div key={section.key} className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
+                >
+                  <div className="relative overflow-hidden rounded-xl p-5" style={resultPanelStyle}>
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
 
-                  <div className="relative">
-                    <div className="mb-3 flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full" style={accentButtonStyle}>
-                        <section.icon className="h-[18px] w-[18px]" />
+                    <div className="relative">
+                      <div className="mb-3 flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full" style={accentButtonStyle}>
+                          <section.icon className="h-[18px] w-[18px]" />
+                        </div>
+                        <div>
+                          <p className="text-[11px]" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
+                          <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[11px]" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
-                        <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
-                      </div>
+
+                      <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
                     </div>
-
-                    <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+
+                {section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? (
+                  <div className="rounded-2xl p-5" style={glassCardStyle}>
+                    <h3 className="mb-4 text-base font-semibold" style={{ color: "var(--tarot-text-main)" }}>선택된 타로 카드</h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {consultResult.tarot.cards.map((card) => {
+                        const metadata = tarotCardMetadata.get(card.selectedIndex);
+                        const imageSrc = resolveApiAssetUrl(metadata?.imageUrl) || resolveApiAssetUrl(card.imageUrl);
+                        const cardLabel = card.koreanName ?? metadata?.koreanName ?? metadata?.name ?? card.name;
+
+                        return (
+                          <button
+                            key={`${card.code}-${card.selectedIndex}`}
+                            type="button"
+                            onClick={() => setSelectedTarotCard(card)}
+                            className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
+                            aria-label={`${cardLabel} 상세 정보 보기`}
+                          >
+                            <div
+                              className="relative aspect-[2/3] overflow-hidden rounded-xl border"
+                              style={{
+                                borderColor: "var(--tarot-card-cover-border)",
+                                background:
+                                  "linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)",
+                                boxShadow: "0 8px 18px rgba(0, 0, 0, 0.22)",
+                              }}
+                            >
+                              {imageSrc ? (
+                                <img src={imageSrc} alt={cardLabel} className="block h-full w-full object-cover opacity-100" loading="lazy" />
+                              ) : (
+                                <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: "var(--tarot-card-sigil)" }}>
+                                  {cardLabel}
+                                </div>
+                              )}
+                              <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: "color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)" }} />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             ))}
           </div>
-
-          {consultResult.tarot?.cards?.length ? (
-            <div className="mt-8 rounded-2xl p-5" style={glassCardStyle}>
-              <h3 className="mb-4 text-base font-semibold" style={{ color: "var(--tarot-text-main)" }}>선택된 타로 카드</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {consultResult.tarot.cards.map((card) => {
-                  const metadata = tarotCardMetadata.get(card.selectedIndex);
-                  const imageSrc = resolveApiAssetUrl(metadata?.imageUrl) || resolveApiAssetUrl(card.imageUrl);
-                  const cardLabel = card.koreanName ?? metadata?.koreanName ?? metadata?.name ?? card.name;
-
-                  return (
-                    <button
-                      key={`${card.code}-${card.selectedIndex}`}
-                      type="button"
-                      onClick={() => setSelectedTarotCard(card)}
-                      className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
-                      aria-label={`${cardLabel} 상세 정보 보기`}
-                    >
-                      <div
-                        className="relative aspect-[2/3] overflow-hidden rounded-xl border"
-                        style={{
-                          borderColor: "var(--tarot-card-cover-border)",
-                          background:
-                            "linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)",
-                          boxShadow: "0 8px 18px rgba(0, 0, 0, 0.22)",
-                        }}
-                      >
-                        {imageSrc ? (
-                          <img src={imageSrc} alt={cardLabel} className="block h-full w-full object-cover opacity-100" loading="lazy" />
-                        ) : (
-                          <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: "var(--tarot-card-sigil)" }}>
-                            {cardLabel}
-                          </div>
-                        )}
-                        <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: "color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)" }} />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
 
           {likeError ? (
             <div className="mt-8 rounded-2xl px-4 py-3 text-sm" style={dangerCardStyle}>
@@ -558,7 +609,7 @@ export function InvestmentResultPage() {
         </div>
       </div>
 
-      <BottomNavigation />
+      <BottomNavigation activeTab={bottomNavigationActiveTab} />
     </div>
   );
 }

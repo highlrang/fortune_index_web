@@ -469,7 +469,7 @@ export function TarotResultPage() {
       });
 
       saveLastConsultResult(response);
-      navigate('/investment-result', { state: { consultResult: response } });
+      navigate('/investment-result', { state: { consultResult: response, source: 'consultation' } });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : '상담 요청에 실패했습니다.');
     } finally {
