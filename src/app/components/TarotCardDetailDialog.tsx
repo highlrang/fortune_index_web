@@ -24,7 +24,7 @@ export function TarotCardDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="border p-0 text-white"
+        className="border p-0"
         style={{
           maxWidth: 'min(26rem, calc(100% - 2rem))',
           borderColor: 'var(--tarot-card-cover-border)',
@@ -66,16 +66,16 @@ export function TarotCardDetailDialog({
               <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
                 {eyebrow}
               </p>
-              <DialogTitle className="mt-1 text-xl font-semibold text-white">
+              <DialogTitle className="mt-1 text-xl font-semibold" style={{ color: 'var(--app-text-soft)' }}>
                 {card.label}
               </DialogTitle>
               {card.meaning ? (
-                <DialogDescription className="text-sm leading-6 text-white/86">
+                <DialogDescription className="text-sm leading-6" style={{ color: 'var(--app-text-muted)' }}>
                   {card.meaning}
                 </DialogDescription>
               ) : null}
               {card.description ? (
-                <p className="mt-3 text-sm leading-6 text-white/86">{card.description}</p>
+                <p className="mt-3 text-sm leading-6" style={{ color: 'var(--app-text-muted)' }}>{card.description}</p>
               ) : null}
             </DialogHeader>
           </div>

@@ -9,6 +9,7 @@ import {
   Heart,
   Clock,
   Trash2,
+  MessageCircle,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
@@ -351,181 +352,161 @@ export function InvestmentResultPage() {
         </div>
 
         <div className="fi-mobile-scroll min-h-0 flex-1 px-6 pb-[calc(env(safe-area-inset-bottom)+5.75rem)] pt-1">
-          {typeof stabilityScore === "number" && stabilityToneStyle ? (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-              className="mb-4"
-            >
-              <div
-                className="relative overflow-hidden rounded-2xl px-5 py-4"
-                style={{
-                  ...glassCardStyle,
-                  boxShadow: `0 14px 36px ${stabilityToneStyle.glowColor}`,
-                }}
-              >
-                <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${stabilityToneStyle.glowColor} 0%, transparent 72%)` }} />
-                <div className="relative flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: stabilityToneStyle.color }}>투자 안정도</p>
-                  </div>
-                  <div
-                    className="flex shrink-0 items-baseline gap-1 rounded-full border px-3 py-2"
-                    style={{
-                      backgroundColor: stabilityToneStyle.backgroundColor,
-                      borderColor: stabilityToneStyle.borderColor,
-                    }}
-                  >
-                    <span className="text-lg font-semibold" style={{ color: stabilityToneStyle.color }}>{stabilityScore}</span>
-                    <span className="text-xs" style={{ color: "var(--app-text-muted)" }}>/100 · {getStabilityToneLabel(stabilityScore)}</span>
-                  </div>
-                </div>
-                <div className="relative mt-4 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.14)' }}>
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${stabilityScore}%`,
-                      backgroundColor: stabilityToneStyle.color,
-                    }}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          ) : null}
-
-          {hasConsultContext ? (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05, duration: 0.45 }}
-              className="mb-4"
-            >
-              <div className="relative overflow-hidden rounded-xl p-4" style={resultPanelStyle}>
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
-                <div className="relative space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[11px] font-medium" style={{ color: 'var(--app-text-subtle)' }}>
-                      나의 질문
-                    </p>
-                    {scenarioLabel ? (
-                      <span
-                        className="shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold"
-                        style={{
-                          borderColor: 'var(--app-accent-border)',
-                          backgroundColor: 'var(--app-accent-soft)',
-                          color: 'var(--app-accent-text-strong)',
-                        }}
-                      >
-                        {scenarioLabel}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {question ? (
-                    <p className="text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>{question}</p>
-                  ) : null}
-                </div>
-              </div>
-            </motion.div>
-          ) : null}
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
+            transition={{ duration: 0.5 }}
             className="mb-6"
           >
-            <div className="relative overflow-hidden rounded-xl p-5" style={resultPanelStyle}>
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
+            <div
+              className="relative overflow-hidden rounded-xl"
+              style={{
+                ...resultPanelStyle,
+                boxShadow: stabilityToneStyle
+                  ? `0 12px 40px ${stabilityToneStyle.glowColor}, 0 12px 30px rgba(0,0,0,0.14)`
+                  : resultPanelStyle.boxShadow,
+              }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }}
+              />
 
-              <div className="relative space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
-                    <Clock className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>Core Summary</p>
-                    <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
-                  </div>
-                </div>
-
-                <p className="text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <div className="space-y-4">
-            {sections.map((section, index) => (
-              <div key={section.key} className="space-y-4">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-                >
-                  <div className="relative overflow-hidden rounded-xl p-5" style={resultPanelStyle}>
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, var(--app-surface-highlight) 0%, transparent 72%)' }} />
-
-                    <div className="relative">
-                      <div className="mb-3 flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full" style={accentButtonStyle}>
-                          <section.icon className="h-[18px] w-[18px]" />
+              <div className="relative">
+                {hasConsultContext ? (
+                  <div className="p-5">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
+                          <MessageCircle className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-[11px]" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
-                          <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
+                          <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>My Question</p>
+                          <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>나의 질문</h3>
                         </div>
                       </div>
-
-                      <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
+                      {scenarioLabel ? (
+                        <span
+                          className="shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-semibold"
+                          style={{
+                            borderColor: 'var(--app-accent-border)',
+                            backgroundColor: 'var(--app-accent-soft)',
+                            color: 'var(--app-accent-text-strong)',
+                          }}
+                        >
+                          {scenarioLabel}
+                        </span>
+                      ) : null}
                     </div>
+                    {question ? (
+                      <p className="text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{question}</p>
+                    ) : null}
                   </div>
-                </motion.div>
+                ) : null}
 
-                {section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? (
-                  <div className="rounded-2xl p-5" style={glassCardStyle}>
-                    <h3 className="mb-4 text-base font-semibold" style={{ color: "var(--tarot-text-main)" }}>선택된 타로 카드</h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      {consultResult.tarot.cards.map((card) => {
-                        const metadata = tarotCardMetadata.get(card.selectedIndex);
-                        const imageSrc = resolveApiAssetUrl(metadata?.imageUrl) || resolveApiAssetUrl(card.imageUrl);
-                        const cardLabel = card.koreanName ?? metadata?.koreanName ?? metadata?.name ?? card.name;
-
-                        return (
-                          <button
-                            key={`${card.code}-${card.selectedIndex}`}
-                            type="button"
-                            onClick={() => setSelectedTarotCard(card)}
-                            className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
-                            aria-label={`${cardLabel} 상세 정보 보기`}
-                          >
-                            <div
-                              className="relative aspect-[2/3] overflow-hidden rounded-xl border"
-                              style={{
-                                borderColor: "var(--tarot-card-cover-border)",
-                                background:
-                                  "linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)",
-                                boxShadow: "0 8px 18px rgba(0, 0, 0, 0.22)",
-                              }}
-                            >
-                              {imageSrc ? (
-                                <img src={imageSrc} alt={cardLabel} className="block h-full w-full object-cover opacity-100" loading="lazy" />
-                              ) : (
-                                <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: "var(--tarot-card-sigil)" }}>
-                                  {cardLabel}
-                                </div>
-                              )}
-                              <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: "color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)" }} />
-                            </div>
-                          </button>
-                        );
-                      })}
+                {typeof stabilityScore === 'number' && stabilityToneStyle ? (
+                  <div
+                    className={`px-5 ${hasConsultContext ? 'border-t pb-5 pt-4' : 'pb-5 pt-5'}`}
+                    style={hasConsultContext ? { borderColor: 'var(--app-surface-border)' } : undefined}
+                  >
+                    <div className="mb-2.5 flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold" style={{ color: stabilityToneStyle.color }}>투자 안정도</p>
+                      <div
+                        className="flex items-baseline gap-1 rounded-full border px-3 py-1"
+                        style={{ backgroundColor: stabilityToneStyle.backgroundColor, borderColor: stabilityToneStyle.borderColor }}
+                      >
+                        <span className="text-base font-bold" style={{ color: stabilityToneStyle.color }}>{stabilityScore}</span>
+                        <span className="text-xs" style={{ color: 'var(--app-text-muted)' }}>/100 · {getStabilityToneLabel(stabilityScore)}</span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: 'color-mix(in srgb, var(--app-surface-border) 80%, transparent)' }}>
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${stabilityScore}%`, backgroundColor: stabilityToneStyle.color }}
+                      />
                     </div>
                   </div>
                 ) : null}
+
+                <div
+                  className={`p-5 ${hasConsultContext || typeof stabilityScore === 'number' ? 'border-t' : ''}`}
+                  style={hasConsultContext || typeof stabilityScore === 'number' ? { borderColor: 'var(--app-surface-border)' } : undefined}
+                >
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>Core Summary</p>
+                      <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
+                    </div>
+                  </div>
+                  <p className="text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
+                </div>
+
+                {sections.map((section) => (
+                  <div key={section.key} className="border-t p-5" style={{ borderColor: 'var(--app-surface-border)' }}>
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full" style={accentButtonStyle}>
+                        <section.icon className="h-[18px] w-[18px]" />
+                      </div>
+                      <div>
+                        <p className="text-[11px]" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
+                      </div>
+                    </div>
+
+                    {section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? (
+                      <div className="mb-4">
+                        <div className="grid grid-cols-3 gap-3">
+                          {consultResult.tarot.cards.map((card) => {
+                            const metadata = tarotCardMetadata.get(card.selectedIndex);
+                            const imageSrc = resolveApiAssetUrl(metadata?.imageUrl) || resolveApiAssetUrl(card.imageUrl);
+                            const cardLabel = card.koreanName ?? metadata?.koreanName ?? metadata?.name ?? card.name;
+
+                            return (
+                              <button
+                                key={`${card.code}-${card.selectedIndex}`}
+                                type="button"
+                                onClick={() => setSelectedTarotCard(card)}
+                                className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
+                                aria-label={`${cardLabel} 상세 정보 보기`}
+                              >
+                                <div
+                                  className="relative aspect-[2/3] overflow-hidden rounded-xl border"
+                                  style={{
+                                    borderColor: 'var(--tarot-card-cover-border)',
+                                    background: 'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
+                                    boxShadow: '0 8px 18px rgba(0, 0, 0, 0.22)',
+                                  }}
+                                >
+                                  {imageSrc ? (
+                                    <img src={imageSrc} alt={cardLabel} className="block h-full w-full object-cover opacity-100" loading="lazy" />
+                                  ) : (
+                                    <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: 'var(--tarot-card-sigil)' }}>
+                                      {cardLabel}
+                                    </div>
+                                  )}
+                                  <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)' }} />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div
+                      className={section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? 'border-t pt-4' : ''}
+                      style={section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? { borderColor: 'var(--app-surface-border)' } : undefined}
+                    >
+                      <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          </motion.div>
 
           {likeError ? (
             <div className="mt-8 rounded-2xl px-4 py-3 text-sm" style={dangerCardStyle}>

@@ -328,39 +328,36 @@ export function ConsultationHistoryPage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
 
-                    <div className="relative space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <HistoryTypeBadge colorClass={colorClass} Icon={TypeIcon} />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex min-w-0 items-center gap-2">
-                              <h3 className="truncate text-sm font-semibold fi-text-main">{typeLabel}</h3>
-                              {isLiked ? (
-                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-400/30 bg-rose-500/10 px-2 py-0.5 text-[11px] text-rose-300">
-                                  <Heart className="h-3 w-3 fill-current" />
-                                </span>
-                              ) : null}
-                            </div>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs fi-text-subtle">
-                              <Clock className="h-3 w-3" />
-                              <span>{formatHistoryDateTime(item.consultedAt)}</span>
-                              {scenarioLabel ? (
-                                <span
-                                  className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium"
-                                  style={{
-                                    borderColor: 'var(--app-accent-border)',
-                                    backgroundColor: 'var(--app-accent-soft)',
-                                    color: 'var(--app-accent-text-strong)',
-                                  }}
-                                >
-                                  {scenarioLabel}
-                                </span>
-                              ) : null}
-                            </div>
+                    <div className="relative space-y-2.5">
+                      <div className="flex items-center gap-3">
+                        <HistoryTypeBadge colorClass={colorClass} Icon={TypeIcon} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <h3 className="truncate text-sm font-semibold fi-text-main">{typeLabel}</h3>
+                            {scenarioLabel ? (
+                              <span
+                                className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium"
+                                style={{
+                                  borderColor: 'var(--app-accent-border)',
+                                  backgroundColor: 'var(--app-accent-soft)',
+                                  color: 'var(--app-accent-text-strong)',
+                                }}
+                              >
+                                {scenarioLabel}
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-1 text-xs fi-text-subtle">
+                            <Clock className="h-3 w-3" />
+                            <span>{formatHistoryDateTime(item.consultedAt)}</span>
                           </div>
                         </div>
-
-                        <ChevronRight className="h-4 w-4 fi-text-subtle transition-transform group-hover:translate-x-1" />
+                        <div className="flex shrink-0 items-center gap-2">
+                          {isLiked ? (
+                            <Heart className="h-3.5 w-3.5 fill-current" style={{ color: 'var(--tarot-point-color)' }} />
+                          ) : null}
+                          <ChevronRight className="h-4 w-4 fi-text-subtle transition-transform group-hover:translate-x-1" />
+                        </div>
                       </div>
 
                       {item.question ? (
@@ -378,7 +375,7 @@ export function ConsultationHistoryPage() {
                       ) : null}
 
                       <p
-                        className="text-sm leading-relaxed fi-text-muted"
+                        className="text-xs leading-relaxed fi-text-muted"
                         style={{
                           display: '-webkit-box',
                           WebkitBoxOrient: 'vertical',
@@ -388,11 +385,6 @@ export function ConsultationHistoryPage() {
                       >
                         {item.overallSummary}
                       </p>
-
-                      <div className="flex items-center justify-end gap-1 text-xs fi-text-accent transition-colors group-hover:opacity-80">
-                        <span>{isOpening ? '불러오는 중...' : '상세 보기'}</span>
-                        <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </div>
                     </div>
                   </motion.button>
                 );
