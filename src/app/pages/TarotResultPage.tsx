@@ -3,7 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { TarotCardDetailDialog } from '../components/TarotCardDetailDialog';
-import { consult, getTarotDeckCards, resolveApiAssetUrl, saveHomeDailyTarotDraw, type TarotDeckCardResponse } from '@/lib/api';
+import {
+  consult,
+  getTarotDeckCards,
+  resolveApiAssetUrl,
+  saveHomeDailyTarotDraw,
+  type ConsultScenario,
+  type TarotDeckCardResponse,
+} from '@/lib/api';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
 import { getCurrentUser, saveHomeTarotDraw, saveLastConsultResult } from '@/lib/session';
 
@@ -457,9 +464,7 @@ export function TarotResultPage() {
       const response = await consult({
         userId: currentUser.id,
         mode: modeByType[selectedType],
-        scenario: selectedScenario
-          ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
-          : undefined,
+        scenario: selectedScenario ? (selectedScenario as ConsultScenario) : undefined,
         focusLabel: selectedScenarioTitle,
         question: trimmedQuestion,
         tarotIndices: selectedCards,

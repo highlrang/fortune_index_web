@@ -10,11 +10,10 @@ export type ConsultMode =
   | 'INVESTMENT_ZODIAC'
   | 'INVESTMENT_ALL';
 export type ConsultScenario =
-  | 'TIMING_ENTRY'
-  | 'TIMING_EXIT'
-  | 'SAJU_MATCH'
-  | 'RESCUE_PLAN'
-  | 'MENTAL_GUIDE';
+  | 'ENTRY_READY'
+  | 'HOLD_OR_EXIT'
+  | 'MENTAL_CARE'
+  | 'FLOW_CHECK';
 
 export interface LocalTimeValue {
   hour: number;

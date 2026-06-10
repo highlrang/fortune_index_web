@@ -35,10 +35,10 @@ export function mapHistoryDetailToConsultResult(
   return {
     mode: detail.mode,
     focus: {
-      label: detail.focus.label,
-      currentValue: detail.focus.currentValue,
-      changeRate: detail.focus.changeRate,
-      interestArea: detail.focus.label,
+      label: detail.focus?.label ?? '',
+      currentValue: detail.focus?.currentValue ?? 0,
+      changeRate: detail.focus?.changeRate ?? 0,
+      interestArea: detail.focus?.label ?? '',
       fallback: false,
     },
     saju: detail.saju

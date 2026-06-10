@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Layers, MoonStar, Sparkles, Star } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { pickScenarioQuestion } from '@/lib/consultPrompts';
+import { pickConsultationQuestion } from '@/lib/consultPrompts';
 import {
   ApiError,
   getHomeDailyTarotDraw,
@@ -28,28 +28,28 @@ const quickPromptTemplates: QuickPrompt[] = [
     id: 'saju-match',
     type: 'saju',
     label: '사주',
-    scenario: 'SAJU_MATCH',
+    scenario: 'ENTRY_READY',
     accentColor: 'rgba(251, 191, 36, 0.18)',
   },
   {
     id: 'tarot-entry',
     type: 'tarot',
     label: '타로',
-    scenario: 'TIMING_ENTRY',
+    scenario: 'ENTRY_READY',
     accentColor: 'rgba(217, 70, 239, 0.16)',
   },
   {
     id: 'zodiac-guide',
     type: 'zodiac',
     label: '별자리',
-    scenario: 'MENTAL_GUIDE',
+    scenario: 'FLOW_CHECK',
     accentColor: 'rgba(96, 165, 250, 0.16)',
   },
   {
     id: 'all-rescue',
     type: 'comprehensive',
     label: '종합',
-    scenario: 'RESCUE_PLAN',
+    scenario: 'MENTAL_CARE',
     accentColor: 'rgba(251, 113, 133, 0.16)',
   },
 ];
@@ -110,7 +110,7 @@ export function HomeFortuneJourneySection() {
     () =>
       quickPromptTemplates.map((prompt) => ({
         ...prompt,
-        question: pickScenarioQuestion(prompt.scenario),
+        question: pickConsultationQuestion(prompt.scenario, prompt.type),
       })),
     [],
   );
@@ -291,7 +291,7 @@ export function HomeFortuneJourneySection() {
                     whileTap={{ scale: 0.97 }}
                   >
                     <div
-                      className="relative h-36 overflow-hidden rounded-[22px] border"
+                      className="relative h-32 overflow-hidden rounded-[22px] border"
                       style={{
                         borderColor: 'var(--tarot-card-cover-border)',
                         backgroundColor: 'color-mix(in srgb, var(--bg-main) 72%, transparent)',
@@ -320,7 +320,7 @@ export function HomeFortuneJourneySection() {
               {tarotCardPositions.map((position, index) => (
                 <motion.div
                   key={index}
-                  className={`relative h-36 w-24 ${position}`}
+                  className={`relative h-32 w-24 ${position}`}
                   animate={{ y: index === 1 ? [0, -6, 0] : [0, 4, 0] }}
                   transition={{ duration: 3 + index * 0.4, repeat: Infinity, ease: 'easeInOut' }}
                 >

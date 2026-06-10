@@ -171,11 +171,10 @@ const titleByMode = {
 } as const;
 
 function getScenarioLabel(scenario: NonNullable<ConsultResponse['history']['scenario']>) {
-  if (scenario === 'TIMING_ENTRY') return '매수 타이밍';
-  if (scenario === 'TIMING_EXIT') return '매도 타이밍';
-  if (scenario === 'SAJU_MATCH') return '나와 맞는 자산';
-  if (scenario === 'RESCUE_PLAN') return '손실 회복 전략';
-  if (scenario === 'MENTAL_GUIDE') return '투자 멘탈 가이드';
+  if (scenario === 'FLOW_CHECK') return '흐름';
+  if (scenario === 'ENTRY_READY') return '시작';
+  if (scenario === 'HOLD_OR_EXIT') return '정리';
+  if (scenario === 'MENTAL_CARE') return '회복';
   return scenario;
 }
 
@@ -344,7 +343,7 @@ export function InvestmentResultPage() {
 
             <div className="text-center">
               <h1 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{resultTitle}</h1>
-              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{focusLabel}</p>
+              <p className="text-xs" style={{ color: 'var(--app-accent-text-soft)' }}>{scenarioLabel || focusLabel}</p>
             </div>
 
             <div className="h-10 w-10" aria-hidden="true" />

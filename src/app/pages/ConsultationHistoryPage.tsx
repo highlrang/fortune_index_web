@@ -341,25 +341,22 @@ export function ConsultationHistoryPage() {
                                 </span>
                               ) : null}
                             </div>
-                            <div className="mt-1 flex items-center gap-2 text-xs fi-text-subtle">
+                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs fi-text-subtle">
                               <Clock className="h-3 w-3" />
                               <span>{formatHistoryDateTime(item.consultedAt)}</span>
-                              {item.focusLabel ? <span>· {item.focusLabel}</span> : null}
-                            </div>
-                            {scenarioLabel ? (
-                              <div className="mt-2 flex">
+                              {scenarioLabel ? (
                                 <span
-                                  className="inline-flex max-w-full items-center rounded-full border px-2 py-0.5 text-[11px] font-medium"
+                                  className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium"
                                   style={{
                                     borderColor: 'var(--app-accent-border)',
                                     backgroundColor: 'var(--app-accent-soft)',
                                     color: 'var(--app-accent-text-strong)',
                                   }}
                                 >
-                                  <span className="truncate">{scenarioLabel}</span>
+                                  {scenarioLabel}
                                 </span>
-                              </div>
-                            ) : null}
+                              ) : null}
+                            </div>
                           </div>
                         </div>
 
@@ -482,10 +479,9 @@ function getTypeColor(type: ConsultationType) {
 }
 
 function getScenarioLabel(scenario: NonNullable<ConsultingHistoryListItemResponse['scenario']>) {
-  if (scenario === 'TIMING_ENTRY') return '매수 타이밍';
-  if (scenario === 'TIMING_EXIT') return '매도 타이밍';
-  if (scenario === 'SAJU_MATCH') return '나와 맞는 자산';
-  if (scenario === 'RESCUE_PLAN') return '손실 회복 전략';
-  if (scenario === 'MENTAL_GUIDE') return '투자 멘탈 가이드';
+  if (scenario === 'FLOW_CHECK') return '흐름';
+  if (scenario === 'ENTRY_READY') return '시작';
+  if (scenario === 'HOLD_OR_EXIT') return '정리';
+  if (scenario === 'MENTAL_CARE') return '회복';
   return scenario;
 }

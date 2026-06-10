@@ -247,11 +247,7 @@ export function LikedFortunesPage() {
 }
 
 function mapModeToFortuneType(fortune: ConsultingHistorySummaryResponse): FortuneType {
-  if (fortune.tarotCardNames.length > 0 && fortune.scenario === 'SAJU_MATCH') {
-    return '종합 재물 흐름';
-  }
   if (fortune.mode === 'INVESTMENT_ZODIAC') return '별자리 재물 흐름';
-  if (fortune.scenario === 'SAJU_MATCH') return '사주 재물 흐름';
   if (fortune.tarotCardNames.length > 0) return '타로 재물 흐름';
   return '재물 흐름';
 }

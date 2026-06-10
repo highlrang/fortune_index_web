@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { consult, getScenarios, type ScenarioOptionResponse } from '@/lib/api';
+import { consult, getScenarios, type ConsultScenario, type ScenarioOptionResponse } from '@/lib/api';
 import { pickConsultationQuestion } from '@/lib/consultPrompts';
 import { getCurrentUser, saveLastConsultResult } from '@/lib/session';
 import { getSelectedTarotDeckId, getTarotDeckById } from '@/lib/tarot';
@@ -36,11 +36,11 @@ export function ConsultationPage() {
 
   const questionPlaceholder = useMemo(() => {
     if (!selectedScenario) {
-      return `지금 마음속에 있는 자산 흐름 고민을 자유롭게 적어주세요\n예: ${pickConsultationQuestion('MENTAL_GUIDE', selectedType)}`;
+      return `지금 마음속에 있는 자산 흐름 고민을 자유롭게 적어주세요\n예: ${pickConsultationQuestion('FLOW_CHECK', selectedType)}`;
     }
 
     return `지금 마음속에 있는 자산 흐름 고민을 자유롭게 적어주세요\n예: ${pickConsultationQuestion(
-      selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE',
+      selectedScenario as ConsultScenario,
       selectedType,
     )}`;
   }, [selectedScenario, selectedType]);
@@ -114,7 +114,7 @@ export function ConsultationPage() {
         userId: currentUser.id,
         mode: modeByType[selectedType],
         scenario: selectedScenario
-          ? (selectedScenario as 'TIMING_ENTRY' | 'TIMING_EXIT' | 'SAJU_MATCH' | 'RESCUE_PLAN' | 'MENTAL_GUIDE')
+          ? (selectedScenario as ConsultScenario)
           : undefined,
         focusLabel: selectedScenarioOption?.title,
         question: trimmedQuestion,
@@ -204,16 +204,16 @@ export function ConsultationPage() {
 
             <div>
               <h2 className="mb-3 text-sm font-medium fi-text-muted">무엇이 가장 궁금한가요?</h2>
-              <div className="grid grid-cols-6 gap-2 sm:grid-cols-5">
+              <div className="grid grid-cols-2 gap-2">
                 {visibleScenarios.map((scenario, index) => {
                   const isSelected = selectedScenario === scenario.code;
-                  const isLastRowOfFive = visibleScenarios.length === 5 && index >= 3;
+                  const isLastItem = visibleScenarios.length % 2 === 1 && index === visibleScenarios.length - 1;
 
                   return (
                     <button
                       key={scenario.code}
                       onClick={() => setSelectedScenario((current) => (current === scenario.code ? '' : scenario.code))}
-                      className={`rounded-full border px-4 py-2 text-sm transition-all sm:col-span-1 ${isLastRowOfFive ? 'col-span-3' : 'col-span-2'}`}
+                      className={`min-w-0 rounded-full border px-3 py-2.5 text-sm transition-all ${isLastItem ? 'col-span-2' : ''}`}
                       style={
                         isSelected
                           ? {
@@ -229,10 +229,11 @@ export function ConsultationPage() {
                               color: 'var(--app-text-soft)',
                               backdropFilter: 'var(--card-blur)',
                               WebkitBackdropFilter: 'var(--card-blur)',
-                            }
+                          }
                       }
+                      title={scenario.title}
                     >
-                      <span className="font-medium">{scenario.title}</span>
+                      <span className="block truncate whitespace-nowrap font-medium leading-none">{scenario.title}</span>
                     </button>
                   );
                 })}
