@@ -3,6 +3,7 @@
 :root {
   --font-size: 17px;
   --native-safe-top: 0px;
+  --native-safe-top-extra: 0px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -126,10 +127,11 @@
 }
 
 html.is-native-webview.is-native-ios {
-  --native-safe-top: env(safe-area-inset-top, 0px);
+  --native-safe-top: 20px;
 }
 
 html.is-native-webview {
+  --native-safe-top-extra: 12px;
   --card-blur: blur(8px);
   --app-card-blur: blur(8px);
   --tarot-accent-glow: rgba(173, 136, 255, 0.28);
@@ -142,6 +144,10 @@ html.is-native-webview.is-native-android {
 }
 
 @supports (padding-top: max(0px)) {
+  html.is-native-webview.is-native-ios {
+    --native-safe-top: max(20px, env(safe-area-inset-top, 0px));
+  }
+
   html.is-native-webview.is-native-android {
     --native-safe-top: max(64px, env(safe-area-inset-top, 0px));
   }
@@ -336,7 +342,7 @@ html.is-native-webview.is-native-android {
   }
 
   body.is-native-webview {
-    padding-top: var(--native-safe-top);
+    padding-top: calc(var(--native-safe-top) + var(--native-safe-top-extra));
     touch-action: manipulation;
   }
 
@@ -518,7 +524,7 @@ html.is-native-webview.is-native-android {
 
   body.is-native-webview .fi-page > .fixed.inset-0,
   body.is-native-webview #root > .fixed.inset-0 {
-    top: var(--native-safe-top);
+    top: calc(var(--native-safe-top) + var(--native-safe-top-extra));
   }
 
   body.is-native-webview .tarot-picker-page .blur-3xl,

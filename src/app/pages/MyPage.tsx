@@ -112,6 +112,36 @@ const accentButtonStyle = {
   boxShadow: '0 18px 40px -24px var(--app-accent-glow)',
 };
 
+const fastSheetPanelStyle = {
+  ...accentButtonStyle,
+  background:
+    'linear-gradient(135deg, color-mix(in srgb, var(--app-accent-gradient-start) 82%, var(--app-surface-bg-strong) 18%) 0%, color-mix(in srgb, var(--app-accent-gradient-end) 72%, var(--app-surface-bg-strong) 28%) 100%)',
+  backdropFilter: 'none',
+  WebkitBackdropFilter: 'none',
+};
+
+const profileEditSelectedOptionStyle = {
+  background: 'var(--app-accent-surface)',
+  borderColor: 'var(--app-accent-border-strong)',
+  color: 'var(--app-accent-text-soft)',
+};
+
+const profileEditOptionStyle = {
+  background: 'var(--card-surface)',
+  borderColor: 'var(--card-border)',
+  color: 'var(--app-text-muted)',
+};
+
+const profileEditSheetTransition = {
+  duration: 0.2,
+  ease: [0.16, 1, 0.3, 1],
+} as const;
+
+const fastModalTransition = {
+  duration: 0.16,
+  ease: [0.16, 1, 0.3, 1],
+} as const;
+
 const inputStyle = {
   ...glassLayerStyle,
   backgroundColor: 'var(--app-input-bg)',
@@ -449,7 +479,7 @@ export function MyPage() {
     });
   }, [user]);
 
-  const isAnyModalOpen = showBirthTarot || showSaju || showInquiry || showProfileEdit;
+  const isAnyModalOpen = showBirthTarot || showSaju || showZodiac || showInquiry || showProfileEdit;
   const profileEditBirthDate = buildBirthDate(
     profileEditDraft.birthYear,
     profileEditDraft.birthMonth,
@@ -681,19 +711,20 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center pt-8 backdrop-blur-sm"
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-end justify-center pt-8"
             style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30 }}
-              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
+              initial={{ y: 36, opacity: 0.98 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 28, opacity: 0 }}
+              transition={profileEditSheetTransition}
+              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2"
               style={{
-                ...accentButtonStyle,
-                background:
-                  'linear-gradient(135deg, color-mix(in srgb, var(--app-accent-gradient-start) 82%, var(--app-surface-bg-strong) 18%) 0%, color-mix(in srgb, var(--app-accent-gradient-end) 72%, var(--app-surface-bg-strong) 28%) 100%)',
+                ...fastSheetPanelStyle,
+                willChange: 'transform, opacity',
+                transform: 'translateZ(0)',
               }}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
@@ -905,20 +936,8 @@ export function MyPage() {
                         className="rounded-xl border px-4 py-4 text-sm transition-all"
                         style={
                           profileEditDraft.gender === option.value
-                            ? {
-                                background: 'var(--app-accent-surface)',
-                                borderColor: 'var(--app-accent-border-strong)',
-                                color: 'var(--app-accent-text-soft)',
-                                backdropFilter: 'var(--card-blur)',
-                                WebkitBackdropFilter: 'var(--card-blur)',
-                              }
-                            : {
-                                background: 'var(--card-surface)',
-                                borderColor: 'var(--card-border)',
-                                color: 'var(--app-text-muted)',
-                                backdropFilter: 'var(--card-blur)',
-                                WebkitBackdropFilter: 'var(--card-blur)',
-                              }
+                            ? profileEditSelectedOptionStyle
+                            : profileEditOptionStyle
                         }
                       >
                         {option.label}
@@ -945,20 +964,8 @@ export function MyPage() {
                         className="rounded-xl border px-4 py-4 text-sm transition-all"
                         style={
                           profileEditDraft.investmentRiskProfile === option.value
-                            ? {
-                                background: 'var(--app-accent-surface)',
-                                borderColor: 'var(--app-accent-border-strong)',
-                                color: 'var(--app-accent-text-soft)',
-                                backdropFilter: 'var(--card-blur)',
-                                WebkitBackdropFilter: 'var(--card-blur)',
-                              }
-                            : {
-                                background: 'var(--card-surface)',
-                                borderColor: 'var(--card-border)',
-                                color: 'var(--app-text-muted)',
-                                backdropFilter: 'var(--card-blur)',
-                                WebkitBackdropFilter: 'var(--card-blur)',
-                              }
+                            ? profileEditSelectedOptionStyle
+                            : profileEditOptionStyle
                         }
                       >
                         {option.label}
@@ -979,20 +986,8 @@ export function MyPage() {
                           className="rounded-full border px-4 py-2 text-xs transition-all"
                           style={
                             selected
-                              ? {
-                                  background: 'var(--app-accent-surface)',
-                                  borderColor: 'var(--app-accent-border-strong)',
-                                  color: 'var(--app-accent-text-soft)',
-                                  backdropFilter: 'var(--card-blur)',
-                                  WebkitBackdropFilter: 'var(--card-blur)',
-                                }
-                              : {
-                                  background: 'var(--card-surface)',
-                                  borderColor: 'var(--card-border)',
-                                  color: 'var(--app-text-muted)',
-                                  backdropFilter: 'var(--card-blur)',
-                                  WebkitBackdropFilter: 'var(--card-blur)',
-                                }
+                              ? profileEditSelectedOptionStyle
+                              : profileEditOptionStyle
                           }
                         >
                           {sector.label}
@@ -1046,10 +1041,10 @@ export function MyPage() {
           >
             <div className="mx-auto min-h-full w-full max-w-md px-4 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.25rem))] pt-[max(0.75rem,env(safe-area-inset-top))]">
               <div
-                className="sticky top-0 z-10 -mx-4 mb-3 border-b px-4 pb-3 backdrop-blur-xl"
+                className="sticky top-0 z-10 -mx-4 mb-3 border-b px-4 pb-3"
                 style={{
                   borderColor: 'var(--app-surface-border)',
-                  backgroundColor: 'color-mix(in srgb, var(--bg-main) 88%, transparent)',
+                  backgroundColor: 'var(--bg-main)',
                 }}
               >
                 <div className="flex items-center justify-end pt-1">
@@ -1135,16 +1130,21 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center pt-8 backdrop-blur-sm"
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-end justify-center pt-8"
             style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30 }}
-              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
-              style={accentButtonStyle}
+              initial={{ y: 36, opacity: 0.98 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 28, opacity: 0 }}
+              transition={profileEditSheetTransition}
+              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2"
+              style={{
+                ...fastSheetPanelStyle,
+                willChange: 'transform, opacity',
+                transform: 'translateZ(0)',
+              }}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
                 <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>내 사주 정보</h3>
@@ -1173,7 +1173,7 @@ export function MyPage() {
                       .map(({ char, label }) => (
                         <div
                           key={label}
-                          className="rounded-xl border px-2 py-3 text-center backdrop-blur-xl"
+                          className="rounded-xl border px-2 py-3 text-center"
                           style={glassCardStyle}
                         >
                           <div
@@ -1253,7 +1253,7 @@ export function MyPage() {
                 {userData.saju.sections.map((section) => (
                   <div
                     key={section.key}
-                    className="rounded-2xl border p-4 backdrop-blur-xl"
+                    className="rounded-2xl border p-4"
                     style={glassCardStyle}
                   >
                     <div className="mb-2 flex items-center justify-between gap-3">
@@ -1424,16 +1424,21 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center pt-8 backdrop-blur-sm"
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-end justify-center pt-8"
             style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30 }}
-              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2 backdrop-blur-xl"
-              style={accentButtonStyle}
+              initial={{ y: 36, opacity: 0.98 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 28, opacity: 0 }}
+              transition={profileEditSheetTransition}
+              className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t-2"
+              style={{
+                ...fastSheetPanelStyle,
+                willChange: 'transform, opacity',
+                transform: 'translateZ(0)',
+              }}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
                 <div>
@@ -1530,15 +1535,23 @@ export function MyPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backgroundColor: 'var(--app-modal-backdrop)' }}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-md overflow-hidden rounded-3xl border backdrop-blur-xl"
-              style={glassCardStrongStyle}
+              initial={{ y: 16, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 12, opacity: 0 }}
+              transition={fastModalTransition}
+              className="w-full max-w-md overflow-hidden rounded-3xl border"
+              style={{
+                ...glassCardStrongStyle,
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
+                willChange: 'transform, opacity',
+                transform: 'translateZ(0)',
+              }}
             >
               <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
                 <div>
@@ -1564,7 +1577,7 @@ export function MyPage() {
                     value={inquiryCategory}
                     onChange={(event) => setInquiryCategory(event.target.value as InquiryCategory)}
                     disabled={isSubmittingInquiry}
-                    className="w-full rounded-xl border px-4 py-3 backdrop-blur-xl transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl border px-4 py-3 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     style={inputStyle}
                   >
                     {inquiryTypeOptions.map((option) => (
@@ -1584,7 +1597,7 @@ export function MyPage() {
                     placeholder="문의하실 내용을 입력해주세요"
                     disabled={isSubmittingInquiry}
                     maxLength={1000}
-                    className="w-full resize-none rounded-xl border px-4 py-3 placeholder:text-[var(--app-input-placeholder)] backdrop-blur-xl transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full resize-none rounded-xl border px-4 py-3 placeholder:text-[var(--app-input-placeholder)] transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     style={inputStyle}
                   />
                   <div className="mt-2 text-right text-xs" style={{ color: 'var(--app-text-subtle)' }}>
@@ -1630,7 +1643,7 @@ export function MyPage() {
                   <button
                     onClick={handleInquirySubmit}
                     disabled={isSubmittingInquiry || inquiryContent.trim().length === 0}
-                    className="flex-1 rounded-xl border py-3 text-sm font-semibold backdrop-blur-xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-xl border py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     style={accentButtonStyle}
                   >
                     {isSubmittingInquiry ? '전송 중...' : '전송'}
