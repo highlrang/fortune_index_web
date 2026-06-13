@@ -2,8 +2,6 @@
 
 :root {
   --font-size: 17px;
-  --native-safe-top: 0px;
-  --native-safe-top-extra: 0px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -126,31 +124,12 @@
   --app-surface-highlight: rgba(255, 255, 255, 0.07);
 }
 
-html.is-native-webview.is-native-ios {
-  --native-safe-top: 20px;
-}
-
 html.is-native-webview {
-  --native-safe-top-extra: 12px;
   --card-blur: blur(8px);
   --app-card-blur: blur(8px);
   --tarot-accent-glow: rgba(173, 136, 255, 0.28);
   --tarot-accent-glow-soft: rgba(173, 136, 255, 0.16);
   --tarot-card-cover-glow: rgba(168, 85, 247, 0.22);
-}
-
-html.is-native-webview.is-native-android {
-  --native-safe-top: 64px;
-}
-
-@supports (padding-top: max(0px)) {
-  html.is-native-webview.is-native-ios {
-    --native-safe-top: max(20px, env(safe-area-inset-top, 0px));
-  }
-
-  html.is-native-webview.is-native-android {
-    --native-safe-top: max(64px, env(safe-area-inset-top, 0px));
-  }
 }
 
 [data-theme='light'] {
@@ -342,7 +321,6 @@ html.is-native-webview.is-native-android {
   }
 
   body.is-native-webview {
-    padding-top: calc(var(--native-safe-top) + var(--native-safe-top-extra));
     touch-action: manipulation;
   }
 
@@ -451,6 +429,14 @@ html.is-native-webview.is-native-android {
     -webkit-overflow-scrolling: touch;
   }
 
+  .home-page {
+    padding-bottom: 6rem;
+  }
+
+  .home-page-content {
+    padding-top: 1.5rem;
+  }
+
   .tarot-spread-page {
     --tarot-spread-chrome-top: 7.75rem;
     --tarot-spread-slots-top: 7.75rem;
@@ -522,16 +508,31 @@ html.is-native-webview.is-native-android {
     }
   }
 
-  body.is-native-webview .fi-page > .fixed.inset-0,
-  body.is-native-webview #root > .fixed.inset-0 {
-    top: calc(var(--native-safe-top) + var(--native-safe-top-extra));
-  }
-
   body.is-native-webview .tarot-picker-page .blur-3xl,
   body.is-native-webview .tarot-spread-page .blur-3xl,
   body.is-native-webview .tarot-spread-page .blur-\[84px\] {
     filter: blur(18px);
     opacity: 0.18;
+  }
+
+  body.is-native-webview .home-page {
+    min-height: 100dvh;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.75rem);
+  }
+
+  body.is-native-webview .home-page-content {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  }
+
+  body.is-native-webview .fi-bottom-nav-wrap {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background:
+      linear-gradient(
+        180deg,
+        transparent 0%,
+        color-mix(in srgb, var(--tarot-ambient-end) 82%, transparent) 42%,
+        var(--tarot-ambient-end) 100%
+      );
   }
 
   body.is-native-webview .tarot-picker-page .backdrop-blur-xl,

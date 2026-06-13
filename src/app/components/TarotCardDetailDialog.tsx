@@ -95,9 +95,21 @@ export function TarotCardFallbackFace({ className = '' }: { className?: string }
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.18] via-transparent to-white/[0.05]" />
-      <div className="absolute inset-3 rounded-[18px] border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="h-12 w-12 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)', boxShadow: '0 0 24px color-mix(in srgb, var(--tarot-card-sigil) 35%, transparent)' }} />
+      <div className="absolute inset-3 rounded-[18px] border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 45%, transparent)' }} />
+      <div className="absolute inset-0 flex items-center justify-center p-8">
+        <svg className="h-full w-full" viewBox="0 0 100 140">
+          <polygon points="50,25 70,38 70,62 50,75 30,62 30,38" fill="none" stroke="var(--tarot-card-sigil)" strokeWidth="1.5" opacity="0.58" />
+          <polygon points="50,32 65,42 65,58 50,68 35,58 35,42" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="1" opacity="0.5" />
+          <circle cx="50" cy="50" r="8" fill="var(--tarot-card-sigil)" opacity="0.56" />
+          <circle cx="50" cy="50" r="4.5" fill="var(--tarot-card-sigil)" opacity="0.78" />
+          <line x1="50" y1="50" x2="50" y2="25" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
+          <line x1="50" y1="50" x2="70" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
+          <line x1="50" y1="50" x2="70" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
+          <line x1="50" y1="50" x2="50" y2="75" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
+          <line x1="50" y1="50" x2="30" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
+          <line x1="50" y1="50" x2="30" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
+          <text x="50" y="105" fontSize="8" fill="var(--tarot-card-sigil)" opacity="0.48" textAnchor="middle" fontFamily="serif">ARCANA</text>
+        </svg>
       </div>
     </div>
   );

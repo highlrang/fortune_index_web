@@ -1039,7 +1039,7 @@ export function MyPage() {
             className="fixed inset-0 z-50 overflow-y-auto"
             style={pageGradientStyle}
           >
-            <div className="mx-auto min-h-full w-full max-w-md px-4 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.25rem))] pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <div className="mx-auto min-h-full w-full max-w-md px-4 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.25rem))] pt-3">
               <div
                 className="sticky top-0 z-10 -mx-4 mb-3 border-b px-4 pb-3"
                 style={{

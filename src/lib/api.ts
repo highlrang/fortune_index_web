@@ -89,19 +89,37 @@ export interface ScenarioOptionResponse {
   description: string;
 }
 
+export interface HomeFortuneSymbolResponse {
+  label: string;
+  description?: string | null;
+}
+
+export interface HomeFortuneDetailResponse {
+  body?: string | null;
+  points?: string[] | null;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+}
+
 export interface HomeFortuneResponse {
   name: string;
   summary: string;
+  symbol?: HomeFortuneSymbolResponse | null;
+  detail?: HomeFortuneDetailResponse | null;
 }
 
 export interface HomeTarotResponse {
   name: string;
   summary: string;
+  symbol?: HomeFortuneSymbolResponse | null;
+  detail?: HomeFortuneDetailResponse | null;
 }
 
 export interface HomeZodiacResponse {
   name: string;
   summary: string;
+  symbol?: HomeFortuneSymbolResponse | null;
+  detail?: HomeFortuneDetailResponse | null;
 }
 
 export interface HomeSummaryResponse {

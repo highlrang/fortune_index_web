@@ -60,6 +60,20 @@ const tarotCardPositions = [
   'translate-y-4 rotate-[10deg]',
 ];
 
+const dailyTarotCardFrameStyle = {
+  borderColor: 'var(--tarot-card-cover-border)',
+  backgroundColor: 'var(--bg-main)',
+};
+
+const dailyTarotCardCaptionStyle = {
+  borderWidth: 'var(--app-hairline-border)',
+  borderStyle: 'solid' as const,
+  borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 65%, transparent)',
+  backgroundColor: 'color-mix(in srgb, var(--bg-main) 52%, transparent)',
+  backdropFilter: 'var(--app-card-blur)',
+  WebkitBackdropFilter: 'var(--app-card-blur)',
+};
+
 type HomeTarotDisplayCard = {
   index: number;
   selectedIndex: number;
@@ -69,6 +83,64 @@ type HomeTarotDisplayCard = {
   imageSrc?: string;
   videoSrc?: string;
 };
+
+function HomeTarotCardBackPattern() {
+  return (
+    <svg className="h-full w-full" viewBox="0 0 100 140">
+      <polygon
+        points="50,20 75,35 75,65 50,80 25,65 25,35"
+        fill="none"
+        stroke="var(--tarot-card-sigil)"
+        strokeWidth="0.8"
+        opacity="0.4"
+      />
+      <polygon
+        points="50,30 68,42 68,58 50,70 32,58 32,42"
+        fill="none"
+        stroke="var(--tarot-card-sigil)"
+        strokeWidth="0.6"
+        opacity="0.35"
+      />
+      <circle cx="50" cy="50" r="5" fill="var(--tarot-card-sigil)" opacity="0.42" />
+      <circle cx="50" cy="50" r="2.5" fill="var(--tarot-card-sigil)" opacity="0.62" />
+      <circle cx="50" cy="15" r="2" fill="var(--tarot-card-sigil-soft)" opacity="0.42" />
+      <circle cx="50" cy="85" r="2" fill="var(--tarot-card-sigil-soft)" opacity="0.42" />
+      <line x1="50" y1="50" x2="50" y2="20" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="75" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="75" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="50" y2="80" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
+      <text x="50" y="105" fontSize="10" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
+        ARCANA
+      </text>
+      <text x="50" y="120" fontSize="7" fill="var(--tarot-card-sigil-soft)" opacity="0.28" textAnchor="middle" fontFamily="serif">
+        MAJOR
+      </text>
+    </svg>
+  );
+}
+
+function HomeTarotSpreadCardFace() {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 46%, var(--tarot-card-cover-glow) 100%)',
+        }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center p-3.5">
+        <HomeTarotCardBackPattern />
+      </div>
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.1) 45%, transparent 58%)' }}
+      />
+    </div>
+  );
+}
 
 function mapDailyDrawCards(draw: HomeDailyTarotDrawResponse | null): HomeTarotDisplayCard[] {
   if (!draw?.cards.length) return [];
@@ -97,6 +169,68 @@ function getDailyDrawErrorMessage(error: unknown) {
 
 function getDailyDrawErrorStatus(error: unknown) {
   return error instanceof ApiError ? error.status : null;
+}
+
+function DailyTarotCardFace({ card, isFeatured }: { card: HomeTarotDisplayCard; isFeatured: boolean }) {
+  return (
+    <div
+      className="relative h-32 overflow-hidden rounded-[22px] border"
+      style={{
+        ...dailyTarotCardFrameStyle,
+        boxShadow: isFeatured
+          ? '0 0 28px var(--tarot-card-cover-glow), 0 20px 45px -30px var(--app-accent-glow)'
+          : '0 0 18px color-mix(in srgb, var(--tarot-card-cover-glow) 65%, transparent), 0 16px 36px -30px rgba(0,0,0,0.45)',
+      }}
+    >
+      {card.videoSrc ? (
+        <video
+          key={card.videoSrc}
+          src={card.videoSrc}
+          className="block h-full w-full object-cover opacity-100"
+          autoPlay
+          muted
+          playsInline
+          loop
+          preload="metadata"
+        />
+      ) : card.imageSrc ? (
+        <img
+          src={card.imageSrc}
+          alt={card.label}
+          className="block h-full w-full object-cover opacity-100"
+        />
+      ) : (
+        <TarotCardFallbackFace className="h-full w-full" />
+      )}
+
+      {card.videoSrc ? <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.18)' }} /> : null}
+
+      <div
+        className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[8px] font-semibold tracking-[0.18em]"
+        style={{ ...dailyTarotCardCaptionStyle, color: 'var(--app-accent-text-soft)' }}
+      >
+        ARCANA
+      </div>
+
+      <div className="absolute inset-x-2 bottom-2 rounded-xl px-2 py-1.5" style={dailyTarotCardCaptionStyle}>
+        <p className="truncate text-[11px] font-semibold leading-tight" style={{ color: 'var(--tarot-text-main)' }}>
+          {card.label}
+        </p>
+      </div>
+
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(180deg, color-mix(in srgb, var(--tarot-card-cover-glow) 48%, transparent) 0%, transparent 30%, color-mix(in srgb, var(--tarot-card-cover-glow) 36%, transparent) 100%)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-2 rounded-[16px] border"
+        style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 72%, transparent)' }}
+      />
+    </div>
+  );
 }
 
 export function HomeFortuneJourneySection() {
@@ -287,30 +421,9 @@ export function HomeFortuneJourneySection() {
                     type="button"
                     onClick={() => setSelectedCard(card)}
                     className={`group relative w-24 text-center ${tarotCardPositions[index] ?? ''}`}
-                    whileHover={{ y: -4 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    <div
-                      className="relative h-32 overflow-hidden rounded-[22px] border"
-                      style={{
-                        borderColor: 'var(--tarot-card-cover-border)',
-                        backgroundColor: 'color-mix(in srgb, var(--bg-main) 72%, transparent)',
-                        boxShadow: index === 1 ? '0 20px 45px -30px var(--app-accent-glow)' : '0 16px 36px -30px rgba(0,0,0,0.45)',
-                      }}
-                    >
-                      {card.imageSrc ? (
-                        <img
-                          src={card.imageSrc}
-                          alt={card.label}
-                          className="block h-full w-full object-cover opacity-100"
-                        />
-                      ) : (
-                        <TarotCardFallbackFace className="h-full w-full" />
-                      )}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/58 via-black/10 to-transparent px-2 py-3">
-                        <p className="text-[11px] font-semibold text-white">{card.label}</p>
-                      </div>
-                    </div>
+                    <DailyTarotCardFace card={card} isFeatured={index === 1} />
                   </motion.button>
                 ))}
               </div>
@@ -321,8 +434,6 @@ export function HomeFortuneJourneySection() {
                 <motion.div
                   key={index}
                   className={`relative h-32 w-24 ${position}`}
-                  animate={{ y: index === 1 ? [0, -6, 0] : [0, 4, 0] }}
-                  transition={{ duration: 3 + index * 0.4, repeat: Infinity, ease: 'easeInOut' }}
                 >
                   <div
                     className="absolute inset-0 overflow-hidden rounded-[22px] border"
@@ -333,11 +444,8 @@ export function HomeFortuneJourneySection() {
                       boxShadow: index === 1 ? '0 20px 45px -30px var(--app-accent-glow)' : '0 16px 36px -30px rgba(0,0,0,0.45)',
                     }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.18] via-transparent to-white/[0.05]" />
-                    <div className="absolute inset-3 rounded-[18px] border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 40%, transparent)' }} />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="h-12 w-12 rounded-full border" style={{ borderColor: 'var(--tarot-card-sigil)', boxShadow: '0 0 24px color-mix(in srgb, var(--tarot-card-sigil) 35%, transparent)' }} />
-                    </div>
+                    <HomeTarotSpreadCardFace />
+                    <div className="pointer-events-none absolute inset-0 rounded-[22px] border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 36%, transparent)' }} />
                   </div>
                 </motion.div>
               ))}

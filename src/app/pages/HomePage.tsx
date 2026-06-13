@@ -2,11 +2,16 @@ import { MoonStar, Sparkles, Sun, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   getHomeSummary,
+  resolveApiAssetUrl,
+  type HomeFortuneResponse,
+  type HomeTarotResponse,
+  type HomeZodiacResponse,
   type HomeSummaryResponse,
 } from '@/lib/api';
 import { HomeFortuneJourneySection } from '../components/HomeFortuneJourneySection';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { VodaThemeLogo } from '../components/logos/VodaLogo';
+import { TarotCardDetailDialog } from '../components/TarotCardDetailDialog';
 
 const glassCardStyle = {
   borderWidth: 'var(--app-hairline-border)',
@@ -27,11 +32,123 @@ const accentCardStyle = {
 const unavailableCardValue = '-';
 const unavailableCardMeta = '아직 준비되지 않았어요';
 
+type DailyFlowType = 'saju' | 'tarot' | 'zodiac';
+type DailyFlowData = HomeFortuneResponse | HomeZodiacResponse | null;
+
+const detailedFallbackContent: Record<Exclude<DailyFlowType, 'tarot'>, {
+  lead: string;
+  points: string[];
+}> = {
+  saju: {
+    lead: '오늘은 큰 결정보다 기준을 점검하기 좋은 흐름입니다. 익숙한 방식이 안정감을 주지만, 같은 판단을 반복하고 있지는 않은지 한 번 멈춰 보는 편이 좋습니다.',
+    points: [
+      '감정이 먼저 올라오는 선택은 잠시 보류해보세요.',
+      '새로운 실행보다 조건 정리와 우선순위 조정에 잘 맞습니다.',
+    ],
+  },
+  zodiac: {
+    lead: '오늘은 한 방향으로 관심이 강하게 모이기 쉬운 날입니다. 집중력은 좋지만, 짧은 신호 하나만 크게 보고 판단하지 않도록 시야를 조금 넓혀두세요.',
+    points: [
+      '주변 분위기보다 내 컨디션을 먼저 확인해보세요.',
+      '바로 움직이기보다 타이밍을 조정하는 쪽이 유리합니다.',
+    ],
+  },
+};
+
+const heavenlyStemColors: Record<string, string> = {
+  갑: '푸른',
+  을: '푸른',
+  병: '붉은',
+  정: '붉은',
+  무: '노란',
+  기: '노란',
+  경: '하얀',
+  신: '하얀',
+  임: '검은',
+  계: '검은',
+};
+
+const earthlyBranchSymbols: Record<string, string> = {
+  자: '쥐',
+  축: '소',
+  인: '호랑이',
+  묘: '토끼',
+  진: '용',
+  사: '뱀',
+  오: '말',
+  미: '양',
+  신: '원숭이',
+  유: '닭',
+  술: '개',
+  해: '돼지',
+};
+
+const zodiacSymbols: Record<string, string> = {
+  양자리: '양',
+  황소자리: '황소',
+  쌍둥이자리: '쌍둥이',
+  게자리: '게',
+  사자자리: '사자',
+  처녀자리: '처녀',
+  천칭자리: '저울',
+  전갈자리: '전갈',
+  사수자리: '궁수',
+  염소자리: '염소',
+  물병자리: '물병',
+  물고기자리: '물고기',
+};
+
+function getDetailedContent(type: Exclude<DailyFlowType, 'tarot'>, data: DailyFlowData) {
+  const fallback = detailedFallbackContent[type];
+
+  return {
+    lead: data?.detail?.body ?? data?.summary ?? fallback.lead,
+    points: data?.detail?.points?.length ? data.detail.points : fallback.points,
+  };
+}
+
+function getSajuSymbol(name?: string) {
+  if (!name) return '일주 상징';
+
+  const stem = [...name].find((char) => heavenlyStemColors[char]);
+  const branch = [...name].find((char) => earthlyBranchSymbols[char]);
+
+  if (stem && branch) return `${heavenlyStemColors[stem]} ${earthlyBranchSymbols[branch]}`;
+  if (branch) return earthlyBranchSymbols[branch];
+
+  return '일주 상징';
+}
+
+function getZodiacSymbol(name?: string) {
+  if (!name) return '별자리 상징';
+
+  const zodiacName = Object.keys(zodiacSymbols).find((key) => name.includes(key));
+
+  return zodiacName ? zodiacSymbols[zodiacName] : '별자리 상징';
+}
+
+function getFlowSymbol(type: Exclude<DailyFlowType, 'tarot'>, data: DailyFlowData) {
+  if (data?.symbol?.label) return data.symbol.label;
+
+  return type === 'saju' ? getSajuSymbol(data?.name) : getZodiacSymbol(data?.name);
+}
+
+function getTarotDetailCard(data: HomeTarotResponse | null) {
+  return {
+    label: data?.name ?? unavailableCardValue,
+    meaning: data?.summary ?? unavailableCardMeta,
+    description: data?.detail?.body ??
+      '오늘의 타로는 지금 드러난 카드의 상징을 통해 분위기, 선택의 태도, 조심해야 할 반응을 읽습니다. 서버 상세 리딩이 연결되면 이 영역에 카드의 맥락, 투자 흐름에서의 해석, 오늘 적용할 행동 가이드가 더 깊게 표시됩니다.',
+    imageSrc: resolveApiAssetUrl(data?.detail?.imageUrl),
+    videoSrc: resolveApiAssetUrl(data?.detail?.videoUrl) || undefined,
+  };
+}
+
 export function HomePage() {
   const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedFlowType, setSelectedFlowType] = useState<DailyFlowType | null>(null);
   const sajuSummary = summary?.saju;
   const tarotSummary = summary?.tarot;
   const zodiacSummary = summary?.zodiac;
@@ -59,13 +176,13 @@ export function HomePage() {
   }, []);
 
   return (
-    <div className="fi-page min-h-screen pb-24">
+    <div className="fi-page home-page min-h-screen pb-24">
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
-      <div className="relative mx-auto max-w-md px-5 pt-6">
+      <div className="home-page-content relative mx-auto max-w-md px-5 pt-6">
         <div className="mb-8">
           <div>
             <VodaThemeLogo size={136} />
@@ -75,8 +192,7 @@ export function HomePage() {
 
         <section
           className="mb-8 rounded-3xl p-5 shadow-2xl"
-          style={{ ...accentCardStyle, cursor: !isLoading ? 'pointer' : 'default' }}
-          onClick={!isLoading ? () => setModalOpen(true) : undefined}
+          style={accentCardStyle}
         >
           <div className="mb-5">
             <p className="text-xs uppercase tracking-[0.24em] fi-text-subtle">Daily Fortune</p>
@@ -99,18 +215,21 @@ export function HomePage() {
               icon={<Sun className="h-5 w-5" />}
               isLoading={isLoading}
               styleVariant="accent"
+              onClick={() => setSelectedFlowType('saju')}
             />
             <DailyCard
               label="오늘의 타로"
               value={tarotSummary?.name ?? unavailableCardValue}
               icon={<Sparkles className="h-5 w-5" />}
               isLoading={isLoading}
+              onClick={() => setSelectedFlowType('tarot')}
             />
             <DailyCard
               label="오늘의 별자리"
               value={zodiacSummary?.name ?? unavailableCardValue}
               icon={<MoonStar className="h-5 w-5" />}
               isLoading={isLoading}
+              onClick={() => setSelectedFlowType('zodiac')}
             />
           </div>
         </section>
@@ -120,13 +239,23 @@ export function HomePage() {
         </div>
       </div>
 
-      {modalOpen && (
-        <DailyFlowModal
-          saju={sajuSummary ?? null}
-          tarot={tarotSummary ?? null}
-          zodiac={zodiacSummary ?? null}
-          onClose={() => setModalOpen(false)}
-        />
+      {selectedFlowType && (
+        selectedFlowType === 'tarot' ? (
+          <TarotCardDetailDialog
+            card={getTarotDetailCard(tarotSummary ?? null)}
+            eyebrow="Daily Tarot"
+            open
+            onOpenChange={(open) => {
+              if (!open) setSelectedFlowType(null);
+            }}
+          />
+        ) : (
+          <DailyFlowModal
+            type={selectedFlowType}
+            data={selectedFlowType === 'saju' ? sajuSummary ?? null : zodiacSummary ?? null}
+            onClose={() => setSelectedFlowType(null)}
+          />
+        )
       )}
 
       <BottomNavigation activeTab="home" />
@@ -139,18 +268,24 @@ function DailyCard({
   value,
   icon,
   isLoading,
+  onClick,
   styleVariant = 'default',
 }: {
   label: string;
   value: string;
   icon: ReactNode;
   isLoading: boolean;
+  onClick: () => void;
   styleVariant?: 'default' | 'accent';
 }) {
   return (
-    <div
-      className="rounded-2xl border p-3"
+    <button
+      type="button"
+      className="min-w-0 rounded-2xl border p-3 text-left transition-transform active:scale-[0.98] disabled:cursor-default disabled:active:scale-100"
       style={styleVariant === 'accent' ? accentCardStyle : glassCardStyle}
+      onClick={onClick}
+      disabled={isLoading}
+      aria-label={`${label} 상세 보기`}
     >
       <div className="mb-2.5 flex h-8 w-8 items-center justify-center rounded-lg border" style={glassCardStyle}>
         <span style={{ color: 'var(--app-accent-text-soft)' }}>{icon}</span>
@@ -159,19 +294,17 @@ function DailyCard({
       <p className="mt-2 text-sm font-semibold leading-none fi-text-main whitespace-nowrap overflow-hidden text-ellipsis">
         {isLoading ? '' : value}
       </p>
-    </div>
+    </button>
   );
 }
 
 function DailyFlowModal({
-  saju,
-  tarot,
-  zodiac,
+  type,
+  data,
   onClose,
 }: {
-  saju: { name: string; summary: string } | null;
-  tarot: { name: string; summary: string } | null;
-  zodiac: { name: string; summary: string } | null;
+  type: Exclude<DailyFlowType, 'tarot'>;
+  data: DailyFlowData;
   onClose: () => void;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -182,11 +315,14 @@ function DailyFlowModal({
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  const items = [
-    { label: '오늘의 사주', icon: <Sun className="h-5 w-5" />, data: saju },
-    { label: '오늘의 타로', icon: <Sparkles className="h-5 w-5" />, data: tarot },
-    { label: '오늘의 별자리', icon: <MoonStar className="h-5 w-5" />, data: zodiac },
-  ];
+  const modalMeta = {
+    saju: { label: '오늘의 사주', icon: <Sun className="h-5 w-5" /> },
+    zodiac: { label: '오늘의 별자리', icon: <MoonStar className="h-5 w-5" /> },
+  }[type];
+  const content = getDetailedContent(type, data);
+  const symbol = getFlowSymbol(type, data);
+  const symbolDescription = data?.symbol?.description;
+  const showSymbol = type === 'saju';
 
   return (
     <div
@@ -205,7 +341,7 @@ function DailyFlowModal({
         <div className="mb-5 flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] fi-text-subtle">Daily Fortune</p>
-            <p className="mt-1 text-lg font-semibold fi-text-main">오늘의 흐름</p>
+            <p className="mt-1 text-lg font-semibold fi-text-main">{modalMeta.label}</p>
           </div>
           <button
             type="button"
@@ -217,25 +353,44 @@ function DailyFlowModal({
           </button>
         </div>
 
-        <div className="flex flex-col gap-4">
-          {items.map(({ label, icon, data }) => (
-            <div key={label} className="rounded-2xl border p-4" style={glassCardStyle}>
-              <div className="mb-3 flex items-center gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border" style={glassCardStyle}>
-                  <span style={{ color: 'var(--app-accent-text-soft)' }}>{icon}</span>
-                </div>
-                <div>
-                  <p className="text-[10px] fi-text-subtle">{label}</p>
-                  <p className="text-sm font-semibold leading-tight fi-text-main">
+        <div>
+          <div className="mb-4">
+            {showSymbol ? (
+              <>
+                <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                  <span style={{ color: 'var(--app-accent-text-soft)' }}>{modalMeta.icon}</span>
+                  <p className="text-2xl font-semibold leading-tight fi-text-main">
                     {data?.name ?? unavailableCardValue}
                   </p>
+                  <p className="text-sm font-medium leading-tight fi-text-subtle">
+                    {symbol}
+                  </p>
                 </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <span style={{ color: 'var(--app-accent-text-soft)' }}>{modalMeta.icon}</span>
+                <p className="text-base font-semibold leading-tight fi-text-main">
+                  {data?.name ?? unavailableCardValue}
+                </p>
               </div>
-              <p className="text-sm leading-6 break-keep fi-text-muted">
-                {data?.summary ?? unavailableCardMeta}
+            )}
+            {showSymbol && symbolDescription ? (
+              <p className="mt-2 text-sm leading-6 break-keep fi-text-muted">
+                {symbolDescription}
               </p>
-            </div>
-          ))}
+            ) : null}
+          </div>
+          <p className="text-sm leading-6 break-keep fi-text-muted">
+            {content.lead}
+          </p>
+          <div className="mt-4 space-y-2">
+            {content.points.map((point) => (
+              <p key={point} className="text-sm leading-6 break-keep fi-text-muted">
+                {point}
+              </p>
+            ))}
+          </div>
         </div>
       </div>
     </div>

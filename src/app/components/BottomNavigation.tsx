@@ -42,7 +42,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40">
+    <div className="fi-bottom-nav-wrap fixed bottom-0 left-0 right-0 z-40">
       <div className="mx-auto max-w-md">
         <div className="fi-bottom-nav relative overflow-hidden rounded-t-3xl border-t border-x">
           {/* Top glow line */}
