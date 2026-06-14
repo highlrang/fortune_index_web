@@ -203,7 +203,7 @@ export function ConsultationPage() {
             </div>
 
             <div>
-              <h2 className="mb-3 text-sm font-medium fi-text-muted">무엇이 가장 궁금한가요?</h2>
+              <h2 className="mb-3 text-sm font-medium fi-text-muted">어떤 종류의 질문인가요?</h2>
               <div className="grid grid-cols-2 gap-2">
                 {visibleScenarios.map((scenario, index) => {
                   const isSelected = selectedScenario === scenario.code;
@@ -242,7 +242,7 @@ export function ConsultationPage() {
             </div>
 
             <div>
-              <h2 className="mb-3 text-sm font-medium fi-text-muted">무엇이 궁금한가요? <span className="fi-text-subtle">*</span></h2>
+              <h2 className="mb-3 text-sm font-medium fi-text-muted">무엇이 궁금한가요?</h2>
               <textarea
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
