@@ -92,8 +92,8 @@ const analysisTitleByKey = {
 
 const orderedAnalysisKeys = [
   'saju_analysis',
-  'zodiac_analysis',
   'tarot_analysis',
+  'zodiac_analysis',
   'investment_analysis',
 ] as const;
 

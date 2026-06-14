@@ -1040,27 +1040,19 @@ export function MyPage() {
             style={pageGradientStyle}
           >
             <div className="mx-auto min-h-full w-full max-w-md px-4 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.25rem))] pt-3">
-              <div
-                className="sticky top-0 z-10 -mx-4 mb-3 border-b px-4 pb-3"
-                style={{
-                  borderColor: 'var(--app-surface-border)',
-                  backgroundColor: 'var(--bg-main)',
-                }}
-              >
-                <div className="flex items-center justify-end pt-1">
-                  <button
-                    onClick={() => setShowBirthTarot(false)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:opacity-90"
-                    style={glassButtonStyle}
-                    aria-label="생일 타로 카드 닫기"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+              <div className="mb-2 flex justify-end">
+                <button
+                  onClick={() => setShowBirthTarot(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border transition-colors hover:opacity-90"
+                  style={glassButtonStyle}
+                  aria-label="생일 타로 카드 닫기"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
 
               <div
-                className="relative overflow-hidden rounded-3xl border p-4 shadow-2xl"
+                className="relative overflow-hidden rounded-3xl border p-3 shadow-2xl"
                 style={{
                   ...glassCardStrongStyle,
                   borderColor: 'var(--app-accent-border-strong)',
@@ -1080,13 +1072,13 @@ export function MyPage() {
                   transition={{ duration: 2.4, repeat: Infinity }}
                 />
 
-                <div className="relative mb-3 text-center">
+                <div className="relative mb-2 text-center">
                   <div className="text-sm" style={{ color: 'var(--app-accent-text-soft)' }}>생일 타로 카드</div>
-                  <h2 className="mt-1 text-2xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{userData.birthTarot.koreanName}</h2>
-                  <p className="text-base" style={{ color: 'var(--app-text-muted)' }}>{userData.birthTarot.name}</p>
+                  <h2 className="mt-0.5 text-xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{userData.birthTarot.koreanName}</h2>
+                  <p className="text-sm" style={{ color: 'var(--app-text-muted)' }}>{userData.birthTarot.name}</p>
                 </div>
 
-                <div className="relative mx-auto mb-4 aspect-[2/3] max-h-[42dvh] w-full max-w-56 overflow-hidden rounded-3xl border-2" style={{ borderColor: 'var(--app-accent-border)' }}>
+                <div className="relative mx-auto mb-2 aspect-[2/3] max-h-[32dvh] w-full max-w-44 overflow-hidden rounded-3xl border-2" style={{ borderColor: 'var(--app-accent-border)' }}>
                   <img
                     src={userData.birthTarot.imageUrl}
                     alt={userData.birthTarot.name}
@@ -1095,21 +1087,21 @@ export function MyPage() {
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
                 </div>
 
-                <div className="relative space-y-3">
+                <div className="relative space-y-2">
                   <div
-                    className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm"
+                    className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
                     style={{ ...accentIconStyle, backgroundColor: 'var(--app-accent-soft)' }}
                   >
                     <Sparkles className="h-4 w-4" />
                     {userData.birthTarot.number}번 카드
                   </div>
-                  <section className="rounded-2xl border px-3.5 py-3" style={glassCardStyle}>
-                    <div className="mb-1.5 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>MEANING</div>
+                  <section className="rounded-2xl border px-3.5 py-2" style={glassCardStyle}>
+                    <div className="mb-1 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>MEANING</div>
                     <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{userData.birthTarot.meaning}</p>
                   </section>
                   {userData.birthTarot.description ? (
-                    <section className="rounded-2xl border px-3.5 py-3" style={glassCardStyle}>
-                      <div className="mb-1.5 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
+                    <section className="rounded-2xl border px-3.5 py-2" style={glassCardStyle}>
+                      <div className="mb-1 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
                         DESCRIPTION
                       </div>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-muted)' }}>
@@ -1440,10 +1432,10 @@ export function MyPage() {
                 transform: 'translateZ(0)',
               }}
             >
-              <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: 'var(--app-surface-border)' }}>
+              <div className="flex items-center justify-between border-b px-6 py-3" style={{ borderColor: 'var(--app-surface-border)' }}>
                 <div>
                   <h3 className="text-lg font-semibold" style={{ color: 'var(--tarot-text-main)' }}>내 별자리</h3>
-                  <p className="mt-1 text-xs" style={{ color: 'var(--app-text-muted)' }}>생년월일 기준으로 보여주는 별자리 정보</p>
+                  <p className="mt-0.5 text-xs" style={{ color: 'var(--app-text-muted)' }}>생년월일 기준으로 보여주는 별자리 정보</p>
                 </div>
                 <button
                   onClick={() => setShowZodiac(false)}
@@ -1455,9 +1447,9 @@ export function MyPage() {
                 </button>
               </div>
 
-              <div className="max-h-[82vh] space-y-5 overflow-y-auto px-6 py-6">
+              <div className="max-h-[82vh] space-y-3 overflow-y-auto px-6 py-4">
                 <div
-                  className="relative overflow-hidden rounded-[2rem] border p-5"
+                  className="relative overflow-hidden rounded-[2rem] border p-4"
                   style={{
                     ...glassCardStrongStyle,
                     borderColor: 'var(--app-accent-border-strong)',
@@ -1477,50 +1469,46 @@ export function MyPage() {
                     </div>
                   </div>
 
-                  <div className="relative mt-5 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border px-4 py-3" style={glassCardStyle}>
+                  <div className="relative mt-3 grid grid-cols-2 gap-2.5">
+                    <div className="rounded-2xl border px-3.5 py-2.5" style={glassCardStyle}>
                       <div className="text-xs" style={{ color: 'var(--app-text-muted)' }}>원소</div>
                       <div className="mt-1 text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{userData.zodiac.element}</div>
                       {userData.zodiac.elementDescription ? (
-                        <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.elementDescription}</p>
+                        <p className="mt-1 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.elementDescription}</p>
                       ) : null}
                     </div>
-                    <div className="rounded-2xl border px-4 py-3" style={glassCardStyle}>
+                    <div className="rounded-2xl border px-3.5 py-2.5" style={glassCardStyle}>
                       <div className="text-xs" style={{ color: 'var(--app-text-muted)' }}>키워드</div>
                       <div className="mt-1 text-sm font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{userData.zodiac.keyword}</div>
                       {userData.zodiac.keywordDescription ? (
-                        <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.keywordDescription}</p>
+                        <p className="mt-1 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.keywordDescription}</p>
                       ) : null}
                     </div>
                   </div>
                 </div>
 
-                <section className="rounded-2xl border px-4 py-4" style={glassCardStyle}>
-                  <div className="mb-2 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>SUMMARY</div>
+                <section className="rounded-2xl border px-4 py-3" style={glassCardStyle}>
+                  <div className="mb-1.5 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>SUMMARY</div>
                   <p className="text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>{userData.zodiac.summary}</p>
                 </section>
 
-                <div className="grid grid-cols-3 gap-3">
-                  {(userData.zodiac.traits ?? []).map((trait) => {
-                    const description = getZodiacTraitDescription(trait, userData.zodiac.traitDetails);
-
-                    return (
-                      <div key={trait} className="rounded-2xl border px-3 py-4 text-center" style={glassCardStyle}>
-                        <div
-                          className="mx-auto flex h-8 w-8 items-center justify-center rounded-full border opacity-70"
-                          style={accentIconStyle}
-                        >
-                          <Star className="h-3.5 w-3.5" strokeWidth={2} />
-                        </div>
-                        <p className="mt-3 text-sm font-bold" style={{ color: 'var(--tarot-text-main)' }}>{trait}</p>
-                        {description ? (
-                          <p className="mt-2 text-[11px] leading-4" style={{ color: 'var(--app-text-muted)' }}>
-                            {description}
-                          </p>
-                        ) : null}
+                <div className="grid grid-cols-3 gap-2">
+                  {(userData.zodiac.traits ?? []).map((trait) => (
+                    <div key={trait.name} className="rounded-2xl border px-2.5 py-3 text-center" style={glassCardStyle}>
+                      <div
+                        className="mx-auto flex h-7 w-7 items-center justify-center rounded-full border opacity-70"
+                        style={accentIconStyle}
+                      >
+                        <Star className="h-3 w-3" strokeWidth={2} />
                       </div>
-                    );
-                  })}
+                      <p className="mt-2 text-sm font-bold" style={{ color: 'var(--tarot-text-main)' }}>{trait.name}</p>
+                      {trait.description ? (
+                        <p className="mt-1 text-[11px] leading-4" style={{ color: 'var(--app-text-muted)' }}>
+                          {trait.description}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
 
               </div>
@@ -2020,6 +2008,10 @@ function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) 
   };
 }
 
+function toZodiacTraits(names: string[]): Array<{ name: string; description: string }> {
+  return names.map((name) => ({ name, description: zodiacTraitDescriptionMap.get(name) ?? '' }));
+}
+
 function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birthDate?: string | null) {
   const fallback = {
     sign: '염소자리',
@@ -2030,8 +2022,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
     keyword: '현실감각',
     keywordDescription: null as string | null,
     summary: '차분하게 방향을 잡고 꾸준히 쌓아가는 성향이 강합니다. 자산 운용이나 선택에서도 속도보다 구조와 안정성을 중시하는 편입니다.',
-    traits: ['신중함', '꾸준함', '집중력'],
-    traitDetails: [] as Array<{ name: string; description: string }>,
+    traits: toZodiacTraits(['신중함', '꾸준함', '집중력']),
     strengths: [] as string[],
     cautions: [] as string[],
     moneyStyle: null as string | null,
@@ -2050,8 +2041,11 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       keyword: zodiac.keyword ?? fallback.keyword,
       keywordDescription: zodiac.keywordDescription?.trim() || fallback.keywordDescription,
       summary: zodiac.summary ?? fallback.summary,
-      traits: zodiac.traits?.length ? zodiac.traits : fallback.traits,
-      traitDetails: normalizeZodiacTraitDetails(zodiac.traitDetails),
+      traits: zodiac.traits?.length
+        ? zodiac.traits
+            .filter((t) => !!t.name)
+            .map((t) => ({ name: t.name!.trim(), description: t.description?.trim() ?? '' }))
+        : fallback.traits,
       strengths: normalizeStringList(zodiac.strengths),
       cautions: normalizeStringList(zodiac.cautions),
       moneyStyle: zodiac.moneyStyle?.trim() || fallback.moneyStyle,
@@ -2079,7 +2073,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '바람',
       keyword: '독창성',
       summary: '새로운 시각과 독립적인 판단이 강점입니다. 익숙한 방식보다 가능성을 먼저 읽고 움직이는 성향이 있습니다.',
-      traits: ['독립성', '직관', '실험정신'],
+      traits: toZodiacTraits(['독립성', '직관', '실험정신']),
     },
     {
       start: 219,
@@ -2090,7 +2084,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '물',
       keyword: '감수성',
       summary: '흐름을 민감하게 읽고 분위기를 포착하는 힘이 좋습니다. 숫자만이 아니라 감각적인 판단도 함께 작동합니다.',
-      traits: ['공감력', '유연함', '상상력'],
+      traits: toZodiacTraits(['공감력', '유연함', '상상력']),
     },
     {
       start: 321,
@@ -2101,7 +2095,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '불',
       keyword: '추진력',
       summary: '결단이 빠르고 먼저 움직이는 타입입니다. 기회를 포착했을 때 과감하게 밀어붙이는 에너지가 강합니다.',
-      traits: ['도전성', '속도감', '리더십'],
+      traits: toZodiacTraits(['도전성', '속도감', '리더십']),
     },
     {
       start: 420,
@@ -2112,7 +2106,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '흙',
       keyword: '안정성',
       summary: '현실적인 감각과 끈기가 강점입니다. 한 번 정한 기준을 쉽게 흔들지 않고 묵직하게 유지하는 편입니다.',
-      traits: ['안정감', '인내심', '실리성'],
+      traits: toZodiacTraits(['안정감', '인내심', '실리성']),
     },
     {
       start: 521,
@@ -2123,7 +2117,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '바람',
       keyword: '민첩성',
       summary: '정보를 빠르게 받아들이고 연결하는 재능이 있습니다. 변화가 많은 상황에서도 유연하게 대응합니다.',
-      traits: ['적응력', '호기심', '소통력'],
+      traits: toZodiacTraits(['적응력', '호기심', '소통력']),
     },
     {
       start: 621,
@@ -2134,7 +2128,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '물',
       keyword: '보호본능',
       summary: '지키고 싶은 기준이 분명하고 안정적인 기반을 중요하게 생각합니다. 장기적 관점에서 선택하는 편입니다.',
-      traits: ['안정지향', '배려', '지속성'],
+      traits: toZodiacTraits(['안정지향', '배려', '지속성']),
     },
     {
       start: 723,
@@ -2145,7 +2139,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '불',
       keyword: '자신감',
       summary: '확신이 생기면 강하게 밀고 나가는 성향입니다. 존재감과 추진력이 함께 드러나는 타입입니다.',
-      traits: ['자신감', '표현력', '결단력'],
+      traits: toZodiacTraits(['자신감', '표현력', '결단력']),
     },
     {
       start: 823,
@@ -2156,7 +2150,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '흙',
       keyword: '정교함',
       summary: '작은 차이와 디테일을 잘 읽어내는 편입니다. 기준을 세우고 정리해 나가는 방식에서 강점이 보입니다.',
-      traits: ['분석력', '정확성', '성실함'],
+      traits: toZodiacTraits(['분석력', '정확성', '성실함']),
     },
     {
       start: 923,
@@ -2167,7 +2161,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '바람',
       keyword: '균형감',
       summary: '여러 조건을 비교하며 균형점을 찾는 능력이 좋습니다. 감정과 논리를 조화롭게 맞추려는 경향이 있습니다.',
-      traits: ['균형감', '조율력', '세련됨'],
+      traits: toZodiacTraits(['균형감', '조율력', '세련됨']),
     },
     {
       start: 1023,
@@ -2178,7 +2172,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '물',
       keyword: '집중력',
       summary: '관심이 생긴 대상에 깊이 파고드는 성향입니다. 표면보다 본질을 읽으려는 힘이 강합니다.',
-      traits: ['통찰력', '집중력', '몰입감'],
+      traits: toZodiacTraits(['통찰력', '집중력', '몰입감']),
     },
     {
       start: 1122,
@@ -2189,7 +2183,7 @@ function normalizeZodiac(profileDetails: UserProfileDetailsResponse | null, birt
       element: '불',
       keyword: '확장성',
       summary: '크게 보고 넓게 움직이는 기질이 있습니다. 새로운 가능성과 방향을 탐색하는 데 거침이 적습니다.',
-      traits: ['낙관성', '확장성', '자유로움'],
+      traits: toZodiacTraits(['낙관성', '확장성', '자유로움']),
     },
   ];
 
@@ -2435,27 +2429,6 @@ function normalizeStringList(values: string[] | null | undefined) {
   return values?.map((value) => value.trim()).filter(Boolean) ?? [];
 }
 
-function normalizeZodiacTraitDetails(
-  values: Array<{ name?: string; description?: string }> | null | undefined,
-) {
-  return values
-    ?.map((value) => ({
-      name: value.name?.trim() ?? '',
-      description: value.description?.trim() ?? '',
-    }))
-    .filter((value) => value.name && value.description) ?? [];
-}
-
-function getZodiacTraitDescription(
-  trait: string,
-  traitDetails: Array<{ name: string; description: string }> | undefined,
-) {
-  return (
-    traitDetails?.find((detail) => detail.name === trait)?.description ??
-    zodiacTraitDescriptionMap.get(trait) ??
-    null
-  );
-}
 
 function normalizeSajuDescription(
   value: SajuDescriptionResponse | string | null | undefined,

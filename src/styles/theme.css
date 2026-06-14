@@ -521,7 +521,7 @@ html.is-native-webview {
   }
 
   body.is-native-webview .home-page-content {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+    padding-top: 1rem;
   }
 
   body.is-native-webview .fi-bottom-nav-wrap {

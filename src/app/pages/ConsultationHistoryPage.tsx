@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, TrendingUp, ChevronRight, Clock, X, Heart, Search, Star, Coins, HandCoins } from 'lucide-react';
+import { Calendar, TrendingUp, ChevronRight, Clock, X, Heart, Search, Star, Coins, HandCoins, ChevronDown, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { BottomNavigation } from '../components/BottomNavigation';
 import {
@@ -19,6 +19,8 @@ export type ConsultationType =
   | '별자리 재물 흐름'
   | '종합 재물 흐름';
 type LikeFilter = 'all' | 'liked';
+
+const PAGE_SIZE = 20;
 
 const activeChipStyle = {
   borderColor: 'var(--app-accent-border-strong)',
@@ -52,11 +54,26 @@ export function ConsultationHistoryPage() {
   const [likedHistoryIds, setLikedHistoryIds] = useState<number[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [openingHistoryId, setOpeningHistoryId] = useState<number | null>(null);
   const [filterType, setFilterType] = useState<ConsultationType | 'all'>('all');
   const [likeFilter, setLikeFilter] = useState<LikeFilter>('all');
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
   const [searchQuery, setSearchQuery] = useState('');
+  const defaultStartDate = () => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 3);
+    return d.toISOString().slice(0, 10);
+  };
+  const defaultEndDate = () => new Date().toISOString().slice(0, 10);
+  const [startDate, setStartDate] = useState(defaultStartDate);
+  const [endDate, setEndDate] = useState(defaultEndDate);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef(0);
+  const isLoadingMoreRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const loadMoreRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     let active = true;
@@ -69,14 +86,20 @@ export function ConsultationHistoryPage() {
 
     setError('');
     setLoading(true);
+    setItems([]);
+    pageRef.current = 0;
+    hasMoreRef.current = true;
+    setHasMore(true);
 
     Promise.all([
-      getHistoryList(currentUserId),
+      getHistoryList(currentUserId, { page: 0, size: PAGE_SIZE, startDate, endDate }),
       getLikedConsultingHistories(currentUserId, { page: 0, size: 200 }),
     ])
       .then(([historyResponse, likedResponse]) => {
         if (!active) return;
-        setItems(historyResponse);
+        setItems(historyResponse.content ?? []);
+        hasMoreRef.current = !historyResponse.last;
+        setHasMore(!historyResponse.last);
         setLikedHistoryIds((likedResponse.content ?? []).map((item) => item.id));
       })
       .catch((err) => {
@@ -91,7 +114,52 @@ export function ConsultationHistoryPage() {
     return () => {
       active = false;
     };
-  }, [currentUserId]);
+  }, [currentUserId, endDate, startDate]);
+
+  const loadMore = useCallback(async () => {
+    if (!currentUserId || isLoadingMoreRef.current || !hasMoreRef.current) return;
+
+    isLoadingMoreRef.current = true;
+    setIsLoadingMore(true);
+    const nextPage = pageRef.current + 1;
+
+    try {
+      const response = await getHistoryList(currentUserId, {
+        page: nextPage,
+        size: PAGE_SIZE,
+        startDate,
+        endDate,
+      });
+      setItems((prev) => [...prev, ...(response.content ?? [])]);
+      pageRef.current = nextPage;
+      hasMoreRef.current = !response.last;
+      setHasMore(!response.last);
+    } catch {
+      // 추가 로드 실패는 조용히 처리
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [currentUserId, endDate, startDate]);
+
+  loadMoreRef.current = loadMore;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreRef.current();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const handleOpenHistory = async (historyId: number) => {
     if (!currentUserId || openingHistoryId !== null) return;
@@ -113,9 +181,8 @@ export function ConsultationHistoryPage() {
 
   const consultationTypes: Array<ConsultationType | 'all'> = [
     'all',
-    '재물 흐름',
-    '타로 재물 흐름',
     '사주 재물 흐름',
+    '타로 재물 흐름',
     '별자리 재물 흐름',
     '종합 재물 흐름',
   ];
@@ -123,12 +190,19 @@ export function ConsultationHistoryPage() {
   const filteredItems = useMemo(() => {
     const likedIdSet = new Set(likedHistoryIds);
     const normalizedQuery = searchQuery.trim().toLowerCase();
+
     const typeFiltered =
       filterType === 'all' ? items : items.filter((item) => mapModeToLabel(item.mode) === filterType);
     const likedFiltered =
       likeFilter === 'liked' ? typeFiltered.filter((item) => likedIdSet.has(item.id)) : typeFiltered;
+    const dateFiltered = likedFiltered.filter((item) => {
+      const itemDate = item.consultedAt.slice(0, 10);
+      if (startDate && itemDate < startDate) return false;
+      if (endDate && itemDate > endDate) return false;
+      return true;
+    });
     const base = normalizedQuery
-      ? likedFiltered.filter((item) => {
+      ? dateFiltered.filter((item) => {
           const scenarioLabel = item.scenario ? getScenarioLabel(item.scenario) : '';
           const searchableText = [
             mapModeToLabel(item.mode),
@@ -144,15 +218,15 @@ export function ConsultationHistoryPage() {
 
           return searchableText.includes(normalizedQuery);
         })
-      : likedFiltered;
+      : dateFiltered;
 
     return [...base].sort((a, b) => {
       if (sortOrder === 'oldest') return a.consultedAt.localeCompare(b.consultedAt);
       return b.consultedAt.localeCompare(a.consultedAt);
     });
-  }, [filterType, items, likeFilter, likedHistoryIds, searchQuery, sortOrder]);
+  }, [endDate, filterType, items, likeFilter, likedHistoryIds, searchQuery, sortOrder, startDate]);
 
-  const hasActiveFilters = filterType !== 'all' || likeFilter !== 'all' || searchQuery.trim().length > 0;
+  const hasActiveFilters = filterType !== 'all' || likeFilter !== 'all' || searchQuery.trim().length > 0 || startDate !== defaultStartDate() || endDate !== defaultEndDate();
   const selectedTypeLabel = filterType === 'all' ? '전체 유형' : getShortTypeLabel(filterType);
 
   return (
@@ -180,47 +254,79 @@ export function ConsultationHistoryPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
 
             <div className="relative space-y-3">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 fi-text-subtle" />
+              <div className="flex gap-2">
+                <div className="relative shrink-0">
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value as ConsultationType | 'all')}
+                    className="h-10 appearance-none rounded-2xl border py-0 pl-3 pr-7 text-xs font-medium outline-none transition-all"
+                    style={filterType !== 'all' ? activeChipStyle : inactiveChipStyle}
+                  >
+                    {consultationTypes.map((type) => (
+                      <option key={type} value={type} style={{ background: 'var(--app-surface-bg)', color: 'var(--tarot-text-main)' }}>
+                        {type === 'all' ? '전체' : getShortTypeLabel(type)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2" style={{ color: filterType !== 'all' ? 'var(--app-accent-text-soft)' : 'var(--app-text-muted)' }} />
+                </div>
+
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 fi-text-subtle" />
+                  <input
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="질문, 요약 검색"
+                    className="h-10 w-full rounded-2xl border py-0 pl-10 pr-10 text-sm outline-none transition-all"
+                    style={{
+                      borderColor: 'var(--card-border)',
+                      background: 'var(--app-surface-bg-strong)',
+                      color: 'var(--tarot-text-main)',
+                    }}
+                  />
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full"
+                      style={{ color: 'var(--app-text-muted)' }}
+                      aria-label="검색어 지우기"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <input
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="질문, 요약, 유형 검색"
-                  className="w-full rounded-2xl border py-3 pl-10 pr-10 text-sm outline-none transition-all"
-                  style={{
-                    borderColor: 'var(--card-border)',
-                    background: 'var(--app-surface-bg-strong)',
-                    color: 'var(--tarot-text-main)',
-                  }}
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  max={endDate || undefined}
+                  className="h-9 flex-1 rounded-xl border px-3 text-xs font-medium outline-none transition-all"
+                  style={startDate ? activeChipStyle : inactiveChipStyle}
                 />
-                {searchQuery ? (
+                <span className="shrink-0 text-xs" style={{ color: 'var(--app-text-muted)' }}>~</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate || undefined}
+                  className="h-9 flex-1 rounded-xl border px-3 text-xs font-medium outline-none transition-all"
+                  style={endDate ? activeChipStyle : inactiveChipStyle}
+                />
+                {(startDate || endDate) && (
                   <button
                     type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full"
+                    onClick={() => { setStartDate(defaultStartDate()); setEndDate(defaultEndDate()); }}
+                    className="shrink-0"
                     style={{ color: 'var(--app-text-muted)' }}
-                    aria-label="검색어 지우기"
+                    aria-label="날짜 초기화"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
-                ) : null}
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                {consultationTypes.map((type) => {
-                  const isActive = filterType === type;
-
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => setFilterType(type)}
-                      className="h-9 rounded-xl border px-2 text-xs font-medium transition-all"
-                      style={isActive ? activeChipStyle : inactiveChipStyle}
-                    >
-                      {type === 'all' ? '전체' : getShortTypeLabel(type)}
-                    </button>
-                  );
-                })}
+                )}
               </div>
 
               <div className="flex items-center justify-between gap-3">
@@ -261,6 +367,8 @@ export function ConsultationHistoryPage() {
                       setFilterType('all');
                       setLikeFilter('all');
                       setSearchQuery('');
+                      setStartDate(defaultStartDate());
+                      setEndDate(defaultEndDate());
                     }}
                     className="flex items-center gap-1 text-xs fi-text-accent transition-colors hover:opacity-80"
                   >
@@ -282,7 +390,7 @@ export function ConsultationHistoryPage() {
             </div>
           ) : null}
 
-          {!loading && !error && filteredItems.length === 0 ? (
+          {!loading && !error && filteredItems.length === 0 && !isLoadingMore ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -293,7 +401,7 @@ export function ConsultationHistoryPage() {
               </div>
               <h3 className="mb-2 text-lg font-semibold fi-text-main">상담 내역이 없습니다</h3>
               <p className="text-sm fi-text-muted">
-                {filterType !== 'all' || likeFilter !== 'all'
+                {hasActiveFilters
                   ? '해당 조건의 상담 내역이 없습니다'
                   : '첫 상담을 시작해보세요'}
               </p>
@@ -391,6 +499,21 @@ export function ConsultationHistoryPage() {
               })}
             </div>
           )}
+
+          <div ref={sentinelRef} className="h-1" />
+
+          {isLoadingMore && (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm fi-text-muted">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              더 불러오는 중...
+            </div>
+          )}
+
+          {!hasMore && items.length > 0 && !isLoadingMore && (
+            <p className="py-5 text-center text-xs fi-text-subtle">
+              총 {items.length}건 · 모두 불러왔습니다
+            </p>
+          )}
         </div>
       </div>
 
@@ -437,7 +560,7 @@ function getShortTypeLabel(type: ConsultationType) {
   if (type.includes('사주')) return '사주';
   if (type.includes('별자리')) return '별자리';
   if (type.includes('종합')) return '종합';
-  return '재물';
+  return type;
 }
 
 function getTypeIcon(mode: ConsultingHistoryListItemResponse['mode']) {
@@ -467,7 +590,8 @@ function getTypeColor(type: ConsultationType) {
   if (type.includes('타로')) return 'from-purple-500/20 to-violet-600/20 text-purple-400';
   if (type.includes('사주')) return 'from-amber-500/20 to-orange-600/20 text-amber-400';
   if (type.includes('별자리')) return 'from-sky-500/20 to-blue-600/20 text-sky-400';
-  return 'from-red-500/20 to-rose-600/20 text-red-400';
+  if (type.includes('종합')) return 'from-emerald-500/20 to-teal-600/20 text-emerald-400';
+  return 'from-zinc-500/20 to-slate-600/20 text-zinc-400';
 }
 
 function getScenarioLabel(scenario: NonNullable<ConsultingHistoryListItemResponse['scenario']>) {

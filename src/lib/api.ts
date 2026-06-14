@@ -358,6 +358,11 @@ export interface PageableQuery {
   sort?: string[];
 }
 
+export interface HistoryListQuery extends PageableQuery {
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface PageResponse<T> {
   totalPages?: number;
   totalElements?: number;
@@ -607,7 +612,7 @@ export interface ZodiacProfileResponse {
   keyword?: string;
   keywordDescription?: string;
   summary?: string;
-  traits?: string[];
+  traits?: Array<{ name?: string; description?: string }>;
   traitDetails?: Array<{
     name?: string;
     description?: string;
@@ -747,8 +752,22 @@ export async function consult(payload: ConsultPayload) {
   return request<ConsultResponse>('/api/consult', { method: 'POST', body: payload });
 }
 
-export async function getHistoryList(userId: number) {
-  return request<ConsultingHistoryListItemResponse[]>(`/api/history?userId=${userId}`);
+export async function getHistoryList(userId: number, queryOptions?: HistoryListQuery) {
+  const query = buildQuery({
+    userId,
+    page: queryOptions?.page,
+    size: queryOptions?.size,
+    sort: queryOptions?.sort,
+    startDate: queryOptions?.startDate,
+    endDate: queryOptions?.endDate,
+  });
+  const raw = await request<
+    ConsultingHistoryListItemResponse[] | PageResponse<ConsultingHistoryListItemResponse>
+  >(`/api/history${query}`);
+  if (Array.isArray(raw)) {
+    return { content: raw, last: true } as PageResponse<ConsultingHistoryListItemResponse>;
+  }
+  return raw;
 }
 
 export async function getHistoryDetail(historyId: number, userId?: number) {

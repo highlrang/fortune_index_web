@@ -140,8 +140,8 @@ export function ConsultationPage() {
         <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl" style={{ backgroundColor: 'var(--glow-purple)' }} />
       </div>
 
-      <div className="relative mx-auto flex h-full max-w-md flex-col px-5 pt-4">
-        <div className="mb-5 flex items-center gap-4">
+      <div className="relative mx-auto flex h-full max-w-md flex-col px-5 pt-3">
+        <div className="mb-3 flex items-center gap-4">
           <button
             onClick={() => navigate('/home')}
             className="fi-icon-button flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:opacity-90"
@@ -155,10 +155,10 @@ export function ConsultationPage() {
         </div>
 
         <div className="fi-mobile-scroll flex-1 pb-[calc(env(safe-area-inset-bottom)+5.75rem)]">
-          <div className="space-y-5 pb-4">
+          <div className="space-y-3 pb-2">
             <div>
-              <h2 className="mb-3 text-sm font-medium fi-text-muted">어떤 방식으로 볼까요?</h2>
-              <div className="grid grid-cols-2 gap-2.5">
+              <h2 className="mb-2 text-sm font-medium fi-text-muted">어떤 방식으로 볼까요?</h2>
+              <div className="grid grid-cols-2 gap-2">
                 {consultationTypes.map((type) => {
                   const Icon = type.icon;
                   const isSelected = selectedType === type.id;
@@ -167,7 +167,7 @@ export function ConsultationPage() {
                     <motion.button
                       key={type.id}
                       onClick={() => setSelectedType(type.id as ConsultationType)}
-                      className="relative overflow-hidden rounded-2xl border px-3 py-3 transition-all"
+                      className="relative overflow-hidden rounded-2xl border px-3 py-2.5 transition-all"
                       style={
                         isSelected
                           ? {
@@ -203,8 +203,8 @@ export function ConsultationPage() {
             </div>
 
             <div>
-              <h2 className="mb-3 text-sm font-medium fi-text-muted">어떤 종류의 질문인가요?</h2>
-              <div className="grid grid-cols-2 gap-2">
+              <h2 className="mb-2 text-sm font-medium fi-text-muted">어떤 종류의 질문인가요?</h2>
+              <div className="grid grid-cols-2 gap-1.5">
                 {visibleScenarios.map((scenario, index) => {
                   const isSelected = selectedScenario === scenario.code;
                   const isLastItem = visibleScenarios.length % 2 === 1 && index === visibleScenarios.length - 1;
@@ -213,7 +213,7 @@ export function ConsultationPage() {
                     <button
                       key={scenario.code}
                       onClick={() => setSelectedScenario((current) => (current === scenario.code ? '' : scenario.code))}
-                      className={`min-w-0 rounded-full border px-3 py-2.5 text-sm transition-all ${isLastItem ? 'col-span-2' : ''}`}
+                      className={`min-w-0 rounded-full border px-3 py-2 text-sm transition-all ${isLastItem ? 'col-span-2' : ''}`}
                       style={
                         isSelected
                           ? {
@@ -242,13 +242,13 @@ export function ConsultationPage() {
             </div>
 
             <div>
-              <h2 className="mb-3 text-sm font-medium fi-text-muted">무엇이 궁금한가요?</h2>
+              <h2 className="mb-2 text-sm font-medium fi-text-muted">무엇이 궁금한가요?</h2>
               <textarea
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder={questionPlaceholder}
-                className="fi-input w-full rounded-2xl px-4 py-4 text-sm transition-colors"
-                rows={3}
+                className="fi-input w-full rounded-2xl px-4 py-3 text-sm transition-colors"
+                rows={5}
               />
             </div>
 
@@ -301,7 +301,7 @@ export function ConsultationPage() {
             <motion.button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="fi-cta group relative w-full overflow-hidden rounded-2xl px-6 py-4 shadow-2xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              className="fi-cta group relative w-full overflow-hidden rounded-2xl px-6 py-3 shadow-2xl transition-all disabled:cursor-not-allowed disabled:opacity-60"
               whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
               whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
             >
