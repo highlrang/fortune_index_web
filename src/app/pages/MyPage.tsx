@@ -1700,6 +1700,13 @@ export function MyPage() {
               </span>
             </div>
             <div className="flex items-center gap-3 py-3">
+              <Star className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>별자리</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>
+                {userData.zodiac.sign}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 py-3">
               <TrendingUp className="h-5 w-5" style={{ color: 'var(--app-icon-soft)' }} />
               <span className="flex-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>자산 운용 성향</span>
               <span className="text-sm font-medium" style={{ color: 'var(--tarot-text-main)' }}>

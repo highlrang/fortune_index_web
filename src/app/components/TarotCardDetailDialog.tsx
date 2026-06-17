@@ -24,7 +24,8 @@ export function TarotCardDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="border p-0"
+        overlayClassName="bg-black/70 backdrop-blur-none duration-75"
+        className="border p-0 duration-75 data-[state=closed]:zoom-out-98 data-[state=open]:zoom-in-98"
         style={{
           maxWidth: 'min(26rem, calc(100% - 2rem))',
           borderColor: 'var(--tarot-card-cover-border)',
@@ -51,6 +52,8 @@ export function TarotCardDetailDialog({
                   muted
                   playsInline
                   loop
+                  preload="metadata"
+                  poster={card.imageSrc}
                 />
               ) : card.imageSrc ? (
                 <img

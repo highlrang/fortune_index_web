@@ -35,26 +35,6 @@ const unavailableCardMeta = '아직 준비되지 않았어요';
 type DailyFlowType = 'saju' | 'tarot' | 'zodiac';
 type DailyFlowData = HomeFortuneResponse | HomeZodiacResponse | null;
 
-const detailedFallbackContent: Record<Exclude<DailyFlowType, 'tarot'>, {
-  lead: string;
-  points: string[];
-}> = {
-  saju: {
-    lead: '오늘은 큰 결정보다 기준을 점검하기 좋은 흐름입니다. 익숙한 방식이 안정감을 주지만, 같은 판단을 반복하고 있지는 않은지 한 번 멈춰 보는 편이 좋습니다.',
-    points: [
-      '감정이 먼저 올라오는 선택은 잠시 보류해보세요.',
-      '새로운 실행보다 조건 정리와 우선순위 조정에 잘 맞습니다.',
-    ],
-  },
-  zodiac: {
-    lead: '오늘은 한 방향으로 관심이 강하게 모이기 쉬운 날입니다. 집중력은 좋지만, 짧은 신호 하나만 크게 보고 판단하지 않도록 시야를 조금 넓혀두세요.',
-    points: [
-      '주변 분위기보다 내 컨디션을 먼저 확인해보세요.',
-      '바로 움직이기보다 타이밍을 조정하는 쪽이 유리합니다.',
-    ],
-  },
-};
-
 const heavenlyStemColors: Record<string, string> = {
   갑: '푸른',
   을: '푸른',
@@ -98,12 +78,10 @@ const zodiacSymbols: Record<string, string> = {
   물고기자리: '물고기',
 };
 
-function getDetailedContent(type: Exclude<DailyFlowType, 'tarot'>, data: DailyFlowData) {
-  const fallback = detailedFallbackContent[type];
-
+function getDetailedContent(data: DailyFlowData) {
   return {
-    lead: data?.detail?.body ?? data?.summary ?? fallback.lead,
-    points: data?.detail?.points?.length ? data.detail.points : fallback.points,
+    lead: data?.detail?.body ?? data?.summary ?? unavailableCardMeta,
+    points: data?.detail?.points ?? [],
   };
 }
 
@@ -319,7 +297,7 @@ function DailyFlowModal({
     saju: { label: '오늘의 사주', icon: <Sun className="h-5 w-5" /> },
     zodiac: { label: '오늘의 별자리', icon: <MoonStar className="h-5 w-5" /> },
   }[type];
-  const content = getDetailedContent(type, data);
+  const content = getDetailedContent(data);
   const symbol = getFlowSymbol(type, data);
   const symbolDescription = data?.symbol?.description;
   const showSymbol = type === 'saju';
