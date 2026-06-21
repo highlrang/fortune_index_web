@@ -1096,13 +1096,13 @@ export function MyPage() {
                     {userData.birthTarot.number}번 카드
                   </div>
                   <section className="rounded-2xl border px-3.5 py-2" style={glassCardStyle}>
-                    <div className="mb-1 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>MEANING</div>
+                    <div className="mb-1 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>의미</div>
                     <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-soft)' }}>{userData.birthTarot.meaning}</p>
                   </section>
                   {userData.birthTarot.description ? (
                     <section className="rounded-2xl border px-3.5 py-2" style={glassCardStyle}>
                       <div className="mb-1 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
-                        DESCRIPTION
+                        설명
                       </div>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--app-text-muted)' }}>
                         {userData.birthTarot.description}
@@ -1460,7 +1460,7 @@ export function MyPage() {
                   <div className="absolute right-0 top-0 h-28 w-28 rounded-full blur-3xl" style={{ backgroundColor: 'var(--app-accent-soft)' }} />
                   <div className="relative flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-xs tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>ZODIAC SIGN</div>
+                      <div className="text-xs tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>별자리</div>
                       <h2 className="mt-2 text-3xl font-bold" style={{ color: 'var(--tarot-text-main)' }}>{userData.zodiac.sign}</h2>
                       <p className="mt-1 text-sm" style={{ color: 'var(--app-text-muted)' }}>{userData.zodiac.dateRange}</p>
                     </div>
@@ -1488,7 +1488,7 @@ export function MyPage() {
                 </div>
 
                 <section className="rounded-2xl border px-4 py-3" style={glassCardStyle}>
-                  <div className="mb-1.5 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>SUMMARY</div>
+                  <div className="mb-1.5 text-xs font-medium tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>요약</div>
                   <p className="text-sm leading-6" style={{ color: 'var(--app-text-soft)' }}>{userData.zodiac.summary}</p>
                 </section>
 
@@ -2004,7 +2004,7 @@ function normalizeBirthTarot(profileDetails: UserProfileDetailsResponse | null) 
   const birthTarot = profileDetails?.birthTarot;
 
   return {
-    name: birthTarot?.name ?? 'The Star',
+    name: birthTarot?.name ?? '별',
     koreanName: birthTarot?.koreanName ?? '별',
     number: birthTarot?.number ?? 17,
     meaning: birthTarot?.cardMeaning ?? '희망, 영감, 밝은 미래',

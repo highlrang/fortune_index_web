@@ -142,7 +142,7 @@ export function LikedFortunesPage() {
 
             <div className="flex-1 text-center">
               <h1 className="text-lg font-semibold fi-text-main">좋아요한 운세</h1>
-              <p className="text-xs fi-text-accent">Liked Fortunes</p>
+              <p className="text-xs fi-text-accent">좋아요한 운세</p>
             </div>
 
             <div className="w-10" />

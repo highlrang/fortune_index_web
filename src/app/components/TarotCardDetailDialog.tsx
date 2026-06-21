@@ -111,7 +111,7 @@ export function TarotCardFallbackFace({ className = '' }: { className?: string }
           <line x1="50" y1="50" x2="50" y2="75" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
           <line x1="50" y1="50" x2="30" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
           <line x1="50" y1="50" x2="30" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
-          <text x="50" y="105" fontSize="8" fill="var(--tarot-card-sigil)" opacity="0.48" textAnchor="middle" fontFamily="serif">ARCANA</text>
+          <text x="50" y="105" fontSize="8" fill="var(--tarot-card-sigil)" opacity="0.48" textAnchor="middle" fontFamily="serif">아르카나</text>
         </svg>
       </div>
     </div>

@@ -24,7 +24,7 @@ export function VodaLogo({ size = 120, className = '' }: VodaLogoProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Voda logo"
+      aria-label="Voda 로고"
       role="img"
     >
       <defs>
@@ -91,7 +91,7 @@ export function VodaLogoHybrid({ size = 120, className = '', theme = 'dark' }: V
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Voda logo"
+      aria-label="Voda 로고"
       role="img"
     >
       <defs>
@@ -211,7 +211,7 @@ export function VodaIcon({ size = 60, className = '' }: VodaLogoProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Voda icon"
+      aria-label="Voda 아이콘"
       role="img"
     >
       <path
@@ -249,7 +249,7 @@ export function VodaIconHybrid({ size = 60, className = '' }: VodaLogoProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Voda icon"
+      aria-label="Voda 아이콘"
       role="img"
     >
       <defs>

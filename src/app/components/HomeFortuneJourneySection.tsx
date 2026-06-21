@@ -112,10 +112,10 @@ function HomeTarotCardBackPattern() {
       <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
       <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
       <text x="50" y="105" fontSize="10" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
-        ARCANA
+        아르카나
       </text>
       <text x="50" y="120" fontSize="7" fill="var(--tarot-card-sigil-soft)" opacity="0.28" textAnchor="middle" fontFamily="serif">
-        MAJOR
+        메이저
       </text>
     </svg>
   );
@@ -209,7 +209,7 @@ function DailyTarotCardFace({ card, isFeatured }: { card: HomeTarotDisplayCard; 
         className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[8px] font-semibold tracking-[0.18em]"
         style={{ ...dailyTarotCardCaptionStyle, color: 'var(--app-accent-text-soft)' }}
       >
-        ARCANA
+        아르카나
       </div>
 
       <div className="absolute inset-x-2 bottom-2 rounded-xl px-2 py-1.5" style={dailyTarotCardCaptionStyle}>
@@ -323,7 +323,7 @@ export function HomeFortuneJourneySection() {
 
       <div className="relative">
         <div className="mb-5">
-          <p className="text-[11px] font-medium uppercase tracking-[0.24em] fi-text-subtle">Fortune Flow</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.24em] fi-text-subtle">운세 흐름</p>
           <h2 className="mt-2 text-xl font-semibold fi-text-main">오늘은 어떻게 볼까요?</h2>
           <p className="mt-2 text-sm leading-6 fi-text-muted">
             질문을 바로 고르거나, 카드 3장을 뽑아 오늘 기운을 먼저 볼 수 있습니다.

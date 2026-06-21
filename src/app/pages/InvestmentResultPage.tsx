@@ -381,7 +381,7 @@ export function InvestmentResultPage() {
                           <MessageCircle className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>My Question</p>
+                          <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>나의 질문</p>
                           <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>나의 질문</h3>
                         </div>
                       </div>
@@ -437,7 +437,7 @@ export function InvestmentResultPage() {
                       <Clock className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>Core Summary</p>
+                      <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>핵심 요약</p>
                       <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
                     </div>
                   </div>

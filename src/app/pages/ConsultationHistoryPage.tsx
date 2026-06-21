@@ -241,7 +241,7 @@ export function ConsultationHistoryPage() {
           <div className="mb-4 flex items-center justify-center">
             <div className="text-center">
               <h1 className="text-lg font-semibold fi-text-main">상담 내역</h1>
-              <p className="text-xs fi-text-accent">Consultation History</p>
+              <p className="text-xs fi-text-accent">상담 내역</p>
             </div>
           </div>
 

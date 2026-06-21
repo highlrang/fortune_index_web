@@ -44,7 +44,7 @@ export function SignupPage() {
       title="이메일 인증"
       description="회원가입 전, 인증 메일을 받을 이메일 주소를 먼저 입력해주세요."
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="space-y-3">
           <label htmlFor="email" className="block text-sm fi-text-accent">
             이메일

@@ -218,7 +218,7 @@ export function SignupEmailPendingPage() {
     >
       <div className="space-y-6">
         <div className="fi-accent-card rounded-2xl p-5">
-          <p className="text-xs uppercase tracking-[0.24em] fi-text-accent">Verification Email</p>
+          <p className="text-xs uppercase tracking-[0.24em] fi-text-accent">인증 메일</p>
           <p className="mt-2 break-all text-base fi-text-main">{email}</p>
         </div>
 

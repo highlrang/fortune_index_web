@@ -161,7 +161,7 @@ export function SubscriptionLandingPage() {
                       <Star className="h-12 w-12 fill-amber-400 text-amber-400" />
                     </div>
                     <div className="space-y-2 text-center">
-                      <h3 className="text-3xl font-medium text-amber-300">The Star</h3>
+                      <h3 className="text-3xl font-medium text-amber-300">별</h3>
                       <p className="text-sm text-white/60">희망과 영감의 카드</p>
                     </div>
                     <div className="w-full border-t border-white/20 pt-6">

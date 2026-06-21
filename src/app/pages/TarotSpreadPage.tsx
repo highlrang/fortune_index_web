@@ -121,10 +121,10 @@ function TarotCardBackPattern() {
       <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
       <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
       <text x="50" y="105" fontSize="10" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
-        ✦ ARCANA ✦
+        ✦ 아르카나 ✦
       </text>
       <text x="50" y="120" fontSize="7" fill="var(--tarot-card-sigil-soft)" opacity="0.28" textAnchor="middle" fontFamily="serif">
-        MAJOR
+        메이저
       </text>
     </svg>
   );
@@ -137,7 +137,7 @@ function TarotCardBackMinimalPattern() {
       <polygon points="50,34 64,43 64,57 50,66 36,57 36,43" fill="none" stroke="var(--tarot-card-sigil-soft)" strokeWidth="0.8" opacity="0.36" />
       <circle cx="50" cy="50" r="4.5" fill="var(--tarot-card-sigil)" opacity="0.48" />
       <text x="50" y="102" fontSize="7" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
-        ARCANA
+        아르카나
       </text>
     </svg>
   );

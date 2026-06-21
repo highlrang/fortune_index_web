@@ -87,7 +87,7 @@ export function LogoShowcasePage() {
           <div className="mb-5 flex justify-center">
             <VodaLogoHybrid size={152} theme="dark" />
           </div>
-          <h1 className="mb-4 text-4xl font-semibold text-[#f1efff]">Voda Logo Showcase</h1>
+          <h1 className="mb-4 text-4xl font-semibold text-[#f1efff]">Voda 로고 쇼케이스</h1>
           <p className="mx-auto max-w-xl text-sm leading-6 text-[#f1efff]/70">
             서비스의 딥 네이비, 글래스 퍼플, 골드 포인트 팔레트에 맞춘 라이트/다크 테마별 로고 적용안입니다.
           </p>
@@ -111,12 +111,12 @@ export function LogoShowcasePage() {
           <div className="grid gap-6">
             <ThemePreview
               theme="light"
-              title="Light Theme"
+              title="라이트 테마"
               description="밝은 배경에서는 텍스트를 차콜로 낮추고 골드 아이콘을 전면에 둬서 프리미엄 톤을 유지합니다."
             />
             <ThemePreview
               theme="dark"
-              title="Dark Theme"
+              title="다크 테마"
               description="어두운 배경에서는 라벤더 화이트 텍스트와 골드/퍼플 심볼 대비를 높여 첫 화면에서 브랜드가 바로 보이게 합니다."
             />
           </div>

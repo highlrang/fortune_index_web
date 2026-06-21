@@ -146,7 +146,7 @@ export function PasswordResetPage() {
         title="새 비밀번호 설정"
         description="이메일 인증이 확인되었습니다. 새 비밀번호를 입력해주세요."
       >
-        <form onSubmit={handleConfirmPassword} className="space-y-6">
+        <form onSubmit={handleConfirmPassword} noValidate className="space-y-6">
           <div className="space-y-3">
             <label htmlFor="newPassword" className="block text-sm fi-text-accent">
               새 비밀번호
@@ -210,7 +210,7 @@ export function PasswordResetPage() {
       title="비밀번호 변경"
       description="가입한 이메일로 비밀번호 변경 인증 링크를 보내드립니다."
     >
-      <form onSubmit={handleRequestEmail} className="space-y-6">
+      <form onSubmit={handleRequestEmail} noValidate className="space-y-6">
         <div className="space-y-3">
           <label htmlFor="passwordResetEmail" className="block text-sm fi-text-accent">
             이메일

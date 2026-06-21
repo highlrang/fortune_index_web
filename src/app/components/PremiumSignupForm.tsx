@@ -67,8 +67,18 @@ export function PremiumSignupForm({
     e.preventDefault();
     setError('');
 
+    if (password.length < 8) {
+      setError('비밀번호는 8자 이상 입력해주세요.');
+      return;
+    }
+
     if (password !== passwordConfirm) {
       setError('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+      return;
+    }
+
+    if (!name.trim()) {
+      setError('이름을 입력해주세요.');
       return;
     }
 
@@ -112,7 +122,7 @@ export function PremiumSignupForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
       <div className="space-y-2.5">
         <label htmlFor="email" className="block text-sm fi-text-accent">
           인증된 이메일

@@ -15,6 +15,17 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('올바른 이메일 주소를 입력해주세요.');
+      return;
+    }
+
+    if (!password) {
+      setError('비밀번호를 입력해주세요.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -29,7 +40,7 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
       <div className="space-y-2">
         <label htmlFor="email" className="block text-sm fi-text-accent">
           이메일
