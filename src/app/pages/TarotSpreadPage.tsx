@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import { motion, useMotionValue } from 'motion/react';
+import { motion, useMotionValue, useMotionValueEvent } from 'motion/react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -20,7 +20,8 @@ const TOTAL_CARDS = 78;
 const MAX_SELECTIONS = 3;
 const CARD_WIDTH = 85;
 const CARD_HEIGHT = 128;
-const CARD_OVERLAP = 26; // Cards overlap 70% (30% visible)
+const CARD_OVERLAP = 34; // Cards still overlap heavily, but expose enough width for faster scrolling.
+const DRAG_SCROLL_SENSITIVITY = 4.2;
 const SPREAD_MAX_ROTATION = 15;
 const REDUCED_SPREAD_MAX_ROTATION = 8;
 const SPREAD_VERTICAL_CURVE = 0.15;
@@ -31,9 +32,14 @@ const CENTER_SNAP_TRANSITION = {
   stiffness: 360,
   damping: 32,
 } as const;
+const NATIVE_SCROLL_SETTLE_MS = 140;
 
 function fract(value: number) {
   return value - Math.floor(value);
+}
+
+function clampScrollX(value: number) {
+  return Math.max(-(TOTAL_CARDS - 1) * CARD_OVERLAP, Math.min(0, value));
 }
 
 const STATIC_STARS = Array.from({ length: 50 }, (_, index) => ({
@@ -195,7 +201,9 @@ const SpreadCard = memo(function SpreadCard({
   const rotationAngle = (distanceFromCenter / centerIndex) * maxRotation;
   const verticalCurve = reduceEffects ? REDUCED_SPREAD_VERTICAL_CURVE : SPREAD_VERTICAL_CURVE;
   const verticalOffset = Math.abs(distanceFromCenter) * verticalCurve;
-  const liftOffset = isCentered && !isSelected ? (reduceEffects ? -8 : -12) : 0;
+  const isSettledCenter = isCentered && !isSelected && !isDragging;
+  const liftOffset = isSettledCenter ? (reduceEffects ? -6 : -10) : 0;
+  const cardScale = isSettledCenter ? 1.015 : 1;
 
   return (
     <motion.div
@@ -206,11 +214,13 @@ const SpreadCard = memo(function SpreadCard({
         opacity: isSelected ? 0 : 1,
         rotate: rotationAngle,
         y: liftOffset + verticalOffset,
+        scale: cardScale,
         willChange: isCentered || isDragging ? 'transform, opacity' : 'auto',
       }}
       animate={{
         opacity: isSelected ? 0 : 1,
         y: liftOffset + verticalOffset,
+        scale: cardScale,
       }}
       transition={reduceEffects ? { duration: 0.06 } : CENTER_SNAP_TRANSITION}
       onClick={() => {
@@ -227,11 +237,11 @@ const SpreadCard = memo(function SpreadCard({
           ...cardBackStyle,
           borderColor: isCentered && !isSelected ? 'var(--tarot-card-cover-border)' : 'color-mix(in srgb, var(--tarot-card-cover-border) 42%, transparent)',
           boxShadow: reduceEffects
-            ? isCentered && !isSelected
-              ? '0 4px 10px rgba(0, 0, 0, 0.18)'
+            ? isSettledCenter
+              ? '0 5px 12px rgba(0, 0, 0, 0.2)'
               : '0 1px 3px rgba(0, 0, 0, 0.16)'
-            : isCentered && !isSelected
-              ? '0 8px 18px rgba(0, 0, 0, 0.24)'
+            : isSettledCenter
+              ? '0 9px 18px rgba(0, 0, 0, 0.25)'
               : '0 2px 7px rgba(0, 0, 0, 0.26)',
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden',
@@ -260,11 +270,13 @@ export function TarotSpreadPage() {
     Array.from({ length: MAX_SELECTIONS }, () => null),
   );
   const [isDragging, setIsDragging] = useState(false);
+  const [isNativeScrolling, setIsNativeScrolling] = useState(false);
   const reduceWebViewEffects = isNativeWebViewRuntime();
   const scrollX = useMotionValue(0);
   const constraintsRef = useRef<HTMLDivElement>(null);
   const webViewScrollRef = useRef<HTMLDivElement>(null);
   const webViewScrollRafRef = useRef<number | null>(null);
+  const webViewScrollSettleTimeoutRef = useRef<number | null>(null);
   const [currentCenterIndex, setCurrentCenterIndex] = useState(0);
   const currentCenterIndexRef = useRef(0);
 
@@ -277,8 +289,25 @@ export function TarotSpreadPage() {
       if (webViewScrollRafRef.current !== null) {
         window.cancelAnimationFrame(webViewScrollRafRef.current);
       }
+      if (webViewScrollSettleTimeoutRef.current !== null) {
+        window.clearTimeout(webViewScrollSettleTimeoutRef.current);
+      }
     };
   }, [reduceWebViewEffects]);
+
+  useMotionValueEvent(scrollX, 'change', (latest) => {
+    if (reduceWebViewEffects) return;
+
+    const nextCenterIndex = Math.max(
+      0,
+      Math.min(TOTAL_CARDS - 1, Math.round(-latest / CARD_OVERLAP)),
+    );
+
+    if (nextCenterIndex !== currentCenterIndexRef.current) {
+      currentCenterIndexRef.current = nextCenterIndex;
+      setCurrentCenterIndex(nextCenterIndex);
+    }
+  });
 
   // Select/deselect card
   const toggleCardSelection = (cardId: number) => {
@@ -317,14 +346,12 @@ export function TarotSpreadPage() {
   // Snap to nearest card on drag end
   const handleDragEnd = () => {
     setIsDragging(false);
-    const totalWidth = TOTAL_CARDS * CARD_OVERLAP;
     const currentScroll = scrollX.get();
-    const scrollPercentage = -currentScroll / totalWidth;
-    const nearestIndex = Math.round(scrollPercentage * TOTAL_CARDS);
+    const nearestIndex = Math.round(-currentScroll / CARD_OVERLAP);
     const clampedIndex = Math.max(0, Math.min(TOTAL_CARDS - 1, nearestIndex));
     
     // Snap to card
-    const targetScroll = -(clampedIndex / TOTAL_CARDS) * totalWidth;
+    const targetScroll = -clampedIndex * CARD_OVERLAP;
     currentCenterIndexRef.current = clampedIndex;
     setCurrentCenterIndex(clampedIndex);
     scrollX.set(targetScroll);
@@ -332,16 +359,28 @@ export function TarotSpreadPage() {
 
   const handleActivateCard = (index: number, cardId: number) => {
     if (index !== currentCenterIndexRef.current) {
-      const targetScroll = -(index / TOTAL_CARDS) * (TOTAL_CARDS * CARD_OVERLAP);
+      const targetScroll = -index * CARD_OVERLAP;
       currentCenterIndexRef.current = index;
       setCurrentCenterIndex(index);
       scrollX.set(targetScroll);
+      return;
     }
 
     toggleCardSelection(cardId);
   };
 
   const handleWebViewScroll = () => {
+    setIsNativeScrolling(true);
+
+    if (webViewScrollSettleTimeoutRef.current !== null) {
+      window.clearTimeout(webViewScrollSettleTimeoutRef.current);
+    }
+
+    webViewScrollSettleTimeoutRef.current = window.setTimeout(() => {
+      setIsNativeScrolling(false);
+      webViewScrollSettleTimeoutRef.current = null;
+    }, NATIVE_SCROLL_SETTLE_MS);
+
     if (!webViewScrollRef.current || webViewScrollRafRef.current !== null) return;
 
     webViewScrollRafRef.current = window.requestAnimationFrame(() => {
@@ -365,10 +404,19 @@ export function TarotSpreadPage() {
     if (index !== currentCenterIndexRef.current) {
       currentCenterIndexRef.current = index;
       setCurrentCenterIndex(index);
+      setIsNativeScrolling(true);
       webViewScrollRef.current?.scrollTo({
         left: index * CARD_OVERLAP,
         behavior: 'smooth',
       });
+      if (webViewScrollSettleTimeoutRef.current !== null) {
+        window.clearTimeout(webViewScrollSettleTimeoutRef.current);
+      }
+      webViewScrollSettleTimeoutRef.current = window.setTimeout(() => {
+        setIsNativeScrolling(false);
+        webViewScrollSettleTimeoutRef.current = null;
+      }, NATIVE_SCROLL_SETTLE_MS);
+      return;
     }
 
     toggleCardSelection(cardId);
@@ -572,7 +620,7 @@ export function TarotSpreadPage() {
                   index={index}
                   isSelected={selectedCardIds.includes(cardId)}
                   isCentered={index === currentCenterIndex}
-                  isDragging={false}
+                  isDragging={isNativeScrolling}
                   reduceEffects
                   onActivate={handleWebViewActivateCard}
                 />
@@ -591,8 +639,11 @@ export function TarotSpreadPage() {
                 right: 0,
               }}
               dragElastic={0.05}
-              dragMomentum
+              dragMomentum={false}
               onDragStart={() => setIsDragging(true)}
+              onDrag={(_, info) => {
+                scrollX.set(clampScrollX(scrollX.get() + info.delta.x * (DRAG_SCROLL_SENSITIVITY - 1)));
+              }}
               onDragEnd={handleDragEnd}
               style={{ x: scrollX, touchAction: 'none', willChange: isDragging ? 'transform' : 'auto' }}
               className="absolute left-1/2 top-1/2 flex h-full -translate-y-1/2 cursor-grab items-center active:cursor-grabbing"
