@@ -492,6 +492,7 @@ export function HomeFortuneJourneySection() {
       <TarotCardDetailDialog
         card={selectedCard}
         eyebrow={getDailyTarotReadingLabel(selectedCard)}
+        imageSize="compact"
         open={selectedCard !== null}
         onOpenChange={(open) => {
           if (!open) setSelectedCard(null);

@@ -11,6 +11,7 @@ export type TarotCardDetail = {
 type TarotCardDetailDialogProps = {
   card: TarotCardDetail | null;
   eyebrow?: string;
+  imageSize?: 'default' | 'compact';
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -18,9 +19,18 @@ type TarotCardDetailDialogProps = {
 export function TarotCardDetailDialog({
   card,
   eyebrow = 'Tarot Card',
+  imageSize = 'default',
   open,
   onOpenChange,
 }: TarotCardDetailDialogProps) {
+  const imageFrameClassName = imageSize === 'compact'
+    ? 'mx-auto mt-6 w-40 overflow-hidden rounded-[20px] border'
+    : 'mx-auto mt-6 w-48 overflow-hidden rounded-[22px] border';
+  const imageClassName = imageSize === 'compact'
+    ? 'block h-60 w-full object-cover opacity-100'
+    : 'block h-72 w-full object-cover opacity-100';
+  const fallbackClassName = imageSize === 'compact' ? 'h-60 w-full' : 'h-72 w-full';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -37,7 +47,7 @@ export function TarotCardDetailDialog({
         {card ? (
           <div className="overflow-hidden rounded-[24px]">
             <div
-              className="mx-auto mt-6 w-48 overflow-hidden rounded-[22px] border"
+              className={imageFrameClassName}
               style={{
                 borderColor: 'var(--tarot-card-cover-border)',
                 boxShadow: '0 18px 42px rgba(0, 0, 0, 0.34)',
@@ -47,7 +57,7 @@ export function TarotCardDetailDialog({
                 <video
                   key={card.videoSrc}
                   src={card.videoSrc}
-                  className="block h-72 w-full object-cover opacity-100"
+                  className={imageClassName}
                   autoPlay
                   muted
                   playsInline
@@ -59,10 +69,10 @@ export function TarotCardDetailDialog({
                 <img
                   src={card.imageSrc}
                   alt={card.label}
-                  className="block h-72 w-full object-cover opacity-100"
+                  className={imageClassName}
                 />
               ) : (
-                <TarotCardFallbackFace className="h-72 w-full" />
+                <TarotCardFallbackFace className={fallbackClassName} />
               )}
             </div>
             <DialogHeader className="px-6 pb-6 pt-5 text-left">
