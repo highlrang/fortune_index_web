@@ -60,6 +60,12 @@ const tarotCardPositions = [
   'translate-y-4 rotate-[10deg]',
 ];
 
+const dailyTarotReadingLabels = [
+  '오늘의 흐름',
+  '신경 쓸 포인트',
+  '오늘의 조언',
+] as const;
+
 const dailyTarotCardFrameStyle = {
   borderColor: 'var(--tarot-card-cover-border)',
   backgroundColor: 'var(--bg-main)',
@@ -111,9 +117,6 @@ function HomeTarotCardBackPattern() {
       <line x1="50" y1="50" x2="50" y2="80" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
       <line x1="50" y1="50" x2="25" y2="65" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
       <line x1="50" y1="50" x2="25" y2="35" stroke="var(--tarot-card-sigil)" strokeWidth="0.5" opacity="0.3" />
-      <text x="50" y="105" fontSize="10" fill="var(--tarot-card-sigil)" opacity="0.34" textAnchor="middle" fontFamily="serif">
-        아르카나
-      </text>
       <text x="50" y="120" fontSize="7" fill="var(--tarot-card-sigil-soft)" opacity="0.28" textAnchor="middle" fontFamily="serif">
         메이저
       </text>
@@ -171,6 +174,11 @@ function getDailyDrawErrorStatus(error: unknown) {
   return error instanceof ApiError ? error.status : null;
 }
 
+function getDailyTarotReadingLabel(card: HomeTarotDisplayCard | null) {
+  if (!card) return '';
+  return dailyTarotReadingLabels[card.index] ?? '오늘의 카드';
+}
+
 function DailyTarotCardFace({ card, isFeatured }: { card: HomeTarotDisplayCard; isFeatured: boolean }) {
   return (
     <div
@@ -204,13 +212,6 @@ function DailyTarotCardFace({ card, isFeatured }: { card: HomeTarotDisplayCard; 
       )}
 
       {card.videoSrc ? <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.18)' }} /> : null}
-
-      <div
-        className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[8px] font-semibold tracking-[0.18em]"
-        style={{ ...dailyTarotCardCaptionStyle, color: 'var(--app-accent-text-soft)' }}
-      >
-        아르카나
-      </div>
 
       <div className="absolute inset-x-2 bottom-2 rounded-xl px-2 py-1.5" style={dailyTarotCardCaptionStyle}>
         <p className="truncate text-[11px] font-semibold leading-tight" style={{ color: 'var(--tarot-text-main)' }}>
@@ -323,7 +324,6 @@ export function HomeFortuneJourneySection() {
 
       <div className="relative">
         <div className="mb-5">
-          <p className="text-[11px] font-medium uppercase tracking-[0.24em] fi-text-subtle">운세 흐름</p>
           <h2 className="mt-2 text-xl font-semibold fi-text-main">오늘은 어떻게 볼까요?</h2>
           <p className="mt-2 text-sm leading-6 fi-text-muted">
             질문을 바로 고르거나, 카드 3장을 뽑아 오늘 기운을 먼저 볼 수 있습니다.
@@ -402,12 +402,9 @@ export function HomeFortuneJourneySection() {
         >
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--app-accent-text-soft)' }}>
-                3 Card Draw
-              </p>
               <h3 className="mt-2 text-lg font-semibold fi-text-main">오늘의 타로 바로 뽑기</h3>
               <p className="mt-2 text-sm leading-6 fi-text-muted">
-                지금 분위기, 놓치기 쉬운 부분, 마지막 한마디까지 세 장으로 가볍게 볼 수 있어요.
+                세 장의 카드를 오늘의 흐름, 신경 쓸 포인트, 오늘의 조언으로 가볍게 읽어볼 수 있어요.
               </p>
             </div>
           </div>
@@ -494,7 +491,7 @@ export function HomeFortuneJourneySection() {
 
       <TarotCardDetailDialog
         card={selectedCard}
-        eyebrow="3 Card Draw"
+        eyebrow={getDailyTarotReadingLabel(selectedCard)}
         open={selectedCard !== null}
         onOpenChange={(open) => {
           if (!open) setSelectedCard(null);

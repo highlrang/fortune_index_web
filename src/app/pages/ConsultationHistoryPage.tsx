@@ -209,7 +209,7 @@ export function ConsultationHistoryPage() {
             scenarioLabel,
             item.focusLabel,
             item.question,
-            item.overallSummary,
+            getHistoryPreviewText(item),
             item.consultedAt,
           ]
             .filter(Boolean)
@@ -415,6 +415,7 @@ export function ConsultationHistoryPage() {
                 const isLiked = likedHistoryIds.includes(item.id);
                 const isOpening = openingHistoryId === item.id;
                 const scenarioLabel = item.scenario ? getScenarioLabel(item.scenario) : '';
+                const previewText = getHistoryPreviewText(item);
 
                 return (
                   <motion.button
@@ -482,17 +483,19 @@ export function ConsultationHistoryPage() {
                         </p>
                       ) : null}
 
-                      <p
-                        className="text-xs leading-relaxed fi-text-muted"
-                        style={{
-                          display: '-webkit-box',
-                          WebkitBoxOrient: 'vertical',
-                          WebkitLineClamp: 2,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {item.overallSummary}
-                      </p>
+                      {previewText ? (
+                        <p
+                          className="text-xs leading-relaxed fi-text-muted"
+                          style={{
+                            display: '-webkit-box',
+                            WebkitBoxOrient: 'vertical',
+                            WebkitLineClamp: 2,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {previewText}
+                        </p>
+                      ) : null}
                     </div>
                   </motion.button>
                 );
@@ -553,6 +556,20 @@ function mapModeToLabel(mode: ConsultingHistoryListItemResponse['mode']): Consul
   if (mode === 'INVESTMENT_ZODIAC') return '별자리 재물 흐름';
   if (mode === 'INVESTMENT_ALL') return '종합 재물 흐름';
   return '재물 흐름';
+}
+
+function getHistoryPreviewText(item: ConsultingHistoryListItemResponse): string {
+  const modeAnalysis =
+    item.mode === 'INVESTMENT_SAJU'
+      ? item.analysis?.saju
+      : item.mode === 'INVESTMENT_TAROT'
+        ? item.analysis?.tarot
+        : item.mode === 'INVESTMENT_ZODIAC'
+          ? item.analysis?.zodiac
+          : undefined;
+  const fallbackAnalysis = item.analysis?.saju ?? item.analysis?.tarot ?? item.analysis?.zodiac;
+
+  return (modeAnalysis ?? item.overallSummary ?? fallbackAnalysis ?? '').trim();
 }
 
 function getShortTypeLabel(type: ConsultationType) {

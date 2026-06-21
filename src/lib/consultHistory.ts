@@ -29,6 +29,15 @@ export function buildAnalysisResults(
   return analysisResults;
 }
 
+function parseFinalAdvice(aiResponseJson: string): string | null {
+  try {
+    const parsed = JSON.parse(aiResponseJson) as { finalAdvice?: unknown };
+    return typeof parsed.finalAdvice === 'string' ? parsed.finalAdvice : null;
+  } catch {
+    return null;
+  }
+}
+
 export function mapHistoryDetailToConsultResult(
   detail: SharedConsultingHistoryResponse,
 ): ConsultResponse {
@@ -116,7 +125,7 @@ export function mapHistoryDetailToConsultResult(
       model: '',
       mode: detail.mode,
       analysisResults: buildAnalysisResults(detail.analysis),
-      finalAdvice: detail.overallSummary,
+      finalAdvice: parseFinalAdvice(detail.aiResponseJson) ?? detail.overallSummary,
       stabilityScore: detail.stabilityScore ?? undefined,
       rawJson: detail.aiResponseJson,
       evidence: {

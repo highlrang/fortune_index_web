@@ -277,7 +277,7 @@ export interface HybridConsultingAiResponse {
   model: string;
   mode: string;
   analysisResults: AnalysisResultsPayload;
-  finalAdvice: string;
+  finalAdvice: string | null;
   stabilityScore?: number;
   rawJson: string;
   evidence: {
@@ -301,7 +301,7 @@ export interface SharedConsultingHistoryResponse {
   tarot?: TarotSnapshotResponse;
   question?: string;
   stabilityScore?: number | null;
-  overallSummary: string;
+  overallSummary: string | null;
   analysis: ConsultingHistoryAnalysisResponse;
   analysisResultJson: string;
   aiResponseJson: string;
@@ -411,7 +411,7 @@ export interface ConsultingHistoryListItemResponse {
   focusLabel: string;
   question?: string;
   consultedAt: string;
-  overallSummary: string;
+  overallSummary: string | null;
   analysis: ConsultingHistoryAnalysisResponse;
   tarotInterpretationMode?: string;
   tarotCardCodes: string[];
@@ -457,7 +457,7 @@ export interface ConsultingHistoryDateItemResponse {
   label: ConsultingHistoryDateLabelResponse;
   shareKey: string;
   selectedFocusLabel: string;
-  overallSummary: string;
+  overallSummary: string | null;
   analysis?: ConsultingHistoryAnalysisResponse;
   focus: FocusSnapshotResponse;
   tarotCardNames: string[];

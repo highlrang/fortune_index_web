@@ -173,7 +173,6 @@ export function HomePage() {
           style={accentCardStyle}
         >
           <div className="mb-5">
-            <p className="text-xs uppercase tracking-[0.24em] fi-text-subtle">오늘의 운세</p>
             <h1 className="mt-2 text-2xl font-semibold fi-text-main">오늘의 흐름</h1>
             <p className="mt-2 text-sm leading-6 fi-text-muted">
               {summary?.summary ?? '사주, 타로, 별자리 세 축으로 오늘의 재운 분위기를 정리했습니다.'}
@@ -318,7 +317,6 @@ function DailyFlowModal({
       >
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] fi-text-subtle">오늘의 운세</p>
             <p className="mt-1 text-lg font-semibold fi-text-main">{modalMeta.label}</p>
           </div>
           <button

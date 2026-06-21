@@ -132,7 +132,6 @@ function TarotCardBackPattern() {
       <line x1="50" y1="50" x2="50" y2="75" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
       <line x1="50" y1="50" x2="30" y2="62" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
       <line x1="50" y1="50" x2="30" y2="38" stroke="var(--tarot-card-sigil)" strokeWidth="0.8" opacity="0.45" />
-      <text x="50" y="105" fontSize="8" fill="var(--tarot-card-sigil)" opacity="0.48" textAnchor="middle" fontFamily="serif">아르카나</text>
     </svg>
   );
 }
@@ -636,10 +635,6 @@ export function TarotResultPage() {
                           />
 
                           {card.videoSrc ? <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.18)' }} /> : null}
-
-                          <div className="absolute left-3 top-3 rounded-full border px-3 py-1 text-[10px] font-semibold tracking-[0.22em]" style={{ ...frontCaptionStyle, color: 'var(--app-accent-text-soft)' }}>
-                            아르카나
-                          </div>
 
                           <div className="absolute inset-x-3 bottom-3 rounded-xl px-3 py-2" style={frontCaptionStyle}>
                             <div className="text-xs font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{card.label}</div>

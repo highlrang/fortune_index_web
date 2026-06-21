@@ -97,6 +97,12 @@ const orderedAnalysisKeys = [
   'investment_analysis',
 ] as const;
 
+const analysisKeyByMode = {
+  INVESTMENT_SAJU: 'saju_analysis',
+  INVESTMENT_TAROT: 'tarot_analysis',
+  INVESTMENT_ZODIAC: 'zodiac_analysis',
+} as const;
+
 type InvestmentResultSource = 'consultation' | 'history';
 
 type InvestmentResultLocationState = {
@@ -111,9 +117,10 @@ function hasHistoryAnalysis(analysis: ConsultResponse['history']['analysis'] | u
 
 function getDisplayAnalysisResults(consultResult: ConsultResponse) {
   const historyAnalysis = consultResult.history?.analysis;
+  const modeAnalysisKey = analysisKeyByMode[consultResult.mode as keyof typeof analysisKeyByMode];
 
   if (hasHistoryAnalysis(historyAnalysis)) {
-    return {
+    const historyAnalysisResults = {
       saju_analysis: historyAnalysis?.saju
         ? { title: analysisTitleByKey.saju_analysis, content: historyAnalysis.saju }
         : undefined,
@@ -124,6 +131,16 @@ function getDisplayAnalysisResults(consultResult: ConsultResponse) {
         ? { title: analysisTitleByKey.zodiac_analysis, content: historyAnalysis.zodiac }
         : undefined,
     };
+
+    if (modeAnalysisKey) {
+      return { [modeAnalysisKey]: historyAnalysisResults[modeAnalysisKey] };
+    }
+
+    return historyAnalysisResults;
+  }
+
+  if (modeAnalysisKey) {
+    return { [modeAnalysisKey]: consultResult.ai.analysisResults[modeAnalysisKey] };
   }
 
   return consultResult.ai.analysisResults;
@@ -288,13 +305,20 @@ export function InvestmentResultPage() {
 
   const resultTitle = titleByMode[consultResult.mode] ?? '오늘의 해석';
   const focusLabel = consultResult.focus?.label ?? '오늘의 흐름';
-  const finalAdvice =
-    consultResult.ai?.finalAdvice ?? consultResult.history?.overallSummary ?? '상담 결과를 불러왔지만 요약 문구가 없습니다.';
+  const isComprehensiveMode = consultResult.mode === 'INVESTMENT_ALL';
+  const overallSummary = typeof consultResult.history?.overallSummary === 'string'
+    ? consultResult.history.overallSummary.trim()
+    : '';
+  const shouldShowOverallSummary = isComprehensiveMode && overallSummary.length > 0;
+  const actionAdvice = !isComprehensiveMode && typeof consultResult.ai?.finalAdvice === 'string'
+    ? consultResult.ai.finalAdvice.trim()
+    : '';
   const historyId = consultResult.history?.id;
   const scenarioLabel = consultResult.history?.scenario ? getScenarioLabel(consultResult.history.scenario) : '';
   const question = consultResult.history?.question?.trim() ?? '';
   const hasConsultContext = Boolean(scenarioLabel || question);
   const stabilityToneStyle = typeof stabilityScore === 'number' ? getStabilityToneStyle(stabilityScore) : null;
+  const hasTopSummaryContent = hasConsultContext || typeof stabilityScore === 'number' || shouldShowOverallSummary;
   const bottomNavigationActiveTab = navigationState?.source === 'history' ? 'consult' : 'oracle';
   const selectedTarotCardMetadata =
     selectedTarotCard ? tarotCardMetadata.get(selectedTarotCard.selectedIndex) : undefined;
@@ -428,82 +452,107 @@ export function InvestmentResultPage() {
                   </div>
                 ) : null}
 
-                <div
-                  className={`p-5 ${hasConsultContext || typeof stabilityScore === 'number' ? 'border-t' : ''}`}
-                  style={hasConsultContext || typeof stabilityScore === 'number' ? { borderColor: 'var(--app-surface-border)' } : undefined}
-                >
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
-                      <Clock className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>핵심 요약</p>
-                      <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
-                    </div>
-                  </div>
-                  <p className="text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{finalAdvice}</p>
-                </div>
-
-                {sections.map((section) => (
-                  <div key={section.key} className="border-t p-5" style={{ borderColor: 'var(--app-surface-border)' }}>
-                    <div className="mb-3 flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full" style={accentButtonStyle}>
-                        <section.icon className="h-[18px] w-[18px]" />
+                {shouldShowOverallSummary ? (
+                  <div
+                    className={`p-5 ${hasConsultContext || typeof stabilityScore === 'number' ? 'border-t' : ''}`}
+                    style={hasConsultContext || typeof stabilityScore === 'number' ? { borderColor: 'var(--app-surface-border)' } : undefined}
+                  >
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
+                        <Clock className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-[11px]" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
-                        <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
+                        <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>핵심 요약</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>오늘의 핵심 요약</h3>
                       </div>
                     </div>
+                    <p className="text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{overallSummary}</p>
+                  </div>
+                ) : null}
 
-                    {section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? (
-                      <div className="mb-4">
-                        <div className="grid grid-cols-3 gap-3">
-                          {consultResult.tarot.cards.map((card) => {
-                            const metadata = tarotCardMetadata.get(card.selectedIndex);
-                            const imageSrc = resolveApiAssetUrl(metadata?.imageUrl) || resolveApiAssetUrl(card.imageUrl);
-                            const cardLabel = card.koreanName ?? metadata?.koreanName ?? metadata?.name ?? card.name;
+                {sections.map((section, index) => {
+                  const shouldDrawSectionBorder = hasTopSummaryContent || index > 0;
 
-                            return (
-                              <button
-                                key={`${card.code}-${card.selectedIndex}`}
-                                type="button"
-                                onClick={() => setSelectedTarotCard(card)}
-                                className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
-                                aria-label={`${cardLabel} 상세 정보 보기`}
-                              >
-                                <div
-                                  className="relative aspect-[2/3] overflow-hidden rounded-xl border"
-                                  style={{
-                                    borderColor: 'var(--tarot-card-cover-border)',
-                                    background: 'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
-                                    boxShadow: '0 8px 18px rgba(0, 0, 0, 0.22)',
-                                  }}
-                                >
-                                  {imageSrc ? (
-                                    <img src={imageSrc} alt={cardLabel} className="block h-full w-full object-cover opacity-100" loading="lazy" />
-                                  ) : (
-                                    <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: 'var(--tarot-card-sigil)' }}>
-                                      {cardLabel}
-                                    </div>
-                                  )}
-                                  <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)' }} />
-                                </div>
-                              </button>
-                            );
-                          })}
+                  return (
+                    <div
+                      key={section.key}
+                      className={`${shouldDrawSectionBorder ? 'border-t ' : ''}p-5`}
+                      style={shouldDrawSectionBorder ? { borderColor: 'var(--app-surface-border)' } : undefined}
+                    >
+                      <div className="mb-3 flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full" style={accentButtonStyle}>
+                          <section.icon className="h-[18px] w-[18px]" />
+                        </div>
+                        <div>
+                          <p className="text-[11px]" style={{ color: 'var(--app-text-subtle)' }}>해석</p>
+                          <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>{section.title}</h3>
                         </div>
                       </div>
-                    ) : null}
 
-                    <div
-                      className={section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? 'border-t pt-4' : ''}
-                      style={section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? { borderColor: 'var(--app-surface-border)' } : undefined}
-                    >
-                      <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
+                      {section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? (
+                        <div className="mb-4">
+                          <div className="grid grid-cols-3 gap-3">
+                            {consultResult.tarot.cards.map((card) => {
+                              const metadata = tarotCardMetadata.get(card.selectedIndex);
+                              const imageSrc = resolveApiAssetUrl(metadata?.imageUrl) || resolveApiAssetUrl(card.imageUrl);
+                              const cardLabel = card.koreanName ?? metadata?.koreanName ?? metadata?.name ?? card.name;
+
+                              return (
+                                <button
+                                  key={`${card.code}-${card.selectedIndex}`}
+                                  type="button"
+                                  onClick={() => setSelectedTarotCard(card)}
+                                  className="min-w-0 rounded-xl text-left transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--tarot-point-color)] focus:ring-offset-2 focus:ring-offset-transparent"
+                                  aria-label={`${cardLabel} 상세 정보 보기`}
+                                >
+                                  <div
+                                    className="relative aspect-[2/3] overflow-hidden rounded-xl border"
+                                    style={{
+                                      borderColor: 'var(--tarot-card-cover-border)',
+                                      background: 'linear-gradient(145deg, var(--tarot-card-cover-start) 0%, var(--tarot-card-cover-mid) 52%, var(--tarot-card-cover-end) 100%)',
+                                      boxShadow: '0 8px 18px rgba(0, 0, 0, 0.22)',
+                                    }}
+                                  >
+                                    {imageSrc ? (
+                                      <img src={imageSrc} alt={cardLabel} className="block h-full w-full object-cover opacity-100" loading="lazy" />
+                                    ) : (
+                                      <div className="flex h-full items-center justify-center px-3 text-center text-xs" style={{ color: 'var(--tarot-card-sigil)' }}>
+                                        {cardLabel}
+                                      </div>
+                                    )}
+                                    <div className="pointer-events-none absolute inset-0 rounded-xl border" style={{ borderColor: 'color-mix(in srgb, var(--tarot-card-cover-border) 48%, transparent)' }} />
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <div
+                        className={section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? 'border-t pt-4' : ''}
+                        style={section.key === 'tarot_analysis' && consultResult.tarot?.cards?.length ? { borderColor: 'var(--app-surface-border)' } : undefined}
+                      >
+                        <p className="whitespace-pre-wrap text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{section.content}</p>
+                      </div>
                     </div>
+                  );
+                })}
+
+                {actionAdvice ? (
+                  <div className="border-t p-5" style={{ borderColor: 'var(--app-surface-border)' }}>
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={accentButtonStyle}>
+                        <Clock className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-medium uppercase" style={{ color: 'var(--app-text-subtle)' }}>행동 기준</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'var(--tarot-text-main)' }}>짧은 조언</h3>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>{actionAdvice}</p>
                   </div>
-                ))}
+                ) : null}
               </div>
             </div>
           </motion.div>
